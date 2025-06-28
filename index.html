@@ -141,9 +141,11 @@
             <p class="text-gray-600 mb-4">Puedes compartir un enlace a esta página con filtros ya aplicados añadiendo parámetros a la URL. La búsqueda no distingue entre mayúsculas/minúsculas ni acentos.</p>
             <p class="text-gray-600 mb-2"><strong>Ejemplos:</strong></p>
             <ul class="list-disc list-inside text-gray-600 space-y-2">
-                <li>Para filtrar por un autor que contenga "Maria Lopez":<br><code class="text-sm bg-gray-100 p-1 rounded">?autor=Maria Lopez</code></li>
-                <li>Para filtrar por la palabra clave "juego":<br><code class="text-sm bg-gray-100 p-1 rounded">?keyword=juego</code></li>
-                <li>Para filtrar por un área de conocimiento:<br><code class="text-sm bg-gray-100 p-1 rounded">?area=matematicas</code></li>
+                <li>Para filtrar por un autor:<br><code class="text-sm bg-gray-100 p-1 rounded">?autor=Maria Lopez</code></li>
+                <li>Para filtrar por palabra clave:<br><code class="text-sm bg-gray-100 p-1 rounded">?keyword=juego</code></li>
+                <li>Para filtrar por título:<br><code class="text-sm bg-gray-100 p-1 rounded">?titulo=sudoku</code></li>
+                <li>Para filtrar por URL de la app:<br><code class="text-sm bg-gray-100 p-1 rounded">?url=github.io</code></li>
+                <li>Para filtrar por área:<br><code class="text-sm bg-gray-100 p-1 rounded">?area=matematicas</code></li>
                 <li>Para filtrar por varios niveles (separados por comas):<br><code class="text-sm bg-gray-100 p-1 rounded">?nivel=Primaria,Secundaria</code></li>
             </ul>
         </div>
@@ -233,7 +235,7 @@
                         validatedData.push(app);
                     }
                 }
-                return validatedData.reverse();
+                return validatedData; // Already sorted newest first from the loop
             }
             
             function getPlatformStyle(platform) {
@@ -382,7 +384,8 @@
                     const searchMatch = searchText === '' ||
                         normalizeString(app.titulo_app).includes(searchText) ||
                         normalizeString(app.nombre_autor).includes(searchText) ||
-                        normalizeString(app.descripcion_app).includes(searchText);
+                        normalizeString(app.descripcion_app).includes(searchText) ||
+                        normalizeString(app.url_app).includes(searchText);
 
                     if (!searchMatch) return false;
 
@@ -393,7 +396,7 @@
                         const appValueString = app[category] ? normalizeString(app[category]) : '';
                         if (!appValueString) return false;
                         
-                        const match = [...selected].some(filterVal => {
+                        const match = [...selected].every(filterVal => {
                             const normalizedFilter = normalizeString(filterVal);
                             return appValueString.includes(normalizedFilter);
                         });
@@ -437,7 +440,9 @@
                     plataforma: 'plataforma',
                     autor: 'nombre_autor',
                     keyword: 'palabras_clave',
-                    q: 'search'
+                    q: 'search',
+                    titulo: 'search',
+                    url: 'search'
                 };
                 
                 params.forEach((value, key) => {
