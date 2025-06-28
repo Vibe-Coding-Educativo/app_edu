@@ -161,7 +161,6 @@
                 nombre_autor: new Set(),
             };
             
-            // Función para normalizar texto (quitar acentos y a minúsculas)
             function normalizeString(str) {
                 if (!str) return '';
                 return str
@@ -308,6 +307,7 @@
                     const keywordsHtml = app.palabras_clave ? app.palabras_clave.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') : '';
                     const nivelHtml = app.nivel_educativo ? `<p><strong>Nivel:</strong> ${app.nivel_educativo}</p>` : '';
                     const areaHtml = app.area_conocimiento ? `<p><strong>Área:</strong> ${app.area_conocimiento}</p>` : '';
+                    const licenciaHtml = app.licencia ? `<p><strong>Licencia:</strong> ${app.licencia}</p>` : '';
 
                     card.innerHTML = `
                         <div class="p-5 flex-grow flex flex-col">
@@ -316,7 +316,9 @@
                             <p class="text-sm text-gray-500 mb-3">por <span class="font-medium text-gray-700">${app.nombre_autor}</span></p>
                             <p class="text-gray-600 text-sm mb-4 flex-grow">${app.descripcion_app || 'No hay descripción.'}</p>
                             <div class="text-xs text-gray-500 space-y-1 mt-auto">
-                                ${nivelHtml} ${areaHtml}
+                                ${nivelHtml}
+                                ${areaHtml}
+                                ${licenciaHtml}
                             </div>
                         </div>
                         <div class="p-4 border-t border-gray-200 bg-gray-50">
