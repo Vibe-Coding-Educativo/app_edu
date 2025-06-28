@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repositorio de aplicaciones educativas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border-top-width: 4px;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .filter-btn {
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #d1d5db; /* gray-300 */
+        }
+        .filter-btn.active {
+            background-color: #3b82f6; /* blue-600 */
+            color: white;
+            border-color: #3b82f6; /* blue-600 */
+        }
+        .filter-btn:not(.active):hover {
+            background-color: #f3f4f6; /* gray-100 */
+            border-color: #9ca3af; /* gray-400 */
+        }
+        details > summary {
+            list-style: none;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        details[open] summary .arrow {
+            transform: rotate(90deg);
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <!-- Encabezado -->
+        <header class="text-center mb-4 p-6 rounded-xl bg-gradient-to-b from-blue-50 to-gray-50">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Repositorio de aplicaciones educativas</h1>
+            <p class="mt-4 text-lg text-gray-600">
+                Una colección de aplicaciones y recursos educativos creados por la comunidad 
+                <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>.
+            </p>
+            <p class="mt-2 text-sm text-gray-500">
+                Para añadir tu aplicación, utiliza el enlace fijado en el grupo.
+            </p>
+        </header>
+
+        <!-- Botón para mostrar/ocultar filtros -->
+        <div class="flex justify-end mb-4">
+            <button id="toggle-filters-btn" title="Mostrar/ocultar filtros" class="flex items-center gap-2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                <span>Filtros</span>
+            </button>
+        </div>
+
+        <!-- Panel de Filtros (Colapsable) -->
+        <div id="filter-panel" class="bg-white p-4 sm:p-6 rounded-xl shadow-sm mb-8 sticky top-4 z-10 border border-gray-200 hidden">
+            <div id="filters-container" class="space-y-4">
+                <!-- Las secciones de filtros se insertarán aquí -->
+            </div>
+            <div class="mt-6 border-t pt-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                 <div>
+                    <label for="search-input" class="block text-sm font-medium text-gray-700 mb-1">Búsqueda libre</label>
+                    <input type="text" id="search-input" placeholder="Título, autor..." class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                 </div>
+                 <div class="flex justify-end h-full">
+                     <button id="reset-filters-btn" class="w-full md:w-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">Limpiar Filtros</button>
+                 </div>
+            </div>
+        </div>
+        
+        <!-- Mensajes -->
+        <div id="loading-message" class="text-center py-10"><p class="text-lg text-gray-500">Cargando aplicaciones...</p></div>
+        <div id="error-message" class="hidden text-center py-10 bg-red-100 text-red-700 rounded-lg"><p class="text-lg">No se pudieron cargar los datos.</p></div>
+        <div id="no-results-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No se encontraron aplicaciones que coincidan con los filtros.</p></div>
+
+        <!-- Contenedor de las tarjetas -->
+        <div id="apps-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Las tarjetas se insertarán aquí -->
+        </div>
+    </div>
+    
+    <footer class="text-center py-8 mt-12 border-t border-gray-200 text-sm text-gray-500">
+        <p>
+            <a href="https://labia.tiddlyhost.com" target="_blank" class="hover:underline">Laboratorio de aplicaciones educativas</a> - 
+            <a href="https://bilateria.org" target="_blank" class="hover:underline">Aplicación hecha por Juan José de Haro</a> - 
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="hover:underline">Licencia Creative Commons BY-SA</a>
+        </p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8Jcjg7UKW9METSEgfrqzJ0yJsuOZneNU-ISRzvfzxkvrqZkEjCKsztWjWK87TIZ5YpLUcFE-53xMk/pub?output=csv';
+            
+            const COLUMN_MAPPING = {
+                'Timestamp': 'timestamp', 'Tu correo': 'correo_autor', 'Tu nombre (Autor/a de la aplicación)': 'nombre_autor',
+                'Título de la aplicación': 'titulo_app', 'Enlace (URL) a la aplicación': 'url_app', 'Descripción breve': 'descripcion_app',
+                'Plataforma de creación/alojamiento': 'plataforma', 'Tipo de recurso': 'tipo_recurso', 'Nivel o niveles educativos': 'nivel_educativo',
+                'Área o áreas de conocimiento': 'area_conocimiento', 'Palabras clave (opcional)': 'palabras_clave', 'Licencia de uso': 'licencia'
+            };
+
+            const PLATFORM_STYLES = {
+                'Gemini': { color: 'border-purple-500' }, 'Claude': { color: 'border-orange-500' },
+                'ChatGPT': { color: 'border-teal-500' }, 'Web (HTML/JS propio)': { color: 'border-blue-500' },
+                'GitHub Pages': { color: 'border-black' }, 'Google Sites': { color: 'border-sky-500' },
+                'Default': { color: 'border-gray-400' }
+            };
+
+            const REQUIRED_FIELDS = ['nombre_autor', 'titulo_app', 'url_app'];
+            let allApps = [];
+            let activeFilters = {
+                area_conocimiento: new Set(),
+                nivel_educativo: new Set(),
+                tipo_recurso: new Set(),
+                plataforma: new Set(),
+                nombre_autor: new Set(),
+            };
+
+            Papa.parse(CSV_URL, {
+                download: true, header: true, skipEmptyLines: true,
+                complete: (results) => {
+                    document.getElementById('loading-message').style.display = 'none';
+                    allApps = processData(results.data);
+                    if(allApps.length > 0) {
+                        setupFilters(allApps);
+                        displayApps(allApps);
+                    } else {
+                        document.getElementById('no-results-message').classList.remove('hidden');
+                    }
+                },
+                error: (error) => {
+                    console.error("Error al cargar o parsear el CSV:", error);
+                    document.getElementById('loading-message').style.display = 'none';
+                    document.getElementById('error-message').classList.remove('hidden');
+                }
+            });
+
+            function processData(data) {
+                const renamedData = data.map(row => Object.fromEntries(Object.entries(row).map(([key, value]) => [COLUMN_MAPPING[key] || key, value.trim()])));
+                const seenTitleAuthor = new Set();
+                const validatedData = [];
+
+                for (let i = renamedData.length - 1; i >= 0; i--) {
+                    const app = renamedData[i];
+                    
+                    const missingFields = REQUIRED_FIELDS.filter(field => !app[field]);
+                    if (missingFields.length > 0) {
+                        console.warn(`Registro omitido (faltan datos esenciales: ${missingFields.join(', ')}): Fila ${i+2}`);
+                        continue;
+                    }
+                    
+                    try { new URL(app.url_app); } catch (_) {
+                         console.warn(`Registro omitido (URL inválida): "${app.url_app}" para "${app.titulo_app}". Fila ${i+2}`);
+                        continue;
+                    }
+
+                    const titleAuthorKey = `${app.titulo_app.toLowerCase().trim()}|${app.nombre_autor.toLowerCase().trim()}`;
+                    
+                    if (!seenTitleAuthor.has(titleAuthorKey)) {
+                        seenTitleAuthor.add(titleAuthorKey);
+                        validatedData.push(app);
+                    } else {
+                        console.log(`Registro duplicado omitido (mismo título y autor): "${app.titulo_app}" por ${app.nombre_autor}. Fila ${i+2}`);
+                    }
+                }
+                return validatedData.reverse(); // Devolver en orden cronológico
+            }
+            
+            function getPlatformStyle(platform) {
+                if (!platform) return PLATFORM_STYLES.Default;
+                const key = Object.keys(PLATFORM_STYLES).find(k => platform.includes(k) && k !== 'Default');
+                return PLATFORM_STYLES[key] || PLATFORM_STYLES.Default;
+            }
+
+            function setupFilters(apps) {
+                const filtersContainer = document.getElementById('filters-container');
+                const filterCategories = [
+                    { id: 'area_conocimiento', name: 'Área de Conocimiento', multiSelect: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>' },
+                    { id: 'nivel_educativo', name: 'Nivel Educativo', multiSelect: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7.9 3.2 2.3 4.1"/><path d="M16 17a3 3 0 0 0-3-3 3 3 0 0 0-3 3v2h6v-2Z"/></svg>' },
+                    { id: 'tipo_recurso', name: 'Tipo de Recurso', multiSelect: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.28 2.22a2.22 2.22 0 0 0-3.14 0l-12 12a2.22 2.22 0 0 0 0 3.14l3.14 3.14a2.22 2.22 0 0 0 3.14 0l12-12a2.22 2.22 0 0 0 0-3.14Z"/><path d="m14 7 3 3"/><path d="M5.5 16.5 10 12"/></svg>' },
+                    { id: 'plataforma', name: 'Plataforma', multiSelect: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'},
+                    { id: 'nombre_autor', name: 'Autor', multiSelect: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
+                ];
+
+                filterCategories.forEach(cat => {
+                    const values = new Set();
+                    apps.forEach(app => {
+                        app[cat.id]?.split(',').forEach(val => {
+                            const trimmedValue = val.trim();
+                            if (trimmedValue) {
+                                values.add(trimmedValue);
+                            }
+                        });
+                    });
+                    
+                    const sortedValues = Array.from(values).sort();
+                    if (sortedValues.length === 0) return;
+
+                    const details = document.createElement('details');
+                    details.className = 'border-b border-gray-200 last:border-b-0 pb-4';
+                    details.innerHTML = `
+                        <summary class="flex justify-between items-center cursor-pointer py-2">
+                            <div class="flex items-center gap-3">
+                                <span class="text-gray-500">${cat.icon}</span>
+                                <span class="font-semibold text-gray-800">${cat.name}</span>
+                            </div>
+                            <span class="arrow transition-transform text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                            </span>
+                        </summary>
+                        <div class="pt-3 flex flex-wrap gap-2 button-group" data-category="${cat.id}" data-multiselect="${cat.multiSelect}">
+                            ${sortedValues.map(value => `
+                                <button class="filter-btn text-sm font-medium py-1.5 px-3 rounded-full" data-filter="${value}">
+                                    ${value}
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                    filtersContainer.appendChild(details);
+                });
+
+                filtersContainer.addEventListener('click', e => {
+                    const target = e.target.closest('button.filter-btn');
+                    if (!target) return;
+                    
+                    const group = target.parentElement;
+                    const category = group.dataset.category;
+                    const filter = target.dataset.filter;
+                    const isMultiSelect = group.dataset.multiselect === 'true';
+
+                    if (isMultiSelect) {
+                        target.classList.toggle('active');
+                        if (activeFilters[category].has(filter)) {
+                            activeFilters[category].delete(filter);
+                        } else {
+                            activeFilters[category].add(filter);
+                        }
+                    } else {
+                        if (target.classList.contains('active')) {
+                            target.classList.remove('active');
+                            activeFilters[category].delete(filter);
+                        } else {
+                             group.querySelectorAll('.active').forEach(btn => btn.classList.remove('active'));
+                             target.classList.add('active');
+                             activeFilters[category].clear();
+                             activeFilters[category].add(filter);
+                        }
+                    }
+                    applyFilters();
+                });
+            }
+
+            function displayApps(apps) {
+                const container = document.getElementById('apps-container');
+                const noResultsMessage = document.getElementById('no-results-message');
+                container.innerHTML = '';
+                noResultsMessage.classList.toggle('hidden', apps.length > 0);
+
+                apps.forEach(app => {
+                    const card = document.createElement('div');
+                    const style = getPlatformStyle(app.plataforma);
+                    card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col ${style.color}`;
+                    
+                    const keywordsHtml = app.palabras_clave ? app.palabras_clave.split(',').filter(k => k.trim()).map(k => `<span class="bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${k.trim()}</span>`).join('') : '';
+                    const nivelHtml = app.nivel_educativo ? `<p><strong>Nivel:</strong> ${app.nivel_educativo}</p>` : '';
+                    const areaHtml = app.area_conocimiento ? `<p><strong>Área:</strong> ${app.area_conocimiento}</p>` : '';
+
+                    card.innerHTML = `
+                        <div class="p-5 flex-grow flex flex-col">
+                            <p class="text-sm font-semibold text-gray-600 mb-3">${app.plataforma || 'Sin plataforma'}</p>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">${app.titulo_app}</h3>
+                            <p class="text-sm text-gray-500 mb-3">por <span class="font-medium text-gray-700">${app.nombre_autor}</span></p>
+                            <p class="text-gray-600 text-sm mb-4 flex-grow">${app.descripcion_app || 'No hay descripción.'}</p>
+                            <div class="text-xs text-gray-500 space-y-1 mt-auto">
+                                ${nivelHtml} ${areaHtml}
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-gray-200 bg-gray-50">
+                             <div class="flex flex-wrap mb-3 min-h-[2rem]">${keywordsHtml}</div>
+                            <a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                                Visitar Aplicación
+                            </a>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            function applyFilters() {
+                const searchText = document.getElementById('search-input').value.toLowerCase();
+                
+                const filteredApps = allApps.filter(app => {
+                    const searchMatch = searchText === '' ||
+                        app.titulo_app.toLowerCase().includes(searchText) ||
+                        app.nombre_autor.toLowerCase().includes(searchText) ||
+                        (app.descripcion_app && app.descripcion_app.toLowerCase().includes(searchText));
+
+                    if (!searchMatch) return false;
+
+                    for (const category in activeFilters) {
+                        const selected = activeFilters[category];
+                        if (selected.size === 0) continue;
+                        
+                        const appValues = new Set(app[category]?.split(',').map(v => v.trim()) || []);
+                        const intersection = new Set([...selected].filter(x => appValues.has(x)));
+                        
+                        if (intersection.size === 0) return false;
+                    }
+                    return true;
+                });
+                displayApps(filteredApps);
+            }
+            
+            document.getElementById('toggle-filters-btn').addEventListener('click', () => {
+                document.getElementById('filter-panel').classList.toggle('hidden');
+            });
+
+            document.getElementById('search-input').addEventListener('input', applyFilters);
+            document.getElementById('reset-filters-btn').addEventListener('click', () => {
+                document.getElementById('search-input').value = '';
+                for (const category in activeFilters) {
+                    activeFilters[category].clear();
+                }
+                document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active'));
+                
+                document.querySelectorAll('#filters-container details').forEach(detail => {
+                    detail.open = false;
+                });
+
+                applyFilters();
+            });
+
+        });
+    </script>
+</body>
+</html>
