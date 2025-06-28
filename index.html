@@ -100,8 +100,13 @@
             </div>
         </div>
         
-        <!-- Mensajes e Indicador de Filtro por Palabra Clave -->
-        <div id="keyword-filter-indicator" class="mb-4"></div>
+        <!-- Indicadores y Contador -->
+        <div class="mb-4">
+            <div id="keyword-filter-indicator" class="mb-2"></div>
+            <div id="results-counter" class="text-sm text-gray-600 font-medium"></div>
+        </div>
+
+        <!-- Mensajes -->
         <div id="loading-message" class="flex flex-col items-center justify-center text-center py-20">
             <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -296,8 +301,10 @@
 
             function displayApps(apps) {
                 const container = document.getElementById('apps-container');
+                const counter = document.getElementById('results-counter');
                 container.innerHTML = '';
                 document.getElementById('no-results-message').classList.toggle('hidden', apps.length > 0);
+                counter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
 
                 apps.forEach(app => {
                     const card = document.createElement('div');
