@@ -393,7 +393,7 @@
                         const appValueString = app[category] ? normalizeString(app[category]) : '';
                         if (!appValueString) return false;
                         
-                        const match = [...selected].every(filterVal => {
+                        const match = [...selected].some(filterVal => {
                             const normalizedFilter = normalizeString(filterVal);
                             return appValueString.includes(normalizedFilter);
                         });
@@ -444,14 +444,20 @@
                     const category = paramMapping[key.toLowerCase()];
                     if (!category) return;
                     
-                    const values = value.split(',');
+                    const valuesFromUrl = value.split(',');
                     if (category === 'search') {
                         document.getElementById('search-input').value = value;
                     } else if (activeFilters[category]) {
-                         values.forEach(val => {
-                            activeFilters[category].add(val);
-                            const btn = document.querySelector(`[data-category="${category}"] [data-filter="${val}"]`);
-                            if(btn) btn.classList.add('active');
+                         valuesFromUrl.forEach(urlVal => {
+                            activeFilters[category].add(urlVal);
+                            const normalizedUrlVal = normalizeString(urlVal);
+                            const buttons = document.querySelectorAll(`[data-category="${category}"] .filter-btn`);
+                            buttons.forEach(btn => {
+                                const normalizedBtnFilter = normalizeString(btn.dataset.filter);
+                                if (normalizedBtnFilter.includes(normalizedUrlVal)) {
+                                    btn.classList.add('active');
+                                }
+                            });
                         });
                     }
                 });
