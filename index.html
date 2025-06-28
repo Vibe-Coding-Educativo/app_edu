@@ -87,7 +87,14 @@
         </div>
         
         <!-- Mensajes -->
-        <div id="loading-message" class="text-center py-10"><p class="text-lg text-gray-500">Cargando aplicaciones...</p></div>
+        <div id="loading-message" class="flex flex-col items-center justify-center text-center py-20">
+            <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-lg text-gray-600 font-semibold">Cargando aplicaciones...</p>
+            <p class="text-sm text-gray-500">Un momento, por favor.</p>
+        </div>
         <div id="error-message" class="hidden text-center py-10 bg-red-100 text-red-700 rounded-lg"><p class="text-lg">No se pudieron cargar los datos.</p></div>
         <div id="no-results-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No se encontraron aplicaciones que coincidan con los filtros.</p></div>
 
@@ -107,13 +114,21 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS8Jcjg7UKW9METSEgfrqzJ0yJsuOZneNU-ISRzvfzxkvrqZkEjCKsztWjWK87TIZ5YpLUcFE-53xMk/pub?output=csv';
+            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
             
             const COLUMN_MAPPING = {
-                'Timestamp': 'timestamp', 'Tu correo': 'correo_autor', 'Tu nombre (Autor/a de la aplicación)': 'nombre_autor',
-                'Título de la aplicación': 'titulo_app', 'Enlace (URL) a la aplicación': 'url_app', 'Descripción breve': 'descripcion_app',
-                'Plataforma de creación/alojamiento': 'plataforma', 'Tipo de recurso': 'tipo_recurso', 'Nivel o niveles educativos': 'nivel_educativo',
-                'Área o áreas de conocimiento': 'area_conocimiento', 'Palabras clave (opcional)': 'palabras_clave', 'Licencia de uso': 'licencia'
+                'Marca temporal': 'timestamp',
+                'Dirección de correo electrónico': 'correo_autor',
+                'Tu nombre (Autor/a de la aplicación)': 'nombre_autor',
+                'Título de la aplicación': 'titulo_app',
+                'Enlace (URL) a la aplicación': 'url_app',
+                'Descripción breve': 'descripcion_app',
+                'Plataforma de creación/alojamiento': 'plataforma',
+                'Tipo de recurso': 'tipo_recurso',
+                'Nivel o niveles educativos': 'nivel_educativo',
+                'Área o áreas de conocimiento': 'area_conocimiento',
+                'Palabras clave (opcional)': 'palabras_clave',
+                'Licencia de uso': 'licencia'
             };
 
             const PLATFORM_STYLES = {
@@ -123,7 +138,7 @@
                 'Default': { color: 'border-gray-400' }
             };
 
-            const REQUIRED_FIELDS = ['nombre_autor', 'titulo_app', 'url_app'];
+            const REQUIRED_FIELDS = ['correo_autor', 'nombre_autor', 'titulo_app', 'url_app'];
             let allApps = [];
             let activeFilters = {
                 area_conocimiento: new Set(),
@@ -154,7 +169,7 @@
 
             function processData(data) {
                 const renamedData = data.map(row => Object.fromEntries(Object.entries(row).map(([key, value]) => [COLUMN_MAPPING[key] || key, value.trim()])));
-                const seenTitleAuthor = new Set();
+                const seenEmailTitle = new Set();
                 const validatedData = [];
 
                 for (let i = renamedData.length - 1; i >= 0; i--) {
@@ -171,16 +186,16 @@
                         continue;
                     }
 
-                    const titleAuthorKey = `${app.titulo_app.toLowerCase().trim()}|${app.nombre_autor.toLowerCase().trim()}`;
+                    const emailTitleKey = `${app.correo_autor.toLowerCase().trim()}|${app.titulo_app.toLowerCase().trim()}`;
                     
-                    if (!seenTitleAuthor.has(titleAuthorKey)) {
-                        seenTitleAuthor.add(titleAuthorKey);
+                    if (!seenEmailTitle.has(emailTitleKey)) {
+                        seenEmailTitle.add(emailTitleKey);
                         validatedData.push(app);
                     } else {
-                        console.log(`Registro duplicado omitido (mismo título y autor): "${app.titulo_app}" por ${app.nombre_autor}. Fila ${i+2}`);
+                        console.log(`Registro duplicado omitido (mismo correo y título): "${app.titulo_app}" por ${app.correo_autor}. Fila ${i+2}`);
                     }
                 }
-                return validatedData.reverse(); // Devolver en orden cronológico
+                return validatedData.reverse();
             }
             
             function getPlatformStyle(platform) {
