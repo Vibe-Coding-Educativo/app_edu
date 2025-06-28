@@ -42,6 +42,12 @@
         details[open] summary .arrow {
             transform: rotate(90deg);
         }
+        .keyword-tag {
+            cursor: pointer;
+        }
+        .keyword-tag:hover {
+            background-color: #bae6fd; /* sky-200 */
+        }
         .hidden {
             display: none;
         }
@@ -94,7 +100,8 @@
             </div>
         </div>
         
-        <!-- Mensajes -->
+        <!-- Mensajes e Indicador de Filtro por Palabra Clave -->
+        <div id="keyword-filter-indicator" class="mb-4"></div>
         <div id="loading-message" class="flex flex-col items-center justify-center text-center py-20">
             <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -184,23 +191,14 @@
                     const app = renamedData[i];
                     
                     const missingFields = REQUIRED_FIELDS.filter(field => !app[field]);
-                    if (missingFields.length > 0) {
-                        console.warn(`Registro omitido (faltan datos esenciales: ${missingFields.join(', ')}): Fila ${i+2}`);
-                        continue;
-                    }
-                    
-                    try { new URL(app.url_app); } catch (_) {
-                         console.warn(`Registro omitido (URL inválida): "${app.url_app}" para "${app.titulo_app}". Fila ${i+2}`);
-                        continue;
-                    }
+                    if (missingFields.length > 0) continue;
+                    try { new URL(app.url_app); } catch (_) { continue; }
 
                     const emailTitleKey = `${app.correo_autor.toLowerCase().trim()}|${app.titulo_app.toLowerCase().trim()}`;
                     
                     if (!seenEmailTitle.has(emailTitleKey)) {
                         seenEmailTitle.add(emailTitleKey);
                         validatedData.push(app);
-                    } else {
-                        console.log(`Registro duplicado omitido (mismo correo y título): "${app.titulo_app}" por ${app.correo_autor}. Fila ${i+2}`);
                     }
                 }
                 return validatedData.reverse();
@@ -292,16 +290,15 @@
 
             function displayApps(apps) {
                 const container = document.getElementById('apps-container');
-                const noResultsMessage = document.getElementById('no-results-message');
                 container.innerHTML = '';
-                noResultsMessage.classList.toggle('hidden', apps.length > 0);
+                document.getElementById('no-results-message').classList.toggle('hidden', apps.length > 0);
 
                 apps.forEach(app => {
                     const card = document.createElement('div');
                     const style = getPlatformStyle(app.plataforma);
                     card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col ${style.color}`;
                     
-                    const keywordsHtml = app.palabras_clave ? app.palabras_clave.split(',').filter(k => k.trim()).map(k => `<span class="bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${k.trim()}</span>`).join('') : '';
+                    const keywordsHtml = app.palabras_clave ? app.palabras_clave.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') : '';
                     const nivelHtml = app.nivel_educativo ? `<p><strong>Nivel:</strong> ${app.nivel_educativo}</p>` : '';
                     const areaHtml = app.area_conocimiento ? `<p><strong>Área:</strong> ${app.area_conocimiento}</p>` : '';
 
@@ -324,6 +321,19 @@
                     `;
                     container.appendChild(card);
                 });
+            }
+            
+            function resetAllFilters() {
+                document.getElementById('search-input').value = '';
+                for (const category in activeFilters) {
+                    activeFilters[category].clear();
+                }
+                document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('#filters-container details').forEach(detail => {
+                    detail.open = false;
+                });
+                 document.getElementById('keyword-filter-indicator').innerHTML = '';
+                applyFilters();
             }
 
             function applyFilters() {
@@ -356,20 +366,36 @@
             });
 
             document.getElementById('search-input').addEventListener('input', applyFilters);
-            document.getElementById('reset-filters-btn').addEventListener('click', () => {
-                document.getElementById('search-input').value = '';
-                for (const category in activeFilters) {
-                    activeFilters[category].clear();
-                }
-                document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('reset-filters-btn').addEventListener('click', resetAllFilters);
+            
+            document.getElementById('apps-container').addEventListener('click', e => {
+                const target = e.target.closest('.keyword-tag');
+                if (!target) return;
                 
-                document.querySelectorAll('#filters-container details').forEach(detail => {
-                    detail.open = false;
+                const keyword = target.dataset.keyword;
+                resetAllFilters();
+                
+                const filteredByKeyword = allApps.filter(app => {
+                    return app.palabras_clave?.split(',').map(k => k.trim()).includes(keyword);
                 });
 
-                applyFilters();
+                const indicator = document.getElementById('keyword-filter-indicator');
+                indicator.innerHTML = `
+                    <div class="flex items-center justify-center bg-blue-100 text-blue-800 p-2 rounded-lg">
+                        <span class="font-medium">Filtrando por palabra clave:</span>
+                        <span class="font-bold ml-2">${keyword}</span>
+                        <button id="clear-keyword-filter" class="ml-4 font-bold text-lg hover:text-blue-600">&times;</button>
+                    </div>
+                `;
+
+                displayApps(filteredByKeyword);
             });
 
+            document.getElementById('keyword-filter-indicator').addEventListener('click', e => {
+                if (e.target.id === 'clear-keyword-filter') {
+                    resetAllFilters();
+                }
+            });
         });
     </script>
 </body>
