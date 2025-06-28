@@ -121,9 +121,7 @@
     
     <footer class="text-center py-8 mt-12 border-t border-gray-200 text-sm text-gray-500">
         <p>
-            <a href="https://labia.tiddlyhost.com" target="_blank" class="hover:underline">Laboratorio de aplicaciones educativas</a> - 
-            <a href="https://bilateria.org" target="_blank" class="hover:underline">Aplicación hecha por Juan José de Haro</a> - 
-            <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="hover:underline">Licencia Creative Commons BY-SA</a>
+            Una iniciativa del grupo <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>.
         </p>
     </footer>
 
@@ -162,6 +160,15 @@
                 plataforma: new Set(),
                 nombre_autor: new Set(),
             };
+            
+            // Función para normalizar texto (quitar acentos y a minúsculas)
+            function normalizeString(str) {
+                if (!str) return '';
+                return str
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "");
+            }
 
             Papa.parse(CSV_URL, {
                 download: true, header: true, skipEmptyLines: true,
@@ -337,13 +344,13 @@
             }
 
             function applyFilters() {
-                const searchText = document.getElementById('search-input').value.toLowerCase();
+                const searchText = normalizeString(document.getElementById('search-input').value);
                 
                 const filteredApps = allApps.filter(app => {
                     const searchMatch = searchText === '' ||
-                        app.titulo_app.toLowerCase().includes(searchText) ||
-                        app.nombre_autor.toLowerCase().includes(searchText) ||
-                        (app.descripcion_app && app.descripcion_app.toLowerCase().includes(searchText));
+                        normalizeString(app.titulo_app).includes(searchText) ||
+                        normalizeString(app.nombre_autor).includes(searchText) ||
+                        normalizeString(app.descripcion_app).includes(searchText);
 
                     if (!searchMatch) return false;
 
@@ -351,8 +358,10 @@
                         const selected = activeFilters[category];
                         if (selected.size === 0) continue;
                         
-                        const appValues = new Set(app[category]?.split(',').map(v => v.trim()) || []);
-                        const intersection = new Set([...selected].filter(x => appValues.has(x)));
+                        const appValues = new Set(app[category]?.split(',').map(v => normalizeString(v.trim())) || []);
+                        const normalizedSelected = new Set([...selected].map(s => normalizeString(s)));
+                        
+                        const intersection = new Set([...normalizedSelected].filter(x => appValues.has(x)));
                         
                         if (intersection.size === 0) return false;
                     }
@@ -375,8 +384,10 @@
                 const keyword = target.dataset.keyword;
                 resetAllFilters();
                 
+                const normalizedKeyword = normalizeString(keyword);
+
                 const filteredByKeyword = allApps.filter(app => {
-                    return app.palabras_clave?.split(',').map(k => k.trim()).includes(keyword);
+                    return app.palabras_clave?.split(',').map(k => normalizeString(k.trim())).includes(normalizedKeyword);
                 });
 
                 const indicator = document.getElementById('keyword-filter-indicator');
