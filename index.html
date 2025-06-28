@@ -143,7 +143,7 @@
             <ul class="list-disc list-inside text-gray-600 space-y-2">
                 <li>Para filtrar por un autor:<br><code class="text-sm bg-gray-100 p-1 rounded">?autor=Maria Lopez</code></li>
                 <li>Para filtrar por palabra clave:<br><code class="text-sm bg-gray-100 p-1 rounded">?keyword=juego</code></li>
-                <li>Para filtrar por título:<br><code class="text-sm bg-gray-100 p-1 rounded">?titulo=sudoku</code></li>
+                <li>Para filtrar por título:<br><code class="text-sm bg-gray-100 p-1 rounded">?title=sudoku</code></li>
                 <li>Para filtrar por URL de la app:<br><code class="text-sm bg-gray-100 p-1 rounded">?url=github.io</code></li>
                 <li>Para filtrar por área:<br><code class="text-sm bg-gray-100 p-1 rounded">?area=matematicas</code></li>
                 <li>Para filtrar por varios niveles (separados por comas):<br><code class="text-sm bg-gray-100 p-1 rounded">?nivel=Primaria,Secundaria</code></li>
@@ -155,20 +155,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
             
-            const COLUMN_MAPPING = {
-                'Marca temporal': 'timestamp',
-                'Dirección de correo electrónico': 'correo_autor',
-                'Tu nombre (Autor/a de la aplicación)': 'nombre_autor',
-                'Título de la aplicación': 'titulo_app',
-                'Enlace (URL) a la aplicación': 'url_app',
-                'Descripción breve': 'descripcion_app',
-                'Plataforma de creación/alojamiento': 'plataforma',
-                'Tipo de recurso': 'tipo_recurso',
-                'Nivel o niveles educativos': 'nivel_educativo',
-                'Área o áreas de conocimiento': 'area_conocimiento',
-                'Palabras clave (opcional)': 'palabras_clave',
-                'Licencia de uso': 'licencia'
-            };
+            // El orden de las claves aquí DEBE coincidir con el orden de las columnas en el CSV
+            const COLUMN_KEYS = [
+                'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app', 
+                'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo', 
+                'area_conocimiento', 'palabras_clave', 'licencia'
+            ];
 
             const PLATFORM_STYLES = {
                 'Gemini': { color: 'border-purple-500' }, 'Claude': { color: 'border-orange-500' },
@@ -196,8 +188,9 @@
                     .replace(/[\u0300-\u036f]/g, "");
             }
 
+            // CORRECCIÓN: Se cambia header a false para leer por posición de columna.
             Papa.parse(CSV_URL, {
-                download: true, header: true, skipEmptyLines: true,
+                download: true, header: false, skipEmptyLines: true,
                 complete: (results) => {
                     document.getElementById('loading-message').style.display = 'none';
                     allApps = processData(results.data);
@@ -217,15 +210,28 @@
             });
 
             function processData(data) {
-                const renamedData = data.map(row => Object.fromEntries(Object.entries(row).map(([key, value]) => [COLUMN_MAPPING[key] || key, value.trim()])));
+                // CORRECCIÓN: Se procesan los datos por posición, no por cabecera, para mayor fiabilidad.
+                const rows = data.slice(1); // Saltar la fila de cabeceras del CSV
+
+                const mappedData = rows.map(rowArray => {
+                    const newRow = {};
+                    COLUMN_KEYS.forEach((key, index) => {
+                        if (rowArray[index] !== undefined) {
+                            newRow[key] = rowArray[index].trim();
+                        }
+                    });
+                    return newRow;
+                }).filter(app => app.titulo_app); // Filtrar filas vacías que a veces aparecen
+
                 const seenEmailTitle = new Set();
                 const validatedData = [];
 
-                for (let i = renamedData.length - 1; i >= 0; i--) {
-                    const app = renamedData[i];
+                for (let i = mappedData.length - 1; i >= 0; i--) {
+                    const app = mappedData[i];
                     
                     const missingFields = REQUIRED_FIELDS.filter(field => !app[field]);
                     if (missingFields.length > 0) continue;
+
                     try { new URL(app.url_app); } catch (_) { continue; }
 
                     const emailTitleKey = `${app.correo_autor.toLowerCase().trim()}|${app.titulo_app.toLowerCase().trim()}`;
@@ -235,7 +241,7 @@
                         validatedData.push(app);
                     }
                 }
-                return validatedData; // Already sorted newest first from the loop
+                return validatedData;
             }
             
             function getPlatformStyle(platform) {
@@ -441,7 +447,7 @@
                     autor: 'nombre_autor',
                     keyword: 'palabras_clave',
                     q: 'search',
-                    titulo: 'search',
+                    title: 'search',
                     url: 'search'
                 };
                 
