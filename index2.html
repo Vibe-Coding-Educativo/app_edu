@@ -222,7 +222,7 @@
 
             function normalizeString(str) {
                 if (!str) return '';
-                return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                return String(str).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             }
 
             function loadFavorites() {
@@ -246,6 +246,7 @@
             }
             
             function setupFilters(apps) {
+                elements.filtersContainer.innerHTML = ''; // Clear existing filters
                 const filterCategories = [
                     { id: 'area_conocimiento', name: 'Área de Conocimiento', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>' },
                     { id: 'nivel_educativo', name: 'Nivel Educativo', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7.9 3.2 2.3 4.1"/><path d="M16 17a3 3 0 0 0-3-3 3 3 0 0 0-3 3v2h6v-2Z"/></svg>' },
@@ -255,7 +256,7 @@
                 ];
 
                 filterCategories.forEach(cat => {
-                    const values = new Set(apps.flatMap(app => app[cat.id]?.split(',') || []).map(v => v.trim()).filter(Boolean));
+                    const values = new Set(apps.flatMap(app => (app && app[cat.id]) ? String(app[cat.id]).split(',') : []).map(v => v.trim()).filter(Boolean));
                     if (values.size === 0) return;
                     
                     const sortedValues = Array.from(values).sort((a,b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
@@ -275,18 +276,21 @@
 
             function getPlatformStyle(platform) {
                 const STYLES = {'Gemini': 'border-purple-500', 'Claude': 'border-orange-500', 'ChatGPT': 'border-teal-500', 'Web (HTML/JS propio)': 'border-blue-500', 'GitHub Pages': 'border-black', 'Google Sites': 'border-sky-500', 'Default': 'border-gray-400'};
-                if (!platform) return STYLES.Default;
-                const key = Object.keys(STYLES).find(k => platform.includes(k) && k !== 'Default');
+                const platformStr = String(platform || '');
+                const key = Object.keys(STYLES).find(k => platformStr.includes(k) && k !== 'Default');
                 return STYLES[key] || STYLES.Default;
             }
 
             function displayApps(apps) {
                 elements.appsContainer.innerHTML = '';
-                elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && favorites.size === 0));
-                elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || favorites.size > 0);
+                elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && favorites.size > 0));
+                elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || (showingFavoritesOnly && favorites.size === 0));
 
                 if (showingFavoritesOnly && favorites.size > 0 && apps.length === 0) {
+                     elements.noResultsMsg.textContent = "Ningún favorito coincide con los filtros actuales."
                      elements.noResultsMsg.classList.remove('hidden');
+                } else {
+                     elements.noResultsMsg.textContent = "No se encontraron aplicaciones."
                 }
                 
                 elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
@@ -297,7 +301,6 @@
                     
                     const isFavorite = favorites.has(app.key);
                     const favClass = isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500';
-                    
                     const autorHtml = app.nombre_autor ? `<p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor', false)}</span></p>` : '';
 
                     card.innerHTML = `
@@ -324,9 +327,7 @@
             }
             
             function createFilterLink(text, category, isMulti) {
-                if (!text || typeof text !== 'string') {
-                    return '';
-                }
+                if (!text || typeof text !== 'string') return '';
                 return text.split(',').map(v => v.trim()).filter(Boolean).map(val => 
                     `<a href="#" class="filter-link" data-category="${category}" data-filter="${val}" data-multiselect="${isMulti}">${val}</a>`
                 ).join(', ');
@@ -334,22 +335,21 @@
 
             function applyAndDisplay() {
                 const searchText = normalizeString(elements.searchInput.value);
-                let appsToFilter = allApps;
+                let sourceApps = allApps;
 
                 if (showingFavoritesOnly) {
-                    appsToFilter = allApps.filter(app => favorites.has(app.key));
+                    sourceApps = allApps.filter(app => favorites.has(app.key));
                 }
 
-                const filteredApps = appsToFilter.filter(app => {
-                    // FIX: Ensure app is a valid object before processing
+                const filteredApps = sourceApps.filter(app => {
                     if (!app) return false;
+                    const searchMatch = searchText === '' || Object.values(app).some(val => normalizeString(val).includes(searchText));
+                    if (!searchMatch) return false;
 
-                    if (searchText && !normalizeString(Object.values(app).join(' ')).includes(searchText)) {
-                        return false;
-                    }
                     for (const category in activeFilters) {
                         const selected = activeFilters[category];
                         if (selected.size === 0) continue;
+                        
                         const appValueString = app[category] ? normalizeString(app[category]) : '';
                         if (!appValueString) return false;
                         
@@ -394,8 +394,10 @@
                 document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active'));
                 elements.filtersContainer.querySelectorAll('details').forEach(d => { d.open = false; });
                 
-                showingFavoritesOnly = false;
-                elements.toggleFavoritesBtn.classList.remove('active');
+                if (showingFavoritesOnly) {
+                    showingFavoritesOnly = false;
+                    elements.toggleFavoritesBtn.classList.remove('active');
+                }
 
                 applyAndDisplay();
             }
@@ -429,16 +431,24 @@
                 if (!filterSet) return;
                 
                 if (isMulti) {
-                    if (!filterSet.has(filter)) filterSet.add(filter);
+                   if (filterSet.has(filter)) {
+                       filterSet.delete(filter);
+                   } else {
+                       filterSet.add(filter);
+                   }
                 } else {
-                    filterSet.clear();
-                    filterSet.add(filter);
+                    if (filterSet.has(filter)) {
+                        filterSet.clear();
+                    } else {
+                        filterSet.clear();
+                        filterSet.add(filter);
+                    }
                 }
                 
-                document.querySelectorAll(`.filter-btn[data-category="${category}"]`).forEach(btn => {
+                document.querySelectorAll(`[data-category="${category}"] .filter-btn`).forEach(btn => {
                     const shouldBeActive = filterSet.has(btn.dataset.filter);
                     btn.classList.toggle('active', shouldBeActive);
-});
+                });
 
                 applyAndDisplay();
             }
@@ -464,16 +474,21 @@
                 });
             }
 
-            // --- Event Listeners Setup ---
             function setupEventListeners() {
-                elements.toggleFiltersBtn.addEventListener('click', () => elements.filterPanel.classList.toggle('hidden'));
+                elements.toggleFiltersBtn.addEventListener('click', () => {
+                    elements.filterPanel.classList.toggle('hidden');
+                    if(showingFavoritesOnly) {
+                        showingFavoritesOnly = false;
+                        elements.toggleFavoritesBtn.classList.remove('active');
+                        applyAndDisplay();
+                    }
+                });
                 
                 elements.toggleFavoritesBtn.addEventListener('click', () => {
                     showingFavoritesOnly = !showingFavoritesOnly;
                     elements.toggleFavoritesBtn.classList.toggle('active');
                     if (showingFavoritesOnly) {
                         elements.filterPanel.classList.add('hidden');
-                        elements.toggleFiltersBtn.classList.remove('active');
                     }
                     applyAndDisplay();
                 });
@@ -494,24 +509,7 @@
                     const target = e.target.closest('button.filter-btn');
                     if (!target) return;
                     const group = target.parentElement;
-                    const category = group.dataset.category;
-                    const filter = target.dataset.filter;
-                    const isMulti = group.dataset.multiselect === 'true';
-
-                    target.classList.toggle('active');
-                    if (isMulti) {
-                        if (activeFilters[category].has(filter)) activeFilters[category].delete(filter);
-                        else activeFilters[category].add(filter);
-                    } else {
-                        if (target.classList.contains('active')) {
-                            activeFilters[category].clear();
-                            activeFilters[category].add(filter);
-                            group.querySelectorAll('.active').forEach(btn => { if(btn !== target) btn.classList.remove('active'); });
-                        } else {
-                            activeFilters[category].delete(filter);
-                        }
-                    }
-                    applyAndDisplay();
+                    handleFilterClick(group.dataset.category, target.dataset.filter, group.dataset.multiselect === 'true');
                 });
 
                 elements.appsContainer.addEventListener('click', e => {
@@ -540,9 +538,7 @@
                     if (keywordTag) {
                         e.preventDefault();
                         const keyword = keywordTag.dataset.keyword;
-                        if (activeFilters.palabras_clave.has(keyword)) activeFilters.palabras_clave.delete(keyword);
-                        else activeFilters.palabras_clave.add(keyword);
-                        applyAndDisplay();
+                        handleFilterClick('palabras_clave', keyword, true);
                         return;
                     }
 
@@ -558,11 +554,7 @@
                     const target = e.target.closest('button');
                     if (!target) return;
                     const { category, filter } = target.dataset;
-                    if (activeFilters[category] && activeFilters[category].has(filter)) {
-                        activeFilters[category].delete(filter);
-                        document.querySelector(`[data-category="${category}"] [data-filter="${filter}"]`)?.classList.remove('active');
-                        applyAndDisplay();
-                    }
+                    handleFilterClick(category, filter, true); // Assuming active filters can be multi-select
                 });
                 
                 document.getElementById('reset-filters-btn').addEventListener('click', () => resetAllFilters({ preserveSearch: true }));
@@ -574,21 +566,22 @@
             }
 
             // --- Main Execution ---
-            if (SCRIPT_URL === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-                elements.loadingMsg.innerHTML = '<p class="text-lg text-red-600 font-semibold">Error de configuración</p><p class="text-sm text-gray-500">Debes pegar la URL de tu Google Apps Script en la variable SCRIPT_URL del código HTML.</p>';
-                return;
-            }
-
             loadFavorites();
             
             fetch(SCRIPT_URL)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
+                    return res.json();
+                })
                 .then(data => {
                     elements.loadingMsg.style.display = 'none';
-                    allApps = data.filter(app => app && app.url_app && app.titulo_app); // Filtro extra de seguridad
+                    if (data.error) throw new Error(data.error);
+
+                    allApps = data.filter(app => app && app.url_app && app.titulo_app);
+                    
                     if (allApps.length > 0) {
-                        setupFilters(allApps);
                         setupEventListeners();
+                        setupFilters(allApps);
                         applyFiltersFromURL();
                         applyAndDisplay();
                     } else {
