@@ -322,6 +322,10 @@
             }
             
             function createFilterLink(text, category, isMulti) {
+                // FIX: Check if text is defined before trying to split it.
+                if (!text) {
+                    return '';
+                }
                 return text.split(',').map(v => v.trim()).filter(Boolean).map(val => 
                     `<a href="#" class="filter-link" data-category="${category}" data-filter="${val}" data-multiselect="${isMulti}">${val}</a>`
                 ).join(', ');
