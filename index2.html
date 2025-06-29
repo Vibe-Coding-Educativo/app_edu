@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Repositorio de aplicaciones educativas</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -144,7 +144,7 @@
             <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="text-lg text-gray-600 font-semibold">Cargando aplicaciones...</p>
         </div>
-        <div id="error-message" class="hidden text-center py-10 bg-red-100 text-red-700 rounded-lg"></div>
+        <div id="error-message" class="hidden text-center py-10 bg-red-100 text-red-700 rounded-lg"><p class="text-lg">No se pudieron cargar los datos.</p></div>
         <div id="no-results-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No se encontraron aplicaciones.</p></div>
         <div id="no-favorites-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No tienes aplicaciones favoritas.<br><span class="text-sm">Haz clic en el corazón de una aplicación para añadirla.</span></p></div>
 
@@ -153,15 +153,9 @@
         <div id="apps-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </div>
     
-    <footer class="text-center py-8 mt-12 border-t border-gray-200">
-        <div class="space-y-2 text-sm text-gray-500">
-            <p>Una iniciativa del grupo <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>.</p>
-            <p><a href="https://labia.tiddlyhost.com" target="_blank" class="hover:underline">Laboratorio de aplicaciones educativas</a></p>
-            <p><a href="https://bilateria.org" target="_blank" class="hover:underline">Aplicación hecha por Juan José de Haro</a></p>
-            <p><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" class="hover:underline">Licencia Creative Commons BY-SA</a></p>
-        </div>
+    <footer class="text-center py-8 mt-12 border-t border-gray-200 text-sm text-gray-500">
+        <p>Una iniciativa del grupo <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>.</p>
     </footer>
-
 
     <!-- Modal de Ayuda -->
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
@@ -194,8 +188,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // URL del Google Apps Script que devuelve los datos en formato JSON
-            const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_Mta5ICfJhOWXQTDHzvJ2Vfe0erKnVuW3rH6TZKbTn8kQLTtCubMKTOpn8OhlKjXi/exec';
+            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
             
             // --- State Variables ---
             let allApps = [];
@@ -206,6 +199,8 @@
                 tipo_recurso: new Set(), plataforma: new Set(),
                 nombre_autor: new Set(), palabras_clave: new Set(),
             };
+
+            const REQUIRED_FIELDS = ['correo_autor', 'nombre_autor', 'titulo_app', 'url_app'];
             
             // --- DOM Elements ---
             const elements = {
@@ -250,16 +245,51 @@
                 }
             }
 
-            function processData(appsFromScript) {
-                if (!Array.isArray(appsFromScript)) {
-                    console.error("Los datos recibidos no son un array:", appsFromScript);
-                    return [];
-                }
+            function processData(data) {
+                const FULL_COLUMN_KEYS = [
+                    'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app', 
+                    'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo', 
+                    'area_conocimiento', 'palabras_clave', 'licencia', 'eliminar_registro'
+                ];
+                
+                const rows = data.slice(1);
+                const mappedData = rows.map(rowArray => {
+                    const newRow = {};
+                    FULL_COLUMN_KEYS.forEach((key, index) => {
+                        newRow[key] = rowArray[index] ? rowArray[index].trim() : '';
+                    });
+                    return newRow;
+                });
 
-                return appsFromScript.map(app => {
-                    app.key = `${normalizeString(app.nombre_autor || '')}|${(app.url_app || '').trim()}`;
-                    return app;
-                }).filter(app => app.nombre_autor && app.titulo_app && app.url_app);
+                const keysToDelete = new Set();
+                mappedData.forEach(app => {
+                    if (normalizeString(app.eliminar_registro) === 'si' && app.url_app && app.correo_autor) {
+                        keysToDelete.add(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`);
+                    }
+                });
+
+                const appsWithoutDeleted = mappedData.filter(app => 
+                    !app.url_app || !app.correo_autor || !keysToDelete.has(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`)
+                );
+
+                const validApps = appsWithoutDeleted.filter(app => {
+                    if (REQUIRED_FIELDS.some(field => !app[field])) return false;
+                    try { new URL(app.url_app); return true; } catch (_) { return false; }
+                });
+                
+                const seenEmailTitle = new Set();
+                const finalData = [];
+                for (let i = validApps.length - 1; i >= 0; i--) {
+                    const app = validApps[i];
+                    const emailTitleKey = `${app.correo_autor.toLowerCase().trim()}|${app.titulo_app.toLowerCase().trim()}`;
+                    if (!seenEmailTitle.has(emailTitleKey)) {
+                        seenEmailTitle.add(emailTitleKey);
+                        // Add a unique key for favorites and other interactions
+                        app.key = `${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`;
+                        finalData.push(app);
+                    }
+                }
+                return finalData;
             }
             
             function setupFilters(apps) {
@@ -585,55 +615,26 @@
             // --- Main Execution ---
             loadFavorites();
             
-            fetch(APPS_SCRIPT_URL)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Error en la red: ${response.status} ${response.statusText}`);
-                    }
-                    return response.text(); // Get raw text first to handle non-JSON responses
-                })
-                .then(responseText => {
-                    let responseObject;
-                    try {
-                        responseObject = JSON.parse(responseText);
-                    } catch (e) {
-                        console.error("No se pudo parsear la respuesta como JSON. Contenido recibido:", responseText);
-                        throw new Error("La respuesta del servidor no es un JSON válido. Esto puede ocurrir si el script requiere autenticación y devuelve una página de login HTML.");
-                    }
-
-                    console.log("Respuesta JSON recibida y parseada:", responseObject);
+            Papa.parse(CSV_URL, {
+                download: true, header: false, skipEmptyLines: true,
+                complete: (results) => {
                     elements.loadingMsg.style.display = 'none';
-
-                    if (responseObject.status === 'error') {
-                        throw new Error(`Error reportado por el script: ${responseObject.message}`);
-                    }
-                    
-                    // Flexible data handling
-                    let appsData;
-                    if (Array.isArray(responseObject.data)) {
-                        appsData = responseObject.data; // Handles { "data": [...] }
-                    } else if (Array.isArray(responseObject)) {
-                        appsData = responseObject; // Handles [...]
+                    allApps = processData(results.data);
+                    if(allApps.length > 0) {
+                        setupFilters(allApps);
+                        setupEventListeners();
+                        applyFiltersFromURL();
+                        applyAndDisplay();
                     } else {
-                         throw new Error("La respuesta del API es un JSON válido pero no tiene la estructura esperada (no se encontró un array de datos).");
-                    }
-
-                    allApps = processData(appsData);
-                    setupFilters(allApps);
-                    setupEventListeners();
-                    applyFiltersFromURL();
-                    applyAndDisplay();
-
-                    if (!allApps || allApps.length === 0) {
                         elements.noResultsMsg.classList.remove('hidden');
                     }
-                })
-                .catch(error => {
-                    console.error("Error al cargar o procesar los datos desde Apps Script:", error);
+                },
+                error: (error) => {
+                    console.error("Error al cargar o parsear el CSV:", error);
                     elements.loadingMsg.style.display = 'none';
-                    elements.errorMsg.innerHTML = `<p class="text-lg">No se pudieron cargar los datos.</p><p class="text-sm mt-1">${error.message}</p><p class="text-xs mt-2 font-mono">Asegúrate de que el script de Google esté desplegado con acceso para "Cualquier usuario" y que la URL sea correcta. Revisa la consola (F12) para más detalles.</p>`;
                     elements.errorMsg.classList.remove('hidden');
-                });
+                }
+            });
         });
     </script>
 </body>
