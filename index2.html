@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Repositorio de aplicaciones educativas</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -587,39 +588,50 @@
             fetch(APPS_SCRIPT_URL)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`Error en la red: ${response.statusText}`);
+                        throw new Error(`Error en la red: ${response.status} ${response.statusText}`);
                     }
-                    return response.json();
+                    return response.text(); // Get raw text first to handle non-JSON responses
                 })
-                .then(responseObject => {
-                    elements.loadingMsg.style.display = 'none';
-                    
-                    if (responseObject.status === 'error') {
-                        console.error("Error from Apps Script:", responseObject.message);
-                        elements.errorMsg.innerHTML = `<p class="text-lg">Error reportado por el script:</p><p class="text-sm mt-1 font-mono bg-red-200 p-2 rounded">${responseObject.message}</p><p class="text-sm mt-2">Comprueba que el script esté desplegado con acceso para 'Cualquier usuario'.</p>`;
-                        elements.errorMsg.classList.remove('hidden');
-                        return; 
-                    }
-                    
-                    if (responseObject && Array.isArray(responseObject.data)) {
-                        allApps = processData(responseObject.data);
-                    } else {
-                        throw new Error("La respuesta del API fue exitosa pero no contiene los datos esperados.");
+                .then(responseText => {
+                    let responseObject;
+                    try {
+                        responseObject = JSON.parse(responseText);
+                    } catch (e) {
+                        console.error("No se pudo parsear la respuesta como JSON. Contenido recibido:", responseText);
+                        throw new Error("La respuesta del servidor no es un JSON válido. Esto puede ocurrir si el script requiere autenticación y devuelve una página de login HTML.");
                     }
 
-                    if (allApps && allApps.length > 0) {
-                        setupFilters(allApps);
-                        setupEventListeners();
-                        applyFiltersFromURL();
-                        applyAndDisplay();
+                    console.log("Respuesta JSON recibida y parseada:", responseObject);
+                    elements.loadingMsg.style.display = 'none';
+
+                    if (responseObject.status === 'error') {
+                        throw new Error(`Error reportado por el script: ${responseObject.message}`);
+                    }
+                    
+                    // Flexible data handling
+                    let appsData;
+                    if (Array.isArray(responseObject.data)) {
+                        appsData = responseObject.data; // Handles { "data": [...] }
+                    } else if (Array.isArray(responseObject)) {
+                        appsData = responseObject; // Handles [...]
                     } else {
+                         throw new Error("La respuesta del API es un JSON válido pero no tiene la estructura esperada (no se encontró un array de datos).");
+                    }
+
+                    allApps = processData(appsData);
+                    setupFilters(allApps);
+                    setupEventListeners();
+                    applyFiltersFromURL();
+                    applyAndDisplay();
+
+                    if (!allApps || allApps.length === 0) {
                         elements.noResultsMsg.classList.remove('hidden');
                     }
                 })
                 .catch(error => {
                     console.error("Error al cargar o procesar los datos desde Apps Script:", error);
                     elements.loadingMsg.style.display = 'none';
-                    elements.errorMsg.innerHTML = `<p class="text-lg">No se pudieron cargar los datos.</p><p class="text-sm mt-1">${error.message}</p>`;
+                    elements.errorMsg.innerHTML = `<p class="text-lg">No se pudieron cargar los datos.</p><p class="text-sm mt-1">${error.message}</p><p class="text-xs mt-2 font-mono">Asegúrate de que el script de Google esté desplegado con acceso para "Cualquier usuario" y que la URL sea correcta. Revisa la consola (F12) para más detalles.</p>`;
                     elements.errorMsg.classList.remove('hidden');
                 });
         });
