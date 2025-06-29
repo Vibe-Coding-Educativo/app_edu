@@ -45,8 +45,9 @@
         .keyword-tag {
             cursor: pointer;
         }
-        .keyword-tag:hover {
-            background-color: #bae6fd; /* sky-200 */
+        .keyword-tag:hover, .keyword-tag.active {
+            background-color: #38bdf8; /* sky-500 */
+            color: white;
         }
         .hidden {
             display: none;
@@ -78,7 +79,12 @@
                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                     </svg>
                 </div>
-                <input type="text" id="search-input" placeholder="Buscar por título, autor..." class="w-full p-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <input type="text" id="search-input" placeholder="Buscar por título, autor..." class="w-full p-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <button id="clear-search-btn" title="Limpiar búsqueda" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
 
             <!-- Botones de acción -->
@@ -103,11 +109,15 @@
             </div>
         </div>
         
-        <!-- Indicadores y Contador -->
-        <div class="mb-4 min-h-[2rem]">
-            <div id="active-filters-display" class="flex flex-wrap gap-2 mb-2"></div>
-            <div id="results-counter" class="text-sm text-gray-600 font-medium"></div>
+        <!-- Indicadores, Contador y Botón Limpiar Todo -->
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 min-h-[2rem] gap-4">
+            <div id="results-counter" class="text-sm text-gray-600 font-medium order-2 sm:order-1"></div>
+            <button id="clear-all-btn" class="hidden order-1 sm:order-2 text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                Limpiar todo
+            </button>
         </div>
+        <div id="active-filters-display" class="flex flex-wrap gap-2 mb-4"></div>
 
         <!-- Mensajes -->
         <div id="loading-message" class="flex flex-col items-center justify-center text-center py-20">
@@ -188,7 +198,6 @@
                     .replace(/[\u0300-\u036f]/g, "");
             }
 
-            // CORRECCIÓN: Se cambia header a false para leer por posición de columna.
             Papa.parse(CSV_URL, {
                 download: true, header: false, skipEmptyLines: true,
                 complete: (results) => {
@@ -210,9 +219,7 @@
             });
 
             function processData(data) {
-                // CORRECCIÓN: Se procesan los datos por posición, no por cabecera, para mayor fiabilidad.
-                const rows = data.slice(1); // Saltar la fila de cabeceras del CSV
-
+                const rows = data.slice(1);
                 const mappedData = rows.map(rowArray => {
                     const newRow = {};
                     COLUMN_KEYS.forEach((key, index) => {
@@ -221,21 +228,16 @@
                         }
                     });
                     return newRow;
-                }).filter(app => app.titulo_app); // Filtrar filas vacías que a veces aparecen
+                }).filter(app => app.titulo_app);
 
                 const seenEmailTitle = new Set();
                 const validatedData = [];
-
                 for (let i = mappedData.length - 1; i >= 0; i--) {
                     const app = mappedData[i];
-                    
                     const missingFields = REQUIRED_FIELDS.filter(field => !app[field]);
                     if (missingFields.length > 0) continue;
-
                     try { new URL(app.url_app); } catch (_) { continue; }
-
                     const emailTitleKey = `${app.correo_autor.toLowerCase().trim()}|${app.titulo_app.toLowerCase().trim()}`;
-                    
                     if (!seenEmailTitle.has(emailTitleKey)) {
                         seenEmailTitle.add(emailTitleKey);
                         validatedData.push(app);
@@ -265,9 +267,7 @@
                     apps.forEach(app => {
                         app[cat.id]?.split(',').forEach(val => {
                             const trimmedValue = val.trim();
-                            if (trimmedValue) {
-                                values.add(trimmedValue);
-                            }
+                            if (trimmedValue) values.add(trimmedValue);
                         });
                     });
                     
@@ -278,22 +278,12 @@
                     details.className = 'border-b border-gray-200 last:border-b-0 pb-4';
                     details.innerHTML = `
                         <summary class="flex justify-between items-center cursor-pointer py-2">
-                            <div class="flex items-center gap-3">
-                                <span class="text-gray-500">${cat.icon}</span>
-                                <span class="font-semibold text-gray-800">${cat.name}</span>
-                            </div>
-                            <span class="arrow transition-transform text-gray-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                            </span>
+                            <div class="flex items-center gap-3"><span class="text-gray-500">${cat.icon}</span><span class="font-semibold text-gray-800">${cat.name}</span></div>
+                            <span class="arrow transition-transform text-gray-500"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
                         </summary>
                         <div class="pt-3 flex flex-wrap gap-2 button-group" data-category="${cat.id}" data-multiselect="${cat.multiSelect}">
-                            ${sortedValues.map(value => `
-                                <button class="filter-btn text-sm font-medium py-1.5 px-3 rounded-full" data-filter="${value}">
-                                    ${value}
-                                </button>
-                            `).join('')}
-                        </div>
-                    `;
+                            ${sortedValues.map(value => `<button class="filter-btn text-sm font-medium py-1.5 px-3 rounded-full" data-filter="${value}">${value}</button>`).join('')}
+                        </div>`;
                     filtersContainer.appendChild(details);
                 });
 
@@ -308,11 +298,8 @@
 
                     if (isMultiSelect) {
                         target.classList.toggle('active');
-                        if (activeFilters[category].has(filter)) {
-                            activeFilters[category].delete(filter);
-                        } else {
-                            activeFilters[category].add(filter);
-                        }
+                        if (activeFilters[category].has(filter)) activeFilters[category].delete(filter);
+                        else activeFilters[category].add(filter);
                     } else {
                         if (target.classList.contains('active')) {
                             target.classList.remove('active');
@@ -335,12 +322,19 @@
                 document.getElementById('no-results-message').classList.toggle('hidden', apps.length > 0);
                 counter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
 
+                const activeKeywords = activeFilters.palabras_clave;
+
                 apps.forEach(app => {
                     const card = document.createElement('div');
                     const style = getPlatformStyle(app.plataforma);
                     card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col ${style.color}`;
                     
-                    const keywordsHtml = app.palabras_clave ? app.palabras_clave.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') : '';
+                    const keywordsHtml = app.palabras_clave ? app.palabras_clave.split(',').filter(k => k.trim()).map(k => {
+                        const keyword = k.trim();
+                        const isActive = activeKeywords.has(keyword);
+                        return `<span class="keyword-tag ${isActive ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${keyword}">${keyword}</span>`;
+                    }).join('') : '';
+
                     const nivelHtml = app.nivel_educativo ? `<p><strong>Nivel:</strong> ${app.nivel_educativo}</p>` : '';
                     const areaHtml = app.area_conocimiento ? `<p><strong>Área:</strong> ${app.area_conocimiento}</p>` : '';
                     const licenciaHtml = app.licencia ? `<p><strong>Licencia:</strong> ${app.licencia}</p>` : '';
@@ -362,8 +356,7 @@
                             <a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                                 Visitar Aplicación
                             </a>
-                        </div>
-                    `;
+                        </div>`;
                     container.appendChild(card);
                 });
             }
@@ -371,6 +364,7 @@
             function resetAllFilters(options = {}) {
                 if (!options.preserveSearch) {
                     document.getElementById('search-input').value = '';
+                    document.getElementById('clear-search-btn').classList.add('hidden');
                 }
                 for (const category in activeFilters) {
                     activeFilters[category].clear();
@@ -379,7 +373,7 @@
                 document.querySelectorAll('#filters-container details').forEach(detail => {
                     detail.open = false;
                 });
-                updateActiveFiltersDisplay();
+                
                 displayApps(applyFilters());
             }
 
@@ -404,7 +398,7 @@
                         
                         const match = [...selected].every(filterVal => {
                             const normalizedFilter = normalizeString(filterVal);
-                            return appValueString.includes(normalizedFilter);
+                            return appValueString.split(',').map(s => normalizeString(s.trim())).includes(normalizedFilter);
                         });
 
                         if (!match) return false;
@@ -417,38 +411,35 @@
             
             function updateActiveFiltersDisplay() {
                 const container = document.getElementById('active-filters-display');
+                const clearAllBtn = document.getElementById('clear-all-btn');
                 container.innerHTML = '';
                 let hasActiveFilter = false;
 
                 Object.entries(activeFilters).forEach(([category, filterSet]) => {
-                    const catName = document.querySelector(`[data-category="${category}"]`)?.closest('details')?.querySelector('summary .font-semibold')?.textContent || 'Palabra Clave';
+                    if(filterSet.size === 0) return;
+                    hasActiveFilter = true;
 
+                    const catName = document.querySelector(`[data-category="${category}"]`)?.closest('details')?.querySelector('summary .font-semibold')?.textContent || 'Palabra Clave';
                     filterSet.forEach(filterValue => {
-                        hasActiveFilter = true;
                         const tag = document.createElement('div');
-                        tag.className = 'flex items-center bg-gray-200 text-gray-800 text-sm font-medium px-2 py-1 rounded-full';
+                        tag.className = 'flex items-center bg-gray-200 text-gray-800 text-sm font-medium pl-3 pr-2 py-1 rounded-full';
                         tag.innerHTML = `
                             <span>${catName}: ${filterValue}</span>
-                            <button class="ml-2 text-gray-500 hover:text-gray-800" data-category="${category}" data-filter="${filterValue}">&times;</button>
+                            <button class="ml-2 text-gray-500 hover:text-gray-800" data-category="${category}" data-filter="${filterValue}" title="Eliminar filtro">&times;</button>
                         `;
                         container.appendChild(tag);
                     });
                 });
-                 container.classList.toggle('hidden', !hasActiveFilter);
+                const hasSearchText = document.getElementById('search-input').value.length > 0;
+                clearAllBtn.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
             }
 
             function applyFiltersFromURL() {
                 const params = new URLSearchParams(window.location.search);
                 const paramMapping = {
-                    area: 'area_conocimiento',
-                    nivel: 'nivel_educativo',
-                    tipo: 'tipo_recurso',
-                    plataforma: 'plataforma',
-                    autor: 'nombre_autor',
-                    keyword: 'palabras_clave',
-                    q: 'search',
-                    title: 'search',
-                    url: 'search'
+                    area: 'area_conocimiento', nivel: 'nivel_educativo', tipo: 'tipo_recurso',
+                    plataforma: 'plataforma', autor: 'nombre_autor', keyword: 'palabras_clave',
+                    q: 'search', title: 'search', url: 'search'
                 };
                 
                 params.forEach((value, key) => {
@@ -457,7 +448,9 @@
                     
                     const valuesFromUrl = value.split(',');
                     if (category === 'search') {
-                        document.getElementById('search-input').value = value;
+                        const searchInput = document.getElementById('search-input');
+                        searchInput.value = value;
+                        document.getElementById('clear-search-btn').classList.toggle('hidden', !searchInput.value);
                     } else if (activeFilters[category]) {
                          valuesFromUrl.forEach(urlVal => {
                             activeFilters[category].add(urlVal);
@@ -465,41 +458,49 @@
                             const buttons = document.querySelectorAll(`[data-category="${category}"] .filter-btn`);
                             buttons.forEach(btn => {
                                 const normalizedBtnFilter = normalizeString(btn.dataset.filter);
-                                if (normalizedBtnFilter.includes(normalizedUrlVal)) {
-                                    btn.classList.add('active');
-                                }
+                                if (normalizedBtnFilter.includes(normalizedUrlVal)) btn.classList.add('active');
                             });
                         });
                     }
                 });
             }
 
-            document.getElementById('toggle-filters-btn').addEventListener('click', () => {
-                document.getElementById('filter-panel').classList.toggle('hidden');
-            });
-            document.getElementById('help-btn').addEventListener('click', () => {
-                document.getElementById('help-modal').classList.remove('hidden');
-            });
-            document.getElementById('close-help-btn').addEventListener('click', () => {
-                document.getElementById('help-modal').classList.add('hidden');
-            });
-             document.getElementById('help-modal').addEventListener('click', (e) => {
-                if (e.target.id === 'help-modal') {
-                    document.getElementById('help-modal').classList.add('hidden');
-                }
+            // --- Controladores de eventos ---
+            document.getElementById('toggle-filters-btn').addEventListener('click', () => document.getElementById('filter-panel').classList.toggle('hidden'));
+            document.getElementById('help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.remove('hidden'));
+            document.getElementById('close-help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.add('hidden'));
+            document.getElementById('help-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'help-modal') document.getElementById('help-modal').classList.add('hidden');
             });
 
+            const searchInput = document.getElementById('search-input');
+            const clearSearchBtn = document.getElementById('clear-search-btn');
 
-            document.getElementById('search-input').addEventListener('input', () => displayApps(applyFilters()));
-            document.getElementById('reset-filters-btn').addEventListener('click', resetAllFilters);
+            searchInput.addEventListener('input', () => {
+                clearSearchBtn.classList.toggle('hidden', !searchInput.value);
+                displayApps(applyFilters());
+            });
+
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                displayApps(applyFilters());
+                searchInput.focus();
+            });
+            
+            document.getElementById('reset-filters-btn').addEventListener('click', () => resetAllFilters());
+            document.getElementById('clear-all-btn').addEventListener('click', () => resetAllFilters());
             
             document.getElementById('apps-container').addEventListener('click', e => {
                 const target = e.target.closest('.keyword-tag');
                 if (!target) return;
                 
-                resetAllFilters({ preserveSearch: true });
                 const keyword = target.dataset.keyword;
-                activeFilters.palabras_clave.add(keyword);
+                if(activeFilters.palabras_clave.has(keyword)) {
+                    activeFilters.palabras_clave.delete(keyword);
+                } else {
+                    activeFilters.palabras_clave.add(keyword);
+                }
                 displayApps(applyFilters());
             });
             
@@ -511,7 +512,7 @@
                 
                 if (activeFilters[category] && activeFilters[category].has(filter)) {
                     activeFilters[category].delete(filter);
-                    // Deactivate button in panel
+                    // Desactivar botón en el panel de filtros
                     const btn = document.querySelector(`[data-category="${category}"] [data-filter="${filter}"]`);
                     if (btn) btn.classList.remove('active');
                     
