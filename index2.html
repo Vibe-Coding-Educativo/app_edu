@@ -297,6 +297,9 @@
                     
                     const isFavorite = favorites.has(app.key);
                     const favClass = isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500';
+                    
+                    // FIX: Create author line HTML only if author exists
+                    const autorHtml = app.nombre_autor ? `<p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor', false)}</span></p>` : '';
 
                     card.innerHTML = `
                         <div class="p-5 flex-grow flex flex-col relative">
@@ -305,7 +308,7 @@
                             </button>
                             <p class="text-sm font-semibold text-gray-600 mb-3 pr-8">${app.plataforma || 'Sin plataforma'}</p>
                             <h3 class="text-xl font-bold text-gray-900 mb-2">${app.titulo_app}</h3>
-                            <p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor', false)}</span></p>
+                            ${autorHtml}
                             <p class="text-gray-600 text-sm mb-4 flex-grow">${app.descripcion_app || 'No hay descripción.'}</p>
                             <div class="text-xs text-gray-500 space-y-1 mt-auto">
                                 ${app.nivel_educativo ? `<p><strong>Nivel:</strong> ${createFilterLink(app.nivel_educativo, 'nivel_educativo', true)}</p>` : ''}
@@ -322,7 +325,7 @@
             }
             
             function createFilterLink(text, category, isMulti) {
-                // FIX: Check if text is defined before trying to split it.
+                // Check if text is defined before trying to split it.
                 if (!text) {
                     return '';
                 }
