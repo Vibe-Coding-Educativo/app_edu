@@ -298,7 +298,6 @@
                     const isFavorite = favorites.has(app.key);
                     const favClass = isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500';
                     
-                    // FIX: Create author line HTML only if author exists
                     const autorHtml = app.nombre_autor ? `<p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor', false)}</span></p>` : '';
 
                     card.innerHTML = `
@@ -307,7 +306,7 @@
                                 <svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
                             </button>
                             <p class="text-sm font-semibold text-gray-600 mb-3 pr-8">${app.plataforma || 'Sin plataforma'}</p>
-                            <h3 class="text-xl font-bold text-gray-900 mb-2">${app.titulo_app}</h3>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">${app.titulo_app || 'Sin título'}</h3>
                             ${autorHtml}
                             <p class="text-gray-600 text-sm mb-4 flex-grow">${app.descripcion_app || 'No hay descripción.'}</p>
                             <div class="text-xs text-gray-500 space-y-1 mt-auto">
@@ -317,7 +316,7 @@
                             </div>
                         </div>
                         <div class="p-4 border-t border-gray-200 bg-gray-50">
-                            <div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div>
+                            <div class="flex flex-wrap mb-3 min-h-[2rem]">${(app.palabras_clave || '').split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${k.trim()}">${k.trim()}</span>`).join('')}</div>
                             <a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">Visitar Aplicación</a>
                         </div>`;
                     elements.appsContainer.appendChild(card);
@@ -325,8 +324,7 @@
             }
             
             function createFilterLink(text, category, isMulti) {
-                // Check if text is defined before trying to split it.
-                if (!text) {
+                if (!text || typeof text !== 'string') {
                     return '';
                 }
                 return text.split(',').map(v => v.trim()).filter(Boolean).map(val => 
@@ -343,6 +341,9 @@
                 }
 
                 const filteredApps = appsToFilter.filter(app => {
+                    // FIX: Ensure app is a valid object before processing
+                    if (!app) return false;
+
                     if (searchText && !normalizeString(Object.values(app).join(' ')).includes(searchText)) {
                         return false;
                     }
@@ -437,7 +438,7 @@
                 document.querySelectorAll(`.filter-btn[data-category="${category}"]`).forEach(btn => {
                     const shouldBeActive = filterSet.has(btn.dataset.filter);
                     btn.classList.toggle('active', shouldBeActive);
-                });
+});
 
                 applyAndDisplay();
             }
@@ -584,7 +585,7 @@
                 .then(res => res.json())
                 .then(data => {
                     elements.loadingMsg.style.display = 'none';
-                    allApps = data;
+                    allApps = data.filter(app => app && app.url_app && app.titulo_app); // Filtro extra de seguridad
                     if (allApps.length > 0) {
                         setupFilters(allApps);
                         setupEventListeners();
