@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Repositorio de aplicaciones educativas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- Se elimina PapaParse, ya no es necesario -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -188,7 +188,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
+            // URL del endpoint de Google Apps Script.
+            // **IMPORTANTE**: Debes reemplazar esta URL por la de tu propia aplicación web implementada.
+            const DATA_URL = 'https://script.google.com/macros/s/AKfycbw_Mta5ICfJhOWXQTDHzvJ2Vfe0erKnVuW3rH6TZKbTn8kQLTtCubMKTOpn8OhlKjXi/exec';
             
             // --- State Variables ---
             let allApps = [];
@@ -199,8 +201,6 @@
                 tipo_recurso: new Set(), plataforma: new Set(),
                 nombre_autor: new Set(), palabras_clave: new Set(),
             };
-
-            const REQUIRED_FIELDS = ['correo_autor', 'nombre_autor', 'titulo_app', 'url_app'];
             
             // --- DOM Elements ---
             const elements = {
@@ -246,46 +246,36 @@
             }
 
             function processData(data) {
-                const FULL_COLUMN_KEYS = [
-                    'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app', 
-                    'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo', 
-                    'area_conocimiento', 'palabras_clave', 'licencia', 'eliminar_registro'
-                ];
-                
-                const rows = data.slice(1);
-                const mappedData = rows.map(rowArray => {
-                    const newRow = {};
-                    FULL_COLUMN_KEYS.forEach((key, index) => {
-                        newRow[key] = rowArray[index] ? rowArray[index].trim() : '';
-                    });
-                    return newRow;
-                });
+                // Los campos mínimos que una app debe tener. Ya no se usa `correo_autor`.
+                const REQUIRED_FIELDS = ['nombre_autor', 'titulo_app', 'url_app'];
 
-                const keysToDelete = new Set();
-                mappedData.forEach(app => {
-                    if (normalizeString(app.eliminar_registro) === 'si' && app.url_app && app.correo_autor) {
-                        keysToDelete.add(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`);
+                // 1. Filtra registros marcados para eliminar, sin campos requeridos o con URL inválida.
+                const validApps = data.filter(app => {
+                    const isMarkedForDeletion = (app.eliminar_registro || '').toString().toLowerCase() === 'si';
+                    if (isMarkedForDeletion) return false;
+
+                    const hasRequiredFields = REQUIRED_FIELDS.every(field => app[field]);
+                    if (!hasRequiredFields) return false;
+
+                    try {
+                        new URL(app.url_app);
+                        return true;
+                    } catch (_) {
+                        return false;
                     }
                 });
 
-                const appsWithoutDeleted = mappedData.filter(app => 
-                    !app.url_app || !app.correo_autor || !keysToDelete.has(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`)
-                );
-
-                const validApps = appsWithoutDeleted.filter(app => {
-                    if (REQUIRED_FIELDS.some(field => !app[field])) return false;
-                    try { new URL(app.url_app); return true; } catch (_) { return false; }
-                });
-                
-                const seenEmailTitle = new Set();
+                // 2. Elimina duplicados basándose en el título y la URL, conservando la entrada más reciente.
+                const seen = new Set();
                 const finalData = [];
+                // Se itera hacia atrás para conservar la última entrada (la más reciente en la hoja).
                 for (let i = validApps.length - 1; i >= 0; i--) {
                     const app = validApps[i];
-                    const emailTitleKey = `${app.correo_autor.toLowerCase().trim()}|${app.titulo_app.toLowerCase().trim()}`;
-                    if (!seenEmailTitle.has(emailTitleKey)) {
-                        seenEmailTitle.add(emailTitleKey);
-                        // Add a unique key for favorites and other interactions
-                        app.key = `${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`;
+                    // La nueva clave única para favoritos se basa en el título y la URL.
+                    const key = `${app.titulo_app.toLowerCase().trim()}|${app.url_app.trim()}`;
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        app.key = key; // Se asigna la clave para el sistema de favoritos.
                         finalData.push(app);
                     }
                 }
@@ -615,12 +605,18 @@
             // --- Main Execution ---
             loadFavorites();
             
-            Papa.parse(CSV_URL, {
-                download: true, header: false, skipEmptyLines: true,
-                complete: (results) => {
+            // Se utiliza fetch para obtener el JSON desde el endpoint de Apps Script.
+            fetch(DATA_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error de red: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
                     elements.loadingMsg.style.display = 'none';
-                    allApps = processData(results.data);
-                    if(allApps.length > 0) {
+                    allApps = processData(data);
+                    if (allApps.length > 0) {
                         setupFilters(allApps);
                         setupEventListeners();
                         applyFiltersFromURL();
@@ -628,13 +624,12 @@
                     } else {
                         elements.noResultsMsg.classList.remove('hidden');
                     }
-                },
-                error: (error) => {
-                    console.error("Error al cargar o parsear el CSV:", error);
+                })
+                .catch(error => {
+                    console.error("Error al cargar los datos desde Apps Script:", error);
                     elements.loadingMsg.style.display = 'none';
                     elements.errorMsg.classList.remove('hidden');
-                }
-            });
+                });
         });
     </script>
 </body>
