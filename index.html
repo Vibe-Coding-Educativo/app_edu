@@ -49,6 +49,16 @@
             background-color: #38bdf8; /* sky-500 */
             color: white;
         }
+        .filter-link {
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+            color: #4b5563; /* gray-600 */
+        }
+        .filter-link:hover {
+            color: #1d4ed8; /* blue-700 */
+            background-color: #eff6ff; /* blue-50 */
+        }
         .hidden {
             display: none;
         }
@@ -205,7 +215,6 @@
             });
 
             function processData(data) {
-                // El orden de las claves aquí DEBE coincidir con el orden de las columnas en el CSV
                 const FULL_COLUMN_KEYS = [
                     'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app', 
                     'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo', 
@@ -214,7 +223,6 @@
                 
                 const rows = data.slice(1);
                 
-                // Mapear todas las filas a objetos
                 const mappedData = rows.map(rowArray => {
                     const newRow = {};
                     FULL_COLUMN_KEYS.forEach((key, index) => {
@@ -225,7 +233,6 @@
                     return newRow;
                 });
 
-                // 1. Encontrar las claves (email + url) marcadas para eliminación
                 const keysToDelete = new Set();
                 mappedData.forEach(app => {
                     if (app.eliminar_registro && normalizeString(app.eliminar_registro) === 'si' && app.url_app && app.correo_autor) {
@@ -234,15 +241,12 @@
                     }
                 });
 
-                // 2. Filtrar las aplicaciones cuya clave (email + url) está en la lista de eliminación
                 const appsWithoutDeleted = mappedData.filter(app => {
-                    if (!app.url_app || !app.correo_autor) return true; // Mantener si no tiene datos para formar la clave
+                    if (!app.url_app || !app.correo_autor) return true;
                     const key = `${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`;
                     return !keysToDelete.has(key);
                 });
 
-
-                // 3. Filtrar filas con datos requeridos incompletos y URLs inválidas
                 const validApps = appsWithoutDeleted.filter(app => {
                     const missingFields = REQUIRED_FIELDS.filter(field => !app[field]);
                     if (missingFields.length > 0) return false;
@@ -254,7 +258,6 @@
                     }
                 });
                 
-                // 4. Desduplicar: Mantener solo la entrada más reciente para cada app única (email + título)
                 const seenEmailTitle = new Set();
                 const finalData = [];
                 for (let i = validApps.length - 1; i >= 0; i--) {
@@ -344,6 +347,13 @@
                 });
             }
 
+            function createFilterLink(text, category, isMultiSelect) {
+                const values = text.split(',').map(v => v.trim()).filter(Boolean);
+                return values.map(value => 
+                    `<a href="#" class="filter-link" data-category="${category}" data-filter="${value}" data-multiselect="${isMultiSelect}">${value}</a>`
+                ).join(', ');
+            }
+
             function displayApps(apps) {
                 const container = document.getElementById('apps-container');
                 const counter = document.getElementById('results-counter');
@@ -364,15 +374,16 @@
                         return `<span class="keyword-tag ${isActive ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${keyword}">${keyword}</span>`;
                     }).join('') : '';
 
-                    const nivelHtml = app.nivel_educativo ? `<p><strong>Nivel:</strong> ${app.nivel_educativo}</p>` : '';
-                    const areaHtml = app.area_conocimiento ? `<p><strong>Área:</strong> ${app.area_conocimiento}</p>` : '';
+                    const autorHtml = `por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor', false)}</span>`;
+                    const nivelHtml = app.nivel_educativo ? `<p><strong>Nivel:</strong> ${createFilterLink(app.nivel_educativo, 'nivel_educativo', true)}</p>` : '';
+                    const areaHtml = app.area_conocimiento ? `<p><strong>Área:</strong> ${createFilterLink(app.area_conocimiento, 'area_conocimiento', true)}</p>` : '';
                     const licenciaHtml = app.licencia ? `<p><strong>Licencia:</strong> ${app.licencia}</p>` : '';
 
                     card.innerHTML = `
                         <div class="p-5 flex-grow flex flex-col">
                             <p class="text-sm font-semibold text-gray-600 mb-3">${app.plataforma || 'Sin plataforma'}</p>
                             <h3 class="text-xl font-bold text-gray-900 mb-2">${app.titulo_app}</h3>
-                            <p class="text-sm text-gray-500 mb-3">por <span class="font-medium text-gray-700">${app.nombre_autor}</span></p>
+                            <p class="text-sm text-gray-500 mb-3">${autorHtml}</p>
                             <p class="text-gray-600 text-sm mb-4 flex-grow">${app.descripcion_app || 'No hay descripción.'}</p>
                             <div class="text-xs text-gray-500 space-y-1 mt-auto">
                                 ${nivelHtml}
@@ -493,6 +504,31 @@
                     }
                 });
             }
+            
+            function handleFilterClick(category, filter, isMultiSelect) {
+                const filterSet = activeFilters[category];
+                if (!filterSet) return;
+                
+                if (isMultiSelect) {
+                    if (!filterSet.has(filter)) {
+                        filterSet.add(filter);
+                    }
+                } else {
+                    filterSet.clear();
+                    filterSet.add(filter);
+                }
+                
+                // Activar el botón correspondiente en el panel de filtros si existe
+                const btn = document.querySelector(`.filter-btn[data-category="${category}"][data-filter="${filter}"]`);
+                if(btn) {
+                     if (!isMultiSelect) {
+                        btn.parentElement.querySelectorAll('.active').forEach(b => b.classList.remove('active'));
+                     }
+                     btn.classList.add('active');
+                }
+
+                displayApps(applyFilters());
+            }
 
             // --- Controladores de eventos ---
             document.getElementById('toggle-filters-btn').addEventListener('click', () => document.getElementById('filter-panel').classList.toggle('hidden'));
@@ -521,16 +557,27 @@
             document.getElementById('clear-all-btn').addEventListener('click', () => resetAllFilters());
             
             document.getElementById('apps-container').addEventListener('click', e => {
-                const target = e.target.closest('.keyword-tag');
-                if (!target) return;
-                
-                const keyword = target.dataset.keyword;
-                if(activeFilters.palabras_clave.has(keyword)) {
-                    activeFilters.palabras_clave.delete(keyword);
-                } else {
-                    activeFilters.palabras_clave.add(keyword);
+                const keywordTarget = e.target.closest('.keyword-tag');
+                if (keywordTarget) {
+                    e.preventDefault();
+                    const keyword = keywordTarget.dataset.keyword;
+                    if(activeFilters.palabras_clave.has(keyword)) {
+                        activeFilters.palabras_clave.delete(keyword);
+                    } else {
+                        activeFilters.palabras_clave.add(keyword);
+                    }
+                    displayApps(applyFilters());
+                    return;
                 }
-                displayApps(applyFilters());
+
+                const filterLinkTarget = e.target.closest('.filter-link');
+                if (filterLinkTarget) {
+                    e.preventDefault();
+                    const category = filterLinkTarget.dataset.category;
+                    const filter = filterLinkTarget.dataset.filter;
+                    const isMultiSelect = filterLinkTarget.dataset.multiselect === 'true';
+                    handleFilterClick(category, filter, isMultiSelect);
+                }
             });
             
              document.getElementById('active-filters-display').addEventListener('click', e => {
