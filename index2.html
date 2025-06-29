@@ -143,7 +143,7 @@
             <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="text-lg text-gray-600 font-semibold">Cargando aplicaciones...</p>
         </div>
-        <div id="error-message" class="hidden text-center py-10 bg-red-100 text-red-700 rounded-lg"><p class="text-lg">No se pudieron cargar los datos.</p><p class="text-sm mt-1">Inténtalo de nuevo más tarde o contacta con el administrador.</p></div>
+        <div id="error-message" class="hidden text-center py-10 bg-red-100 text-red-700 rounded-lg"></div>
         <div id="no-results-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No se encontraron aplicaciones.</p></div>
         <div id="no-favorites-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No tienes aplicaciones favoritas.<br><span class="text-sm">Haz clic en el corazón de una aplicación para añadirla.</span></p></div>
 
@@ -250,23 +250,15 @@
             }
 
             function processData(appsFromScript) {
-                // Se espera que el Apps Script realice todo el trabajo pesado:
-                // - Filtrar filas marcadas para eliminar.
-                // - Gestionar duplicados, conservando solo el más reciente.
-                // - No enviar la dirección de correo electrónico del autor.
-                // Esta función solo necesita preparar los datos para la interfaz de usuario.
-                
                 if (!Array.isArray(appsFromScript)) {
                     console.error("Los datos recibidos no son un array:", appsFromScript);
                     return [];
                 }
 
                 return appsFromScript.map(app => {
-                    // Creamos una clave única en el lado del cliente para gestionar favoritos.
-                    // Como el correo electrónico ya no está disponible, usamos nombre de autor + URL.
                     app.key = `${normalizeString(app.nombre_autor || '')}|${(app.url_app || '').trim()}`;
                     return app;
-                }).filter(app => app.nombre_autor && app.titulo_app && app.url_app); // Comprobación básica de integridad en el cliente
+                }).filter(app => app.nombre_autor && app.titulo_app && app.url_app);
             }
             
             function setupFilters(apps) {
@@ -602,11 +594,17 @@
                 .then(responseObject => {
                     elements.loadingMsg.style.display = 'none';
                     
-                    // Se asume que el script devuelve un objeto con una propiedad "data" que es un array.
-                    if (responseObject && responseObject.data) {
+                    if (responseObject.status === 'error') {
+                        console.error("Error from Apps Script:", responseObject.message);
+                        elements.errorMsg.innerHTML = `<p class="text-lg">Error reportado por el script:</p><p class="text-sm mt-1 font-mono bg-red-200 p-2 rounded">${responseObject.message}</p><p class="text-sm mt-2">Comprueba que el script esté desplegado con acceso para 'Cualquier usuario'.</p>`;
+                        elements.errorMsg.classList.remove('hidden');
+                        return; 
+                    }
+                    
+                    if (responseObject && Array.isArray(responseObject.data)) {
                         allApps = processData(responseObject.data);
                     } else {
-                        throw new Error("La respuesta del API no tiene el formato esperado.");
+                        throw new Error("La respuesta del API fue exitosa pero no contiene los datos esperados.");
                     }
 
                     if (allApps && allApps.length > 0) {
@@ -619,8 +617,9 @@
                     }
                 })
                 .catch(error => {
-                    console.error("Error al cargar los datos desde Apps Script:", error);
+                    console.error("Error al cargar o procesar los datos desde Apps Script:", error);
                     elements.loadingMsg.style.display = 'none';
+                    elements.errorMsg.innerHTML = `<p class="text-lg">No se pudieron cargar los datos.</p><p class="text-sm mt-1">${error.message}</p>`;
                     elements.errorMsg.classList.remove('hidden');
                 });
         });
