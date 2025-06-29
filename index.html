@@ -62,6 +62,9 @@
         .hidden {
             display: none;
         }
+        #copy-confirm-msg {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -89,7 +92,7 @@
                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                     </svg>
                 </div>
-                <input type="text" id="search-input" placeholder="Buscar por título, autor..." class="w-full p-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <input type="text" id="search-input" placeholder="Buscar por todos los campos..." class="w-full p-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <button id="clear-search-btn" title="Limpiar búsqueda" class="absolute inset-y-0 right-0 pr-3 flex items-center hidden text-gray-500 hover:text-gray-700 focus:outline-none">
                     <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -119,13 +122,19 @@
             </div>
         </div>
         
-        <!-- Indicadores, Contador y Botón Limpiar Todo -->
+        <!-- Indicadores, Contador y Botones de Acción -->
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 min-h-[2rem] gap-4">
             <div id="results-counter" class="text-sm text-gray-600 font-medium order-2 sm:order-1"></div>
-            <button id="clear-all-btn" class="hidden order-1 sm:order-2 text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
-                Limpiar todo
-            </button>
+            <div id="actions-bar" class="hidden order-1 sm:order-2 flex items-center gap-4">
+                <button id="share-url-btn" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                    Compartir URL
+                </button>
+                <button id="clear-all-btn" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+                    Limpiar todo
+                </button>
+            </div>
         </div>
         <div id="active-filters-display" class="flex flex-wrap gap-2 mb-4"></div>
 
@@ -155,21 +164,44 @@
 
     <!-- Modal de Ayuda -->
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh]">
             <button id="close-help-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
             <h3 class="text-xl font-bold mb-4">Filtrado por URL</h3>
-            <p class="text-gray-600 mb-4">Puedes compartir un enlace a esta página con filtros ya aplicados añadiendo parámetros a la URL. La búsqueda no distingue entre mayúsculas/minúsculas ni acentos.</p>
-            <p class="text-gray-600 mb-2"><strong>Ejemplos:</strong></p>
-            <ul class="list-disc list-inside text-gray-600 space-y-2">
-                <li>Para filtrar por un autor:<br><code class="text-sm bg-gray-100 p-1 rounded">?autor=Maria Lopez</code></li>
-                <li>Para filtrar por palabra clave:<br><code class="text-sm bg-gray-100 p-1 rounded">?keyword=juego</code></li>
-                <li>Para filtrar por título:<br><code class="text-sm bg-gray-100 p-1 rounded">?title=sudoku</code></li>
-                <li>Para filtrar por URL de la app:<br><code class="text-sm bg-gray-100 p-1 rounded">?url=github.io</code></li>
-                <li>Para filtrar por área:<br><code class="text-sm bg-gray-100 p-1 rounded">?area=matematicas</code></li>
-                <li>Para filtrar por varios niveles (separados por comas):<br><code class="text-sm bg-gray-100 p-1 rounded">?nivel=Primaria,Secundaria</code></li>
-            </ul>
+            <div class="space-y-4 text-gray-600">
+                <p>Puedes compartir un enlace a esta página con filtros ya aplicados añadiendo parámetros a la URL. La búsqueda no distingue entre mayúsculas/minúsculas ni acentos.</p>
+                
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Parámetros disponibles:</h4>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><code class="text-sm bg-gray-100 p-1 rounded">search</code>: Busca un texto en todos los campos.</li>
+                        <li><code class="text-sm bg-gray-100 p-1 rounded">author</code>: Filtra por nombre del autor.</li>
+                        <li><code class="text-sm bg-gray-100 p-1 rounded">subject</code>: Filtra por área de conocimiento.</li>
+                        <li><code class="text-sm bg-gray-100 p-1 rounded">level</code>: Filtra por nivel educativo.</li>
+                        <li><code class="text-sm bg-gray-100 p-1 rounded">type</code>: Filtra por tipo de recurso.</li>
+                        <li><code class="text-sm bg-gray-100 p-1 rounded">platform</code>: Filtra por plataforma.</li>
+                        <li><code class="text-sm bg-gray-100 p-1 rounded">keyword</code>: Filtra por palabra clave.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Combinar filtros:</h4>
+                    <p class="mb-2">Puedes seleccionar varios valores para una categoría separándolos por comas, y combinar distintas categorías con el símbolo `&`.</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>Varios valores para una categoría (p.ej. nivel):<br><code class="text-sm bg-gray-100 p-1 rounded">?level=Primaria,Secundaria</code></li>
+                        <li>Distintas categorías (p.ej. autor y área):<br><code class="text-sm bg-gray-100 p-1 rounded">?author=Juan Perez&subject=Matematicas</code></li>
+                        <li>Combinación de todo:<br><code class="text-sm bg-gray-100 p-1 rounded break-all">?author=Maria Lopez&level=Secundaria,Bachillerato&keyword=juego</code></li>
+                    </ul>
+                </div>
+
+            </div>
         </div>
     </div>
+    
+    <!-- Mensaje de confirmación de copia -->
+    <div id="copy-confirm-msg" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm py-2 px-4 rounded-full opacity-0 -translate-y-5 pointer-events-none">
+        ¡URL copiada al portapapeles!
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -421,11 +453,8 @@
                 const searchText = normalizeString(document.getElementById('search-input').value);
                 
                 const filteredApps = allApps.filter(app => {
-                    const searchMatch = searchText === '' ||
-                        normalizeString(app.titulo_app).includes(searchText) ||
-                        normalizeString(app.nombre_autor).includes(searchText) ||
-                        normalizeString(app.descripcion_app).includes(searchText) ||
-                        normalizeString(app.url_app).includes(searchText);
+                    const searchMatch = searchText === '' || 
+                        normalizeString(Object.values(app).join(' ')).includes(searchText);
 
                     if (!searchMatch) return false;
 
@@ -450,9 +479,9 @@
             }
             
             function updateActiveFiltersDisplay() {
-                const container = document.getElementById('active-filters-display');
-                const clearAllBtn = document.getElementById('clear-all-btn');
-                container.innerHTML = '';
+                const activeFiltersContainer = document.getElementById('active-filters-display');
+                const actionsBar = document.getElementById('actions-bar');
+                activeFiltersContainer.innerHTML = '';
                 let hasActiveFilter = false;
 
                 Object.entries(activeFilters).forEach(([category, filterSet]) => {
@@ -467,23 +496,25 @@
                             <span>${catName}: ${filterValue}</span>
                             <button class="ml-2 text-gray-500 hover:text-gray-800" data-category="${category}" data-filter="${filterValue}" title="Eliminar filtro">&times;</button>
                         `;
-                        container.appendChild(tag);
+                        activeFiltersContainer.appendChild(tag);
                     });
                 });
                 const hasSearchText = document.getElementById('search-input').value.length > 0;
-                clearAllBtn.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
+                actionsBar.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
             }
+            
+            const paramMapping = {
+                subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso',
+                platform: 'plataforma', author: 'nombre_autor', keyword: 'palabras_clave',
+                search: 'search'
+            };
 
             function applyFiltersFromURL() {
                 const params = new URLSearchParams(window.location.search);
-                const paramMapping = {
-                    area: 'area_conocimiento', nivel: 'nivel_educativo', tipo: 'tipo_recurso',
-                    plataforma: 'plataforma', autor: 'nombre_autor', keyword: 'palabras_clave',
-                    q: 'search', title: 'search', url: 'search'
-                };
                 
                 params.forEach((value, key) => {
-                    const category = paramMapping[key.toLowerCase()];
+                    const mappedKey = key.toLowerCase();
+                    const category = paramMapping[mappedKey];
                     if (!category) return;
                     
                     const valuesFromUrl = value.split(',');
@@ -518,7 +549,6 @@
                     filterSet.add(filter);
                 }
                 
-                // Activar el botón correspondiente en el panel de filtros si existe
                 const btn = document.querySelector(`.filter-btn[data-category="${category}"][data-filter="${filter}"]`);
                 if(btn) {
                      if (!isMultiSelect) {
@@ -528,6 +558,48 @@
                 }
 
                 displayApps(applyFilters());
+            }
+
+            function generateShareableURL() {
+                const baseURL = window.location.origin + window.location.pathname;
+                const params = new URLSearchParams();
+                
+                const reverseParamMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse()));
+
+                const searchText = document.getElementById('search-input').value;
+                if (searchText) {
+                    params.set('search', searchText);
+                }
+
+                for (const category in activeFilters) {
+                    if (activeFilters[category].size > 0) {
+                        const paramName = reverseParamMapping[category];
+                        if (paramName) {
+                            params.set(paramName, [...activeFilters[category]].join(','));
+                        }
+                    }
+                }
+                return `${baseURL}?${params.toString()}`;
+            }
+
+            function copyToClipboard(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    return navigator.clipboard.writeText(text);
+                }
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed'; 
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                document.body.removeChild(textArea);
             }
 
             // --- Controladores de eventos ---
@@ -555,6 +627,16 @@
             
             document.getElementById('reset-filters-btn').addEventListener('click', () => resetAllFilters());
             document.getElementById('clear-all-btn').addEventListener('click', () => resetAllFilters());
+            
+            document.getElementById('share-url-btn').addEventListener('click', () => {
+                const url = generateShareableURL();
+                copyToClipboard(url);
+                const msg = document.getElementById('copy-confirm-msg');
+                msg.classList.remove('opacity-0', '-translate-y-5');
+                setTimeout(() => {
+                    msg.classList.add('opacity-0', '-translate-y-5');
+                }, 2000);
+            });
             
             document.getElementById('apps-container').addEventListener('click', e => {
                 const keywordTarget = e.target.closest('.keyword-tag');
@@ -588,7 +670,6 @@
                 
                 if (activeFilters[category] && activeFilters[category].has(filter)) {
                     activeFilters[category].delete(filter);
-                    // Desactivar botón en el panel de filtros
                     const btn = document.querySelector(`[data-category="${category}"] [data-filter="${filter}"]`);
                     if (btn) btn.classList.remove('active');
                     
