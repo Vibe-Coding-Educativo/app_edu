@@ -281,15 +281,15 @@
                     return newRow;
                 });
 
-                const keysToDelete = new Set();
+                const urlsToDelete = new Set();
                 mappedData.forEach(app => {
-                    if (normalizeString(app.eliminar_registro) === 'si' && app.url_app && app.correo_autor) {
-                        keysToDelete.add(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`);
+                    if (normalizeString(app.eliminar_registro) === 'si' && app.url_app) {
+                        urlsToDelete.add(app.url_app.trim());
                     }
                 });
 
                 const appsWithoutDeleted = mappedData.filter(app => 
-                    !app.url_app || !app.correo_autor || !keysToDelete.has(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`)
+                    !app.url_app || !urlsToDelete.has(app.url_app.trim())
                 );
 
                 const validApps = appsWithoutDeleted.filter(app => {
@@ -297,25 +297,20 @@
                     try { new URL(app.url_app); return true; } catch (_) { return false; }
                 });
                 
-                const seenEmailUrl = new Set();
-                const seenEmailTitle = new Set();
+                const seenUrls = new Set();
                 const finalData = [];
                 for (let i = validApps.length - 1; i >= 0; i--) {
                     const app = validApps[i];
-                    const email = app.correo_autor.toLowerCase().trim();
                     const url = app.url_app.trim();
-                    const title = app.titulo_app.toLowerCase().trim();
 
-                    const emailUrlKey = `${email}|${url}`;
-                    const emailTitleKey = `${email}|${title}`;
-                    
-                    if (!seenEmailUrl.has(emailUrlKey) && !seenEmailTitle.has(emailTitleKey)) {
-                        seenEmailUrl.add(emailUrlKey);
-                        seenEmailTitle.add(emailTitleKey);
-                        app.key = `${email}|${url}`;
+                    if (!seenUrls.has(url)) {
+                        seenUrls.add(url);
+                        app.key = url;
                         finalData.push(app);
                     }
                 }
+                
+                // Return data sorted from newest to oldest.
                 return finalData;
             }
             
@@ -324,8 +319,8 @@
                     { id: 'area_conocimiento', name: 'Área de Conocimiento', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>' },
                     { id: 'nivel_educativo', name: 'Nivel Educativo', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7.9 3.2 2.3 4.1"/><path d="M16 17a3 3 0 0 0-3-3 3 3 0 0 0-3 3v2h6v-2Z"/></svg>' },
                     { id: 'tipo_recurso', name: 'Tipo de Recurso', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.28 2.22a2.22 2.22 0 0 0-3.14 0l-12 12a2.22 2.22 0 0 0 0 3.14l3.14 3.14a2.22 2.22 0 0 0 3.14 0l12-12a2.22 2.22 0 0 0 0-3.14Z"/><path d="m14 7 3 3"/><path d="M5.5 16.5 10 12"/></svg>' },
-                    { id: 'plataforma', name: 'Plataforma', multi: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'},
-                    { id: 'nombre_autor', name: 'Autor/a', multi: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
+                    { id: 'plataforma', name: 'Plataforma', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'},
+                    { id: 'nombre_autor', name: 'Autor/a', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
                 ];
 
                 filterCategories.forEach(cat => {
@@ -340,7 +335,7 @@
                             <div class="flex items-center gap-3"><span class="text-gray-500">${cat.icon}</span><span class="font-semibold text-gray-800">${cat.name}</span></div>
                             <span class="arrow transition-transform text-gray-500"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
                         </summary>
-                        <div class="pt-3 flex flex-wrap gap-2" data-category="${cat.id}" data-multiselect="${cat.multi}">
+                        <div class="pt-3 flex flex-wrap gap-2" data-category="${cat.id}">
                             ${sortedValues.map(value => `<button class="filter-btn text-sm font-medium py-1.5 px-3 rounded-full" data-filter="${value}">${value}</button>`).join('')}
                         </div>`;
                     elements.filtersContainer.appendChild(details);
@@ -381,11 +376,11 @@
                             </button>
                             <p class="text-sm font-semibold text-gray-600 mb-3 pr-8">${app.plataforma || 'Sin plataforma'}</p>
                             <h3 class="text-xl font-bold text-gray-900 mb-2">${app.titulo_app}</h3>
-                            <p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor', false)}</span></p>
+                            <p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>
                             <p class="text-gray-600 text-sm mb-4 flex-grow">${app.descripcion_app || 'No hay descripción.'}</p>
                             <div class="text-xs text-gray-500 space-y-1 mt-auto">
-                                ${app.nivel_educativo ? `<p><strong>Nivel:</strong> ${createFilterLink(app.nivel_educativo, 'nivel_educativo', true)}</p>` : ''}
-                                ${app.area_conocimiento ? `<p><strong>Área:</strong> ${createFilterLink(app.area_conocimiento, 'area_conocimiento', true)}</p>` : ''}
+                                ${app.nivel_educativo ? `<p><strong>Nivel:</strong> ${createFilterLink(app.nivel_educativo, 'nivel_educativo')}</p>` : ''}
+                                ${app.area_conocimiento ? `<p><strong>Área:</strong> ${createFilterLink(app.area_conocimiento, 'area_conocimiento')}</p>` : ''}
                                 ${app.licencia ? `<p><strong>Licencia:</strong> ${app.licencia}</p>` : ''}
                             </div>
                         </div>
@@ -397,9 +392,9 @@
                 });
             }
             
-            function createFilterLink(text, category, isMulti) {
+            function createFilterLink(text, category) {
                 return text.split(',').map(v => v.trim()).filter(Boolean).map(val => 
-                    `<a href="#" class="filter-link" data-category="${category}" data-filter="${val}" data-multiselect="${isMulti}">${val}</a>`
+                    `<a href="#" class="filter-link" data-category="${category}" data-filter="${val}">${val}</a>`
                 ).join(', ');
             }
 
@@ -415,17 +410,32 @@
                     if (searchText && !normalizeString(Object.values(app).join(' ')).includes(searchText)) {
                         return false;
                     }
+
+                    // This loop implements an AND logic between different filter categories.
                     for (const category in activeFilters) {
-                        const selected = activeFilters[category];
-                        if (selected.size === 0) continue;
-                        const appValueString = app[category] ? normalizeString(app[category]) : '';
-                        if (!appValueString) return false;
-                        
-                        const appValues = appValueString.split(',').map(s => s.trim());
-                        const match = [...selected].every(filterVal => appValues.includes(normalizeString(filterVal)));
-                        if (!match) return false;
+                        const selectedFilters = activeFilters[category];
+                        if (selectedFilters.size === 0) {
+                            continue; // No filters for this category, so we skip it.
+                        }
+
+                        const appValuesRaw = app[category] || '';
+                        if (!appValuesRaw) {
+                            return false; // App has no value for a category that is being filtered, so it can't match.
+                        }
+                        const appValues = appValuesRaw.split(',').map(v => v.trim());
+
+                        // This implements an OR logic within the same category.
+                        // It checks if any of the app's values for this category matches any of the selected filters.
+                        const hasMatch = appValues.some(appVal => 
+                            [...selectedFilters].some(filterVal => normalizeString(appVal) === normalizeString(filterVal))
+                        );
+
+                        if (!hasMatch) {
+                            return false; // If no match was found for this category, the app is filtered out.
+                        }
                     }
-                    return true;
+
+                    return true; // If the app has passed all category checks, it is included.
                 });
                 
                 displayApps(filteredApps);
@@ -508,25 +518,6 @@
                         });
                     }
                 });
-            }
-            
-            function handleFilterClick(category, filter, isMulti) {
-                const filterSet = activeFilters[category];
-                if (!filterSet) return;
-                
-                if (isMulti) {
-                    if (!filterSet.has(filter)) filterSet.add(filter);
-                } else {
-                    filterSet.clear();
-                    filterSet.add(filter);
-                }
-                
-                document.querySelectorAll(`.filter-btn[data-category="${category}"]`).forEach(btn => {
-                    const shouldBeActive = filterSet.has(btn.dataset.filter);
-                    btn.classList.toggle('active', shouldBeActive);
-                });
-
-                applyAndDisplay();
             }
             
             function generateShareableURL(type = 'filters') {
@@ -614,24 +605,18 @@
                 elements.filtersContainer.addEventListener('click', e => {
                     const target = e.target.closest('button.filter-btn');
                     if (!target) return;
-                    const group = target.parentElement;
-                    const category = group.dataset.category;
-                    const filter = target.dataset.filter;
-                    const isMulti = group.dataset.multiselect === 'true';
 
+                    const category = target.parentElement.dataset.category;
+                    const filter = target.dataset.filter;
+                    
                     target.classList.toggle('active');
-                    if (isMulti) {
-                        if (activeFilters[category].has(filter)) activeFilters[category].delete(filter);
-                        else activeFilters[category].add(filter);
+
+                    if (activeFilters[category].has(filter)) {
+                        activeFilters[category].delete(filter);
                     } else {
-                        if (target.classList.contains('active')) {
-                            activeFilters[category].clear();
-                            activeFilters[category].add(filter);
-                            group.querySelectorAll('.active').forEach(btn => { if(btn !== target) btn.classList.remove('active'); });
-                        } else {
-                            activeFilters[category].delete(filter);
-                        }
+                        activeFilters[category].add(filter);
                     }
+                    
                     applyAndDisplay();
                 });
 
@@ -662,8 +647,11 @@
                     if (keywordTag) {
                         e.preventDefault();
                         const keyword = keywordTag.dataset.keyword;
-                        if (activeFilters.palabras_clave.has(keyword)) activeFilters.palabras_clave.delete(keyword);
-                        else activeFilters.palabras_clave.add(keyword);
+                        if (activeFilters.palabras_clave.has(keyword)) {
+                            activeFilters.palabras_clave.delete(keyword);
+                        } else {
+                            activeFilters.palabras_clave.add(keyword);
+                        }
                         applyAndDisplay();
                         return;
                     }
@@ -671,8 +659,11 @@
                     const filterLink = e.target.closest('.filter-link');
                     if (filterLink) {
                         e.preventDefault();
-                        const { category, filter, multiselect } = filterLink.dataset;
-                        handleFilterClick(category, filter, multiselect === 'true');
+                        const { category, filter } = filterLink.dataset;
+                        const correspondingButton = document.querySelector(`#filters-container [data-category='${category}'] [data-filter='${filter}']`);
+                        if (correspondingButton) {
+                            correspondingButton.click();
+                        }
                     }
                 });
                 
@@ -681,9 +672,13 @@
                     if (!target) return;
                     const { category, filter } = target.dataset;
                     if (activeFilters[category] && activeFilters[category].has(filter)) {
-                        activeFilters[category].delete(filter);
-                        document.querySelector(`[data-category="${category}"] [data-filter="${filter}"]`)?.classList.remove('active');
-                        applyAndDisplay();
+                        const correspondingButton = document.querySelector(`#filters-container [data-category='${category}'] [data-filter='${filter}']`);
+                        if (correspondingButton) {
+                            correspondingButton.click();
+                        } else {
+                             activeFilters[category].delete(filter);
+                             applyAndDisplay();
+                        }
                     }
                 });
                 
