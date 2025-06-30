@@ -74,7 +74,6 @@
 <body class="text-gray-800">
 
     <div class="container mx-auto p-4 md:p-8">
-        <!-- Encabezado -->
         <header class="text-center mb-4 p-6 rounded-xl bg-gradient-to-b from-blue-50 to-gray-50">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Repositorio de aplicaciones educativas</h1>
             <p class="mt-4 text-lg text-gray-600">
@@ -86,9 +85,7 @@
             </p>
         </header>
 
-        <!-- Barra de Búsqueda y Filtros -->
         <div class="flex flex-col md:flex-row gap-4 items-center mb-4">
-            <!-- Búsqueda libre -->
             <div class="relative w-full md:flex-grow">
                 <label for="search-input" class="sr-only">Búsqueda libre</label>
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -100,7 +97,6 @@
                 </button>
             </div>
 
-            <!-- Botones de acción -->
             <div class="flex-shrink-0 flex gap-2 w-full md:w-auto">
                  <button id="toggle-favorites-btn" title="Mostrar solo favoritos" class="action-btn flex flex-grow justify-center items-center gap-2 bg-white text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 shadow-sm border border-gray-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -116,7 +112,6 @@
             </div>
         </div>
 
-        <!-- Panel de Filtros (Colapsable) -->
         <div id="filter-panel" class="bg-white p-4 sm:p-6 rounded-xl shadow-sm mb-8 sticky top-4 z-10 border border-gray-200 hidden">
             <div id="filters-container" class="space-y-4"></div>
             <div class="mt-6 border-t pt-4 flex justify-end">
@@ -139,7 +134,6 @@
         </div>
         <div id="active-filters-display" class="flex flex-wrap gap-2 mb-4"></div>
 
-        <!-- Mensajes -->
         <div id="loading-message" class="flex flex-col items-center justify-center text-center py-20">
             <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="text-lg text-gray-600 font-semibold">Cargando aplicaciones...</p>
@@ -149,7 +143,6 @@
         <div id="no-favorites-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No tienes aplicaciones favoritas.<br><span class="text-sm">Haz clic en el corazón de una aplicación para añadirla.</span></p></div>
 
 
-        <!-- Contenedor de las tarjetas -->
         <div id="apps-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </div>
     
@@ -157,7 +150,6 @@
         <p>Una iniciativa del grupo <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>.</p>
     </footer>
 
-    <!-- Modal de Ayuda -->
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh]">
             <button id="close-help-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
@@ -277,18 +269,29 @@
                     try { new URL(app.url_app); return true; } catch (_) { return false; }
                 });
                 
+                // --- Start: New De-duplication Logic ---
+                const seenEmailUrl = new Set();
                 const seenEmailTitle = new Set();
                 const finalData = [];
                 for (let i = validApps.length - 1; i >= 0; i--) {
                     const app = validApps[i];
-                    const emailTitleKey = `${app.correo_autor.toLowerCase().trim()}|${app.titulo_app.toLowerCase().trim()}`;
-                    if (!seenEmailTitle.has(emailTitleKey)) {
+                    const email = app.correo_autor.toLowerCase().trim();
+                    const url = app.url_app.trim();
+                    const title = app.titulo_app.toLowerCase().trim();
+
+                    const emailUrlKey = `${email}|${url}`;
+                    const emailTitleKey = `${email}|${title}`;
+                    
+                    if (!seenEmailUrl.has(emailUrlKey) && !seenEmailTitle.has(emailTitleKey)) {
+                        seenEmailUrl.add(emailUrlKey);
                         seenEmailTitle.add(emailTitleKey);
+                        
                         // Add a unique key for favorites and other interactions
-                        app.key = `${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`;
+                        app.key = `${email}|${url}`;
                         finalData.push(app);
                     }
                 }
+                // --- End: New De-duplication Logic ---
                 return finalData;
             }
             
