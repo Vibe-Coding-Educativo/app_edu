@@ -69,6 +69,10 @@
         .favorite-btn:hover svg {
             transform: scale(1.1);
         }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -127,16 +131,25 @@
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 min-h-[2rem] gap-4">
             <div id="results-counter" class="text-sm text-gray-600 font-medium order-2 sm:order-1"></div>
             <div id="actions-bar" class="hidden order-1 sm:order-2 flex items-center gap-4">
-                <button id="share-url-btn" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                <button id="share-url-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                    Compartir URL
+                    Compartir Filtros
                 </button>
-                <button id="clear-all-btn" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                <button id="share-favorites-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                    Compartir Favoritos
+                </button>
+                <button id="clear-favorites-btn" class="hidden text-sm text-red-600 hover:text-red-800 font-semibold flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Limpiar Favoritos
+                </button>
+                <button id="clear-all-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
                     Limpiar todo
                 </button>
             </div>
         </div>
+        <div id="custom-view-message" class="hidden text-center p-4 mb-4 bg-blue-100 text-blue-800 rounded-lg shadow"></div>
         <div id="active-filters-display" class="flex flex-wrap gap-2 mb-4"></div>
 
         <!-- Mensajes -->
@@ -161,70 +174,23 @@
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh]">
             <button id="close-help-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
-            
             <h3 class="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">Guía de uso del repositorio</h3>
             <div class="space-y-6 text-gray-700 leading-relaxed">
-                
-                <div>
-                    <h4 class="text-lg font-semibold mt-4 mb-2 text-gray-800">1. Encontrar la aplicación perfecta</h4>
-                    <ul class="list-disc list-inside space-y-3 pl-2">
-                        <li><strong>La búsqueda principal:</strong> Es la barra de búsqueda grande que ves al principio. Puedes escribir cualquier término (el nombre de un autor, una palabra del título, un concepto como "gamificación", etc.) y la aplicación buscará en todos los campos de todas las tarjetas.</li>
-                        <li>
-                            <strong>Filtrado detallado:</strong> Para búsquedas más precisas, el panel de filtros es tu mejor aliado.
-                            <ul class="list-disc list-inside space-y-2 pl-6 mt-2 text-sm text-gray-600">
-                                <li>Haz clic en el botón <strong>Filtros</strong> para mostrarlo u ocultarlo.</li>
-                                <li>Dentro, encontrarás categorías como <em>Área de Conocimiento</em>, <em>Nivel Educativo</em> o <em>Tipo de Recurso</em>.</li>
-                                <li>Haz clic en los botones de cada categoría para aplicar los filtros. En algunas categorías puedes seleccionar varias opciones a la vez (por ejemplo, Primaria y Secundaria).</li>
-                                <li>Usa el botón <strong>"Limpiar Filtros"</strong> para eliminar la selección de este panel sin afectar a la búsqueda principal.</li>
-                            </ul>
-                        </li>
-                        <li><strong>Filtros rápidos desde las tarjetas:</strong> No pases por alto esta función. Dentro de cada tarjeta de aplicación, verás que el <strong>nombre del autor</strong>, el <strong>nivel</strong>, el <strong>área</strong> y las <strong>palabras clave</strong> son enlaces. Si haces clic en uno de ellos, se aplicará ese filtro automáticamente.</li>
-                    </ul>
-                </div>
-
                 <div>
                     <h4 class="text-lg font-semibold mt-4 mb-2 text-gray-800">2. Gestionar tus preferencias y búsquedas</h4>
                     <ul class="list-disc list-inside space-y-3 pl-2">
-                        <li>
-                            <strong>Guardar tus favoritos:</strong> ¿Ves una aplicación que te encanta y no quieres perderla?
+                        <li><strong>Guardar tus favoritos:</strong> Haz clic en el icono del <strong>corazón</strong> (♡) en la esquina de una tarjeta para guardarla. Se guardan en tu navegador.</li>
+                        <li><strong>Ver solo favoritos:</strong> Pulsa el botón <strong>Favoritos</strong> (con un corazón) para ver únicamente las aplicaciones que has guardado.</li>
+                        <li><strong>Compartir tus búsquedas:</strong>
                             <ul class="list-disc list-inside space-y-2 pl-6 mt-2 text-sm text-gray-600">
-                                <li>Haz clic en el icono del <strong>corazón</strong> (♡) en la esquina superior derecha de su tarjeta. Se volverá rojo (♥) y la aplicación se guardará en tus favoritos.</li>
-                                <li>Estos se guardan localmente en tu navegador, por lo que solo tú puedes verlos.</li>
-                                <li>Para ver solo tus aplicaciones guardadas, pulsa el botón <strong>Favoritos</strong> (con el icono de un corazón) al lado de la barra de búsqueda. Púlsalo de nuevo para volver a ver todas las aplicaciones.</li>
+                                <li><strong>Para filtros:</strong> Tras aplicar filtros o buscar, pulsa <strong>"Compartir Filtros"</strong> para copiar una URL con esa vista.</li>
+                                <li><strong>Para favoritos:</strong> Cuando estés viendo tus favoritos, pulsa <strong>"Compartir Favoritos"</strong> para obtener un enlace a esa colección específica.</li>
                             </ul>
                         </li>
-                        <li><strong>Compartir tus búsquedas:</strong> ¿Has encontrado una combinación de filtros perfecta para tus alumnos o para compartir con un compañero? Una vez aplicados los filtros, aparecerá el botón <strong>"Compartir URL"</strong>. Al pulsarlo, se copiará en tu portapapeles un enlace único que lleva directamente a la vista con los filtros que has seleccionado.</li>
-                        <li><strong>Limpiar todo:</strong> El botón <strong>"Limpiar todo"</strong> (al lado de "Compartir URL") restablece la página por completo: borra el texto de la búsqueda, desactiva todos los filtros y te muestra de nuevo el listado completo.</li>
+                        <li><strong>Limpiar favoritos:</strong> En la vista de favoritos, aparecerá un botón para <strong>eliminar todos</strong> tus favoritos de una sola vez.</li>
+                        <li><strong>Limpiar todo:</strong> Restablece la página por completo: borra la búsqueda, desactiva todos los filtros y te muestra el listado completo.</li>
                     </ul>
                 </div>
-                
-                <div>
-                    <h4 class="text-lg font-semibold mt-4 mb-2 text-gray-800">3. Entendiendo una tarjeta de aplicación</h4>
-                    <ul class="list-disc list-inside space-y-3 pl-2">
-                        <li><strong>Borde de color:</strong> El color del borde superior indica la plataforma principal con la que se ha creado la aplicación (por ejemplo, morado para Gemini, naranja para Claude, etc.).</li>
-                        <li><strong>Título y Autor:</strong> El nombre de la aplicación y quién la ha creado.</li>
-                        <li><strong>Nivel y Área:</strong> Los campos educativos a los que se dirige. Recuerda que son filtros rápidos.</li>
-                        <li><strong>Palabras Clave:</strong> Etiquetas que describen la aplicación. ¡También son filtros rápidos!</li>
-                        <li><strong>Visitar Aplicación:</strong> El botón principal que te llevará directamente a la aplicación en una nueva pestaña.</li>
-                    </ul>
-                </div>
-                
-                <div>
-                    <h4 class="text-lg font-semibold mt-4 mb-2 text-gray-800">4. ¿Quieres añadir tu propia aplicación?</h4>
-                    <p>Este es un proyecto colaborativo. Si has creado una aplicación y quieres que aparezca aquí, solo tienes que unirte a nuestro grupo de Telegram <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a> y seguir las instrucciones del mensaje fijado para rellenar el formulario.</p>
-                </div>
-                
-                <div class="border-t pt-4 mt-6">
-                    <h4 class="text-lg font-semibold mb-2 text-gray-800">5. Principios de uso y responsabilidad</h4>
-                    <p class="mb-3">El uso de estas herramientas debe realizarse siempre de forma responsable y en consonancia con los principios éticos y de uso adecuado de las tecnologías digitales en el ámbito educativo.</p>
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-r-lg" role="alert">
-                        <p class="font-bold">Aviso importante</p>
-                        <p>Algunas de las aplicaciones de este repositorio integran Inteligencia Artificial. Por este motivo, su utilización por parte de menores de edad debe estar siempre acompañada y supervisada por un adulto (docente o tutor legal) que pueda guiarles y asegurar un uso correcto y seguro.</p>
-                    </div>
-                </div>
-
-                 <p class="text-center text-gray-600 pt-4">¡Esperamos que encuentres herramientas útiles para tus clases!</p>
-
             </div>
         </div>
     </div>
@@ -242,6 +208,7 @@
             let allApps = [];
             let favorites = new Set();
             let showingFavoritesOnly = false;
+            let isCustomView = false;
             let activeFilters = {
                 area_conocimiento: new Set(), nivel_educativo: new Set(),
                 tipo_recurso: new Set(), plataforma: new Set(),
@@ -265,7 +232,12 @@
                 clearSearchBtn: document.getElementById('clear-search-btn'),
                 toggleFiltersBtn: document.getElementById('toggle-filters-btn'),
                 toggleFavoritesBtn: document.getElementById('toggle-favorites-btn'),
-                filterPanel: document.getElementById('filter-panel')
+                filterPanel: document.getElementById('filter-panel'),
+                customViewMsg: document.getElementById('custom-view-message'),
+                shareUrlBtn: document.getElementById('share-url-btn'),
+                shareFavoritesBtn: document.getElementById('share-favorites-btn'),
+                clearFavoritesBtn: document.getElementById('clear-favorites-btn'),
+                clearAllBtn: document.getElementById('clear-all-btn'),
             };
 
             function normalizeString(str) {
@@ -325,7 +297,6 @@
                     try { new URL(app.url_app); return true; } catch (_) { return false; }
                 });
                 
-                // --- Start: New De-duplication Logic ---
                 const seenEmailUrl = new Set();
                 const seenEmailTitle = new Set();
                 const finalData = [];
@@ -341,13 +312,10 @@
                     if (!seenEmailUrl.has(emailUrlKey) && !seenEmailTitle.has(emailTitleKey)) {
                         seenEmailUrl.add(emailUrlKey);
                         seenEmailTitle.add(emailTitleKey);
-                        
-                        // Add a unique key for favorites and other interactions
                         app.key = `${email}|${url}`;
                         finalData.push(app);
                     }
                 }
-                // --- End: New De-duplication Logic ---
                 return finalData;
             }
             
@@ -357,7 +325,7 @@
                     { id: 'nivel_educativo', name: 'Nivel Educativo', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7.9 3.2 2.3 4.1"/><path d="M16 17a3 3 0 0 0-3-3 3 3 0 0 0-3 3v2h6v-2Z"/></svg>' },
                     { id: 'tipo_recurso', name: 'Tipo de Recurso', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.28 2.22a2.22 2.22 0 0 0-3.14 0l-12 12a2.22 2.22 0 0 0 0 3.14l3.14 3.14a2.22 2.22 0 0 0 3.14 0l12-12a2.22 2.22 0 0 0 0-3.14Z"/><path d="m14 7 3 3"/><path d="M5.5 16.5 10 12"/></svg>' },
                     { id: 'plataforma', name: 'Plataforma', multi: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'},
-                    { id: 'nombre_autor', name: 'Autor', multi: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
+                    { id: 'nombre_autor', name: 'Autor/a', multi: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
                 ];
 
                 filterCategories.forEach(cat => {
@@ -388,14 +356,16 @@
 
             function displayApps(apps) {
                 elements.appsContainer.innerHTML = '';
-                elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && favorites.size === 0));
-                elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || favorites.size > 0);
+                elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && favorites.size === 0) || isCustomView);
+                elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || favorites.size > 0 || isCustomView);
 
                 if (showingFavoritesOnly && favorites.size > 0 && apps.length === 0) {
                      elements.noResultsMsg.classList.remove('hidden');
                 }
                 
-                elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
+                if (!isCustomView) {
+                    elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
+                }
 
                 apps.forEach(app => {
                     const card = document.createElement('div');
@@ -459,10 +429,10 @@
                 });
                 
                 displayApps(filteredApps);
-                updateActiveFiltersDisplay();
+                updateControls();
             }
             
-            function updateActiveFiltersDisplay() {
+            function updateControls() {
                 elements.activeFiltersDisplay.innerHTML = '';
                 let hasActiveFilter = false;
 
@@ -479,7 +449,17 @@
                 });
                 
                 const hasSearchText = elements.searchInput.value.length > 0;
-                elements.actionsBar.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
+                const showFilterActions = hasActiveFilter || hasSearchText;
+                const showFavoriteActions = showingFavoritesOnly && favorites.size > 0;
+                const showActionsBar = showFilterActions || showFavoriteActions;
+                elements.actionsBar.classList.toggle('hidden', !showActionsBar);
+                
+                if (showActionsBar) {
+                    elements.shareUrlBtn.classList.toggle('hidden', !showFilterActions);
+                    elements.clearAllBtn.classList.toggle('hidden', !showFilterActions);
+                    elements.shareFavoritesBtn.classList.toggle('hidden', !showFavoriteActions);
+                    elements.clearFavoritesBtn.classList.toggle('hidden', !showFavoriteActions);
+                }
             }
             
             function resetAllFilters(options = {}) {
@@ -496,6 +476,14 @@
                 elements.toggleFavoritesBtn.classList.remove('active');
 
                 applyAndDisplay();
+            }
+            
+            function clearAllFavorites() {
+                if (favorites.size > 0) {
+                    favorites.clear();
+                    saveFavorites();
+                    applyAndDisplay();
+                }
             }
             
             const paramMapping = { subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso', platform: 'plataforma', author: 'nombre_autor', keyword: 'palabras_clave', search: 'search' };
@@ -521,7 +509,7 @@
                     }
                 });
             }
-
+            
             function handleFilterClick(category, filter, isMulti) {
                 const filterSet = activeFilters[category];
                 if (!filterSet) return;
@@ -540,26 +528,61 @@
 
                 applyAndDisplay();
             }
-
-            function generateShareableURL() {
+            
+            function generateShareableURL(type = 'filters') {
                 const params = new URLSearchParams();
-                const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse()));
-                if (elements.searchInput.value) params.set('search', elements.searchInput.value);
-                for (const category in activeFilters) {
-                    if (activeFilters[category].size > 0) {
-                        const paramName = reverseMapping[category];
-                        if (paramName) params.set(paramName, [...activeFilters[category]].join(','));
+                if (type === 'favorites' && favorites.size > 0) {
+                    params.set('ids', [...favorites].join(','));
+                } else {
+                    const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse()));
+                    if (elements.searchInput.value) params.set('search', elements.searchInput.value);
+                    for (const category in activeFilters) {
+                        if (activeFilters[category].size > 0) {
+                            const paramName = reverseMapping[category];
+                            if (paramName) params.set(paramName, [...activeFilters[category]].join(','));
+                        }
                     }
                 }
                 return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
             }
 
             function copyToClipboard(text) {
+                if (!text) return;
                 navigator.clipboard.writeText(text).then(() => {
                     const msg = document.getElementById('copy-confirm-msg');
                     msg.classList.remove('opacity-0', '-translate-y-5');
                     setTimeout(() => msg.classList.add('opacity-0', '-translate-y-5'), 2000);
                 });
+            }
+
+            function applyUrlParams() {
+                const params = new URLSearchParams(window.location.search);
+                const ids = params.get('ids');
+
+                if (ids) {
+                    isCustomView = true;
+                    const sharedKeys = new Set(ids.split(','));
+                    const sharedApps = allApps.filter(app => sharedKeys.has(app.key));
+                    
+                    elements.searchInput.disabled = true;
+                    elements.toggleFiltersBtn.disabled = true;
+                    elements.toggleFavoritesBtn.disabled = true;
+                    elements.filterPanel.classList.add('hidden');
+
+                    elements.customViewMsg.innerHTML = `Estás viendo una colección personalizada de <strong>${sharedApps.length}</strong> aplicaciones. <button id="exit-custom-view" class="font-bold underline ml-2 hover:text-blue-600">Ver todas</button>`;
+                    elements.customViewMsg.classList.remove('hidden');
+                    
+                    document.getElementById('exit-custom-view').addEventListener('click', () => {
+                        window.location.href = window.location.pathname;
+                    });
+
+                    displayApps(sharedApps);
+                    elements.resultsCounter.textContent = `Mostrando una colección personalizada de ${sharedApps.length} aplicaciones.`;
+                } else {
+                    isCustomView = false;
+                    applyFiltersFromURL();
+                    applyAndDisplay();
+                }
             }
 
             // --- Event Listeners Setup ---
@@ -631,6 +654,7 @@
                         }
                         saveFavorites();
                         if(showingFavoritesOnly) applyAndDisplay();
+                        else updateControls();
                         return;
                     }
 
@@ -664,8 +688,10 @@
                 });
                 
                 document.getElementById('reset-filters-btn').addEventListener('click', () => resetAllFilters({ preserveSearch: true }));
-                document.getElementById('clear-all-btn').addEventListener('click', () => resetAllFilters());
-                document.getElementById('share-url-btn').addEventListener('click', () => copyToClipboard(generateShareableURL()));
+                elements.clearAllBtn.addEventListener('click', () => resetAllFilters());
+                elements.shareUrlBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('filters')));
+                elements.shareFavoritesBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('favorites')));
+                elements.clearFavoritesBtn.addEventListener('click', clearAllFavorites);
                 document.getElementById('help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.remove('hidden'));
                 document.getElementById('close-help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.add('hidden'));
                 document.getElementById('help-modal').addEventListener('click', e => { if (e.target.id === 'help-modal') e.currentTarget.classList.add('hidden'); });
@@ -682,8 +708,7 @@
                     if(allApps.length > 0) {
                         setupFilters(allApps);
                         setupEventListeners();
-                        applyFiltersFromURL();
-                        applyAndDisplay();
+                        applyUrlParams();
                     } else {
                         elements.noResultsMsg.classList.remove('hidden');
                     }
