@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Repositorio de aplicaciones educativas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Se elimina PapaParse, ya no es necesario -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -69,6 +69,10 @@
         .favorite-btn:hover svg {
             transform: scale(1.1);
         }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -110,7 +114,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
                     <span>Filtros</span>
                 </button>
-                 <button id="help-btn" title="Ayuda sobre filtros por URL" class="flex-shrink-0 flex justify-center items-center bg-gray-500 text-white font-semibold p-2.5 rounded-lg hover:bg-gray-600 transition shadow-sm">
+                 <button id="help-btn" title="Ayuda" class="flex-shrink-0 flex justify-center items-center bg-gray-500 text-white font-semibold p-2.5 rounded-lg hover:bg-gray-600 transition shadow-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 </button>
             </div>
@@ -127,16 +131,21 @@
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 min-h-[2rem] gap-4">
             <div id="results-counter" class="text-sm text-gray-600 font-medium order-2 sm:order-1"></div>
             <div id="actions-bar" class="hidden order-1 sm:order-2 flex items-center gap-4">
-                <button id="share-url-btn" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                <button id="share-url-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                    Compartir URL
+                    Compartir Filtros
                 </button>
-                <button id="clear-all-btn" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                <button id="share-favorites-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                    Compartir Favoritos
+                </button>
+                <button id="clear-all-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
                     Limpiar todo
                 </button>
             </div>
         </div>
+        <div id="custom-view-message" class="hidden text-center p-4 mb-4 bg-blue-100 text-blue-800 rounded-lg shadow"></div>
         <div id="active-filters-display" class="flex flex-wrap gap-2 mb-4"></div>
 
         <!-- Mensajes -->
@@ -161,20 +170,20 @@
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh]">
             <button id="close-help-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
-            <h3 class="text-xl font-bold mb-4">Filtrado por URL</h3>
-            <div class="space-y-4 text-gray-600">
-                <p>Puedes compartir un enlace a esta página con filtros ya aplicados. La búsqueda no distingue mayúsculas/minúsculas ni acentos.</p>
+            <h3 class="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">Guía de uso del repositorio</h3>
+            <div class="space-y-6 text-gray-700 leading-relaxed">
                 <div>
-                    <h4 class="font-semibold text-gray-800 mb-2">Parámetros disponibles:</h4>
-                    <ul class="list-disc list-inside space-y-2">
-                        <li><code class="text-sm bg-gray-100 p-1 rounded">search</code>, <code class="text-sm bg-gray-100 p-1 rounded">author</code>, <code class="text-sm bg-gray-100 p-1 rounded">subject</code>, <code class="text-sm bg-gray-100 p-1 rounded">level</code>, <code class="text-sm bg-gray-100 p-1 rounded">type</code>, <code class="text-sm bg-gray-100 p-1 rounded">platform</code>, <code class="text-sm bg-gray-100 p-1 rounded">keyword</code></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-semibold text-gray-800 mb-2">Combinar filtros:</h4>
-                    <ul class="list-disc list-inside space-y-2">
-                        <li>Varios valores para una categoría (p.ej. nivel):<br><code class="text-sm bg-gray-100 p-1 rounded">?level=Primaria,Secundaria</code></li>
-                        <li>Distintas categorías (p.ej. autor y área):<br><code class="text-sm bg-gray-100 p-1 rounded">?author=Juan Perez&subject=Matematicas</code></li>
+                    <h4 class="text-lg font-semibold mt-4 mb-2 text-gray-800">2. Gestionar tus preferencias y búsquedas</h4>
+                    <ul class="list-disc list-inside space-y-3 pl-2">
+                        <li><strong>Guardar tus favoritos:</strong> Haz clic en el icono del <strong>corazón</strong> (♡) en la esquina de una tarjeta para guardarla. Se guardan en tu navegador.</li>
+                        <li><strong>Ver solo favoritos:</strong> Pulsa el botón <strong>Favoritos</strong> (con un corazón) para ver únicamente las aplicaciones que has guardado.</li>
+                        <li><strong>Compartir tus búsquedas:</strong>
+                            <ul class="list-disc list-inside space-y-2 pl-6 mt-2 text-sm text-gray-600">
+                                <li><strong>Para filtros:</strong> Tras aplicar filtros o buscar, pulsa <strong>"Compartir Filtros"</strong> para copiar una URL con esa vista.</li>
+                                <li><strong>Para favoritos:</strong> Cuando estés viendo tus favoritos, pulsa <strong>"Compartir Favoritos"</strong> para obtener un enlace a esa colección específica.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Limpiar todo:</strong> Restablece la página por completo: borra la búsqueda, desactiva todos los filtros y te muestra el listado completo.</li>
                     </ul>
                 </div>
             </div>
@@ -188,19 +197,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // URL del endpoint de Google Apps Script.
-            // **IMPORTANTE**: Debes reemplazar esta URL por la de tu propia aplicación web implementada.
-            const DATA_URL = 'https://script.google.com/macros/s/AKfycbw_Mta5ICfJhOWXQTDHzvJ2Vfe0erKnVuW3rH6TZKbTn8kQLTtCubMKTOpn8OhlKjXi/exec';
+            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
             
             // --- State Variables ---
             let allApps = [];
             let favorites = new Set();
             let showingFavoritesOnly = false;
+            let isCustomView = false;
             let activeFilters = {
                 area_conocimiento: new Set(), nivel_educativo: new Set(),
                 tipo_recurso: new Set(), plataforma: new Set(),
                 nombre_autor: new Set(), palabras_clave: new Set(),
             };
+
+            const REQUIRED_FIELDS = ['correo_autor', 'nombre_autor', 'titulo_app', 'url_app'];
             
             // --- DOM Elements ---
             const elements = {
@@ -217,7 +227,11 @@
                 clearSearchBtn: document.getElementById('clear-search-btn'),
                 toggleFiltersBtn: document.getElementById('toggle-filters-btn'),
                 toggleFavoritesBtn: document.getElementById('toggle-favorites-btn'),
-                filterPanel: document.getElementById('filter-panel')
+                filterPanel: document.getElementById('filter-panel'),
+                customViewMsg: document.getElementById('custom-view-message'),
+                shareUrlBtn: document.getElementById('share-url-btn'),
+                shareFavoritesBtn: document.getElementById('share-favorites-btn'),
+                clearAllBtn: document.getElementById('clear-all-btn'),
             };
 
             function normalizeString(str) {
@@ -246,36 +260,53 @@
             }
 
             function processData(data) {
-                // Los campos mínimos que una app debe tener. Ya no se usa `correo_autor`.
-                const REQUIRED_FIELDS = ['nombre_autor', 'titulo_app', 'url_app'];
+                const FULL_COLUMN_KEYS = [
+                    'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app', 
+                    'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo', 
+                    'area_conocimiento', 'palabras_clave', 'licencia', 'eliminar_registro'
+                ];
+                
+                const rows = data.slice(1);
+                const mappedData = rows.map(rowArray => {
+                    const newRow = {};
+                    FULL_COLUMN_KEYS.forEach((key, index) => {
+                        newRow[key] = rowArray[index] ? rowArray[index].trim() : '';
+                    });
+                    return newRow;
+                });
 
-                // 1. Filtra registros marcados para eliminar, sin campos requeridos o con URL inválida.
-                const validApps = data.filter(app => {
-                    const isMarkedForDeletion = (app.eliminar_registro || '').toString().toLowerCase() === 'si';
-                    if (isMarkedForDeletion) return false;
-
-                    const hasRequiredFields = REQUIRED_FIELDS.every(field => app[field]);
-                    if (!hasRequiredFields) return false;
-
-                    try {
-                        new URL(app.url_app);
-                        return true;
-                    } catch (_) {
-                        return false;
+                const keysToDelete = new Set();
+                mappedData.forEach(app => {
+                    if (normalizeString(app.eliminar_registro) === 'si' && app.url_app && app.correo_autor) {
+                        keysToDelete.add(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`);
                     }
                 });
 
-                // 2. Elimina duplicados basándose en el título y la URL, conservando la entrada más reciente.
-                const seen = new Set();
+                const appsWithoutDeleted = mappedData.filter(app => 
+                    !app.url_app || !app.correo_autor || !keysToDelete.has(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`)
+                );
+
+                const validApps = appsWithoutDeleted.filter(app => {
+                    if (REQUIRED_FIELDS.some(field => !app[field])) return false;
+                    try { new URL(app.url_app); return true; } catch (_) { return false; }
+                });
+                
+                const seenEmailUrl = new Set();
+                const seenEmailTitle = new Set();
                 const finalData = [];
-                // Se itera hacia atrás para conservar la última entrada (la más reciente en la hoja).
                 for (let i = validApps.length - 1; i >= 0; i--) {
                     const app = validApps[i];
-                    // La nueva clave única para favoritos se basa en el título y la URL.
-                    const key = `${app.titulo_app.toLowerCase().trim()}|${app.url_app.trim()}`;
-                    if (!seen.has(key)) {
-                        seen.add(key);
-                        app.key = key; // Se asigna la clave para el sistema de favoritos.
+                    const email = app.correo_autor.toLowerCase().trim();
+                    const url = app.url_app.trim();
+                    const title = app.titulo_app.toLowerCase().trim();
+
+                    const emailUrlKey = `${email}|${url}`;
+                    const emailTitleKey = `${email}|${title}`;
+                    
+                    if (!seenEmailUrl.has(emailUrlKey) && !seenEmailTitle.has(emailTitleKey)) {
+                        seenEmailUrl.add(emailUrlKey);
+                        seenEmailTitle.add(emailTitleKey);
+                        app.key = `${email}|${url}`;
                         finalData.push(app);
                     }
                 }
@@ -319,14 +350,16 @@
 
             function displayApps(apps) {
                 elements.appsContainer.innerHTML = '';
-                elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && favorites.size === 0));
-                elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || favorites.size > 0);
+                elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && favorites.size === 0) || isCustomView);
+                elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || favorites.size > 0 || isCustomView);
 
                 if (showingFavoritesOnly && favorites.size > 0 && apps.length === 0) {
                      elements.noResultsMsg.classList.remove('hidden');
                 }
                 
-                elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
+                if (!isCustomView) {
+                    elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
+                }
 
                 apps.forEach(app => {
                     const card = document.createElement('div');
@@ -390,10 +423,11 @@
                 });
                 
                 displayApps(filteredApps);
-                updateActiveFiltersDisplay();
+                updateControls();
             }
             
-            function updateActiveFiltersDisplay() {
+            function updateControls() {
+                // 1. Update active filter tags
                 elements.activeFiltersDisplay.innerHTML = '';
                 let hasActiveFilter = false;
 
@@ -409,8 +443,16 @@
                     });
                 });
                 
+                // 2. Update actions bar
                 const hasSearchText = elements.searchInput.value.length > 0;
-                elements.actionsBar.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
+                const showActionsBar = hasActiveFilter || hasSearchText || (showingFavoritesOnly && favorites.size > 0);
+                elements.actionsBar.classList.toggle('hidden', !showActionsBar);
+                
+                if (showActionsBar) {
+                    elements.shareUrlBtn.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
+                    elements.clearAllBtn.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
+                    elements.shareFavoritesBtn.classList.toggle('hidden', !showingFavoritesOnly || favorites.size === 0);
+                }
             }
             
             function resetAllFilters(options = {}) {
@@ -452,7 +494,7 @@
                     }
                 });
             }
-
+            
             function handleFilterClick(category, filter, isMulti) {
                 const filterSet = activeFilters[category];
                 if (!filterSet) return;
@@ -471,26 +513,61 @@
 
                 applyAndDisplay();
             }
-
-            function generateShareableURL() {
+            
+            function generateShareableURL(type = 'filters') {
                 const params = new URLSearchParams();
-                const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse()));
-                if (elements.searchInput.value) params.set('search', elements.searchInput.value);
-                for (const category in activeFilters) {
-                    if (activeFilters[category].size > 0) {
-                        const paramName = reverseMapping[category];
-                        if (paramName) params.set(paramName, [...activeFilters[category]].join(','));
+                if (type === 'favorites' && favorites.size > 0) {
+                    params.set('ids', [...favorites].join(','));
+                } else {
+                    const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse()));
+                    if (elements.searchInput.value) params.set('search', elements.searchInput.value);
+                    for (const category in activeFilters) {
+                        if (activeFilters[category].size > 0) {
+                            const paramName = reverseMapping[category];
+                            if (paramName) params.set(paramName, [...activeFilters[category]].join(','));
+                        }
                     }
                 }
                 return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
             }
 
             function copyToClipboard(text) {
+                if (!text) return;
                 navigator.clipboard.writeText(text).then(() => {
                     const msg = document.getElementById('copy-confirm-msg');
                     msg.classList.remove('opacity-0', '-translate-y-5');
                     setTimeout(() => msg.classList.add('opacity-0', '-translate-y-5'), 2000);
                 });
+            }
+
+            function applyUrlParams() {
+                const params = new URLSearchParams(window.location.search);
+                const ids = params.get('ids');
+
+                if (ids) {
+                    isCustomView = true;
+                    const sharedKeys = new Set(ids.split(','));
+                    const sharedApps = allApps.filter(app => sharedKeys.has(app.key));
+                    
+                    elements.searchInput.disabled = true;
+                    elements.toggleFiltersBtn.disabled = true;
+                    elements.toggleFavoritesBtn.disabled = true;
+                    elements.filterPanel.classList.add('hidden');
+
+                    elements.customViewMsg.innerHTML = `Estás viendo una colección personalizada de <strong>${sharedApps.length}</strong> aplicaciones. <button id="exit-custom-view" class="font-bold underline ml-2 hover:text-blue-600">Ver todas</button>`;
+                    elements.customViewMsg.classList.remove('hidden');
+                    
+                    document.getElementById('exit-custom-view').addEventListener('click', () => {
+                        window.location.href = window.location.pathname;
+                    });
+
+                    displayApps(sharedApps);
+                    elements.resultsCounter.textContent = `Mostrando una colección personalizada de ${sharedApps.length} aplicaciones.`;
+                } else {
+                    isCustomView = false;
+                    applyFiltersFromURL();
+                    applyAndDisplay();
+                }
             }
 
             // --- Event Listeners Setup ---
@@ -562,6 +639,7 @@
                         }
                         saveFavorites();
                         if(showingFavoritesOnly) applyAndDisplay();
+                        else updateControls();
                         return;
                     }
 
@@ -595,8 +673,9 @@
                 });
                 
                 document.getElementById('reset-filters-btn').addEventListener('click', () => resetAllFilters({ preserveSearch: true }));
-                document.getElementById('clear-all-btn').addEventListener('click', () => resetAllFilters());
-                document.getElementById('share-url-btn').addEventListener('click', () => copyToClipboard(generateShareableURL()));
+                elements.clearAllBtn.addEventListener('click', () => resetAllFilters());
+                elements.shareUrlBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('filters')));
+                elements.shareFavoritesBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('favorites')));
                 document.getElementById('help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.remove('hidden'));
                 document.getElementById('close-help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.add('hidden'));
                 document.getElementById('help-modal').addEventListener('click', e => { if (e.target.id === 'help-modal') e.currentTarget.classList.add('hidden'); });
@@ -605,31 +684,25 @@
             // --- Main Execution ---
             loadFavorites();
             
-            // Se utiliza fetch para obtener el JSON desde el endpoint de Apps Script.
-            fetch(DATA_URL)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Error de red: ${response.status} ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
+            Papa.parse(CSV_URL, {
+                download: true, header: false, skipEmptyLines: true,
+                complete: (results) => {
                     elements.loadingMsg.style.display = 'none';
-                    allApps = processData(data);
-                    if (allApps.length > 0) {
+                    allApps = processData(results.data);
+                    if(allApps.length > 0) {
                         setupFilters(allApps);
                         setupEventListeners();
-                        applyFiltersFromURL();
-                        applyAndDisplay();
+                        applyUrlParams();
                     } else {
                         elements.noResultsMsg.classList.remove('hidden');
                     }
-                })
-                .catch(error => {
-                    console.error("Error al cargar los datos desde Apps Script:", error);
+                },
+                error: (error) => {
+                    console.error("Error al cargar o parsear el CSV:", error);
                     elements.loadingMsg.style.display = 'none';
                     elements.errorMsg.classList.remove('hidden');
-                });
+                }
+            });
         });
     </script>
 </body>
