@@ -136,8 +136,12 @@
                     Compartir Filtros
                 </button>
                 <button id="share-favorites-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
                     Compartir Favoritos
+                </button>
+                <button id="clear-favorites-btn" class="hidden text-sm text-red-600 hover:text-red-800 font-semibold flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Limpiar Favoritos
                 </button>
                 <button id="clear-all-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
@@ -183,6 +187,7 @@
                                 <li><strong>Para favoritos:</strong> Cuando estés viendo tus favoritos, pulsa <strong>"Compartir Favoritos"</strong> para obtener un enlace a esa colección específica.</li>
                             </ul>
                         </li>
+                        <li><strong>Limpiar favoritos:</strong> En la vista de favoritos, aparecerá un botón para <strong>eliminar todos</strong> tus favoritos de una sola vez.</li>
                         <li><strong>Limpiar todo:</strong> Restablece la página por completo: borra la búsqueda, desactiva todos los filtros y te muestra el listado completo.</li>
                     </ul>
                 </div>
@@ -231,6 +236,7 @@
                 customViewMsg: document.getElementById('custom-view-message'),
                 shareUrlBtn: document.getElementById('share-url-btn'),
                 shareFavoritesBtn: document.getElementById('share-favorites-btn'),
+                clearFavoritesBtn: document.getElementById('clear-favorites-btn'),
                 clearAllBtn: document.getElementById('clear-all-btn'),
             };
 
@@ -275,42 +281,42 @@
                     return newRow;
                 });
 
-                const keysToDelete = new Set();
+                // Identify URLs to be deleted based on the 'eliminar_registro' column
+                const urlsToDelete = new Set();
                 mappedData.forEach(app => {
-                    if (normalizeString(app.eliminar_registro) === 'si' && app.url_app && app.correo_autor) {
-                        keysToDelete.add(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`);
+                    if (normalizeString(app.eliminar_registro) === 'si' && app.url_app) {
+                        urlsToDelete.add(app.url_app.trim());
                     }
                 });
 
+                // Filter out apps marked for deletion
                 const appsWithoutDeleted = mappedData.filter(app => 
-                    !app.url_app || !app.correo_autor || !keysToDelete.has(`${app.correo_autor.toLowerCase().trim()}|${app.url_app.trim()}`)
+                    !app.url_app || !urlsToDelete.has(app.url_app.trim())
                 );
 
+                // Filter for valid apps with all required fields and a valid URL
                 const validApps = appsWithoutDeleted.filter(app => {
                     if (REQUIRED_FIELDS.some(field => !app[field])) return false;
                     try { new URL(app.url_app); return true; } catch (_) { return false; }
                 });
                 
-                const seenEmailUrl = new Set();
-                const seenEmailTitle = new Set();
+                // De-duplicate based on URL, keeping the most recent entry
+                const seenUrls = new Set();
                 const finalData = [];
                 for (let i = validApps.length - 1; i >= 0; i--) {
                     const app = validApps[i];
-                    const email = app.correo_autor.toLowerCase().trim();
                     const url = app.url_app.trim();
-                    const title = app.titulo_app.toLowerCase().trim();
 
-                    const emailUrlKey = `${email}|${url}`;
-                    const emailTitleKey = `${email}|${title}`;
-                    
-                    if (!seenEmailUrl.has(emailUrlKey) && !seenEmailTitle.has(emailTitleKey)) {
-                        seenEmailUrl.add(emailUrlKey);
-                        seenEmailTitle.add(emailTitleKey);
-                        app.key = `${email}|${url}`;
+                    if (!seenUrls.has(url)) {
+                        seenUrls.add(url);
+                        // The unique key is now just the URL
+                        app.key = url;
                         finalData.push(app);
                     }
                 }
-                return finalData;
+                
+                // Reverse to restore original order (newest last)
+                return finalData.reverse();
             }
             
             function setupFilters(apps) {
@@ -319,7 +325,7 @@
                     { id: 'nivel_educativo', name: 'Nivel Educativo', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7.9 3.2 2.3 4.1"/><path d="M16 17a3 3 0 0 0-3-3 3 3 0 0 0-3 3v2h6v-2Z"/></svg>' },
                     { id: 'tipo_recurso', name: 'Tipo de Recurso', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.28 2.22a2.22 2.22 0 0 0-3.14 0l-12 12a2.22 2.22 0 0 0 0 3.14l3.14 3.14a2.22 2.22 0 0 0 3.14 0l12-12a2.22 2.22 0 0 0 0-3.14Z"/><path d="m14 7 3 3"/><path d="M5.5 16.5 10 12"/></svg>' },
                     { id: 'plataforma', name: 'Plataforma', multi: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'},
-                    { id: 'nombre_autor', name: 'Autor', multi: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
+                    { id: 'nombre_autor', name: 'Autor/a', multi: false, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
                 ];
 
                 filterCategories.forEach(cat => {
@@ -427,7 +433,6 @@
             }
             
             function updateControls() {
-                // 1. Update active filter tags
                 elements.activeFiltersDisplay.innerHTML = '';
                 let hasActiveFilter = false;
 
@@ -443,15 +448,17 @@
                     });
                 });
                 
-                // 2. Update actions bar
                 const hasSearchText = elements.searchInput.value.length > 0;
-                const showActionsBar = hasActiveFilter || hasSearchText || (showingFavoritesOnly && favorites.size > 0);
+                const showFilterActions = hasActiveFilter || hasSearchText;
+                const showFavoriteActions = showingFavoritesOnly && favorites.size > 0;
+                const showActionsBar = showFilterActions || showFavoriteActions;
                 elements.actionsBar.classList.toggle('hidden', !showActionsBar);
                 
                 if (showActionsBar) {
-                    elements.shareUrlBtn.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
-                    elements.clearAllBtn.classList.toggle('hidden', !hasActiveFilter && !hasSearchText);
-                    elements.shareFavoritesBtn.classList.toggle('hidden', !showingFavoritesOnly || favorites.size === 0);
+                    elements.shareUrlBtn.classList.toggle('hidden', !showFilterActions);
+                    elements.clearAllBtn.classList.toggle('hidden', !showFilterActions);
+                    elements.shareFavoritesBtn.classList.toggle('hidden', !showFavoriteActions);
+                    elements.clearFavoritesBtn.classList.toggle('hidden', !showFavoriteActions);
                 }
             }
             
@@ -469,6 +476,14 @@
                 elements.toggleFavoritesBtn.classList.remove('active');
 
                 applyAndDisplay();
+            }
+            
+            function clearAllFavorites() {
+                if (favorites.size > 0) {
+                    favorites.clear();
+                    saveFavorites();
+                    applyAndDisplay();
+                }
             }
             
             const paramMapping = { subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso', platform: 'plataforma', author: 'nombre_autor', keyword: 'palabras_clave', search: 'search' };
@@ -676,6 +691,7 @@
                 elements.clearAllBtn.addEventListener('click', () => resetAllFilters());
                 elements.shareUrlBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('filters')));
                 elements.shareFavoritesBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('favorites')));
+                elements.clearFavoritesBtn.addEventListener('click', clearAllFavorites);
                 document.getElementById('help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.remove('hidden'));
                 document.getElementById('close-help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.add('hidden'));
                 document.getElementById('help-modal').addEventListener('click', e => { if (e.target.id === 'help-modal') e.currentTarget.classList.add('hidden'); });
