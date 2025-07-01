@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingFavoritesOnly = false;
     let isCustomView = false;
     let currentPage = 1;
-    let itemsPerPage = 50;
+    let itemsPerPage = 50; // Default value, will be overwritten by localStorage if available
     let activeFilters = {
         area_conocimiento: new Set(), nivel_educativo: new Set(),
         tipo_recurso: new Set(), plataforma: new Set(),
@@ -454,6 +454,8 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.itemsPerPageSelector.addEventListener('change', (e) => {
             const value = e.target.value;
             itemsPerPage = value === 'all' ? 'all' : parseInt(value, 10);
+            // --- Cambio 1: Guardar la preferencia ---
+            localStorage.setItem('itemsPerPagePref', value);
             currentPage = 1;
             applyAndDisplay();
         });
@@ -586,8 +588,11 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.loadingMsg.style.display = 'none';
             allApps = processData(results.data);
             if(allApps.length > 0) {
-                itemsPerPage = 50; // Set initial value
-                elements.itemsPerPageSelector.value = "50";
+                // --- Cambio 2: Cargar la preferencia al inicio ---
+                const savedItemsPerPage = localStorage.getItem('itemsPerPagePref') || '50';
+                itemsPerPage = savedItemsPerPage === 'all' ? 'all' : parseInt(savedItemsPerPage, 10);
+                elements.itemsPerPageSelector.value = savedItemsPerPage;
+
                 setupFilters(allApps);
                 setupEventListeners();
                 applyUrlParams();
