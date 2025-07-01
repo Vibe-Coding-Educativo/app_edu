@@ -717,26 +717,40 @@
         });
     </script>
 
-<!-- suma 1 visita -->
-<img src="https://bilateria.org/vce/stats/contador.php" alt="" style="display:none">
-
-<!-- total de visitas, centrado y con letra más pequeña -->
+<!-- caja del contador (centrado y letra algo menor) -->
 <div id="visit-box"><span id="visit-total">–</span> visitas</div>
 
 <style>
 #visit-box{
   text-align:center;
-  font-size:0.9rem;    /* un poco más pequeño que el texto normal */
+  font-size:0.9rem;    /* ligeramente más pequeño */
   margin-top:1rem;
 }
 </style>
 
 <script>
-fetch('https://bilateria.org/vce/stats/total.php?' + Date.now())
+/* ----- 1. sumar visita solo si ha pasado el intervalo ----- */
+const INTERVAL_MIN = 15;                           // minutos de espera
+const lastPing     = Number(localStorage.getItem('visit_ping') || 0);
+const now          = Date.now();
+
+if (now - lastPing > INTERVAL_MIN * 60 * 1000) {
+  /* crea la imagen invisible que incrementa el contador */
+  const img = new Image();
+  img.src = 'https://bilateria.org/vce/stats/contador.php?' + now;
+  img.style.display = 'none';
+  document.body.appendChild(img);
+
+  localStorage.setItem('visit_ping', now.toString());
+}
+
+/* ----- 2. recuperar y mostrar el total ----- */
+fetch('https://bilateria.org/vce/stats/total.php?' + now)
   .then(r => r.text())
   .then(n => { document.getElementById('visit-total').textContent = n.trim(); })
   .catch(() => { document.getElementById('visit-total').textContent = '–'; });
 </script>
+
 
 
 </body>
