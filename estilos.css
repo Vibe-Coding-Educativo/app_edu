@@ -85,3 +85,13 @@ button:disabled, select:disabled {
     font-size: 0.875rem; /* text-sm */
     color: #4b5563; /* gray-600 */
 }
+/* --- Estilo para el enlace del contador de visitas --- */
+#visit-box a {
+    color: inherit; /* Hereda el color del texto de su contenedor (gris oscuro) */
+    text-decoration: none; /* Elimina el subrayado azul */
+}
+
+#visit-box a:hover {
+    text-decoration: underline; /* Añade un subrayado solo al pasar el ratón por encima */
+    color: #3b82f6; /* Cambia a color azul al pasar el ratón (opcional) */
+}
