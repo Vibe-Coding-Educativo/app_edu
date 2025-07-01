@@ -613,15 +613,38 @@ const INTERVAL_MIN = 15;
 const lastPing = Number(localStorage.getItem('visit_ping') || 0);
 const now = Date.now();
 
+// Registra una visita si han pasado más de 15 min.
 if (now - lastPing > INTERVAL_MIN * 60 * 1000) {
   const img = new Image();
+  // Esta URL debe apuntar al contador.php en tu servidor.
   img.src = 'https://bilateria.org/vce/stats/contador.php?' + now;
   img.style.display = 'none';
   document.body.appendChild(img);
   localStorage.setItem('visit_ping', now.toString());
 }
 
+// Obtiene el número total y crea el enlace.
 fetch('https://bilateria.org/vce/stats/total.php?' + now)
-  .then(r => r.text())
-  .then(n => { document.getElementById('visit-total').textContent = n.trim(); })
-  .catch(() => { document.getElementById('visit-total').textContent = '–'; });
+  .then(response => response.text())
+  .then(totalVisitas => {
+    const visitBox = document.getElementById('visit-box');
+    if (!visitBox) return;
+
+    // Limpiamos el contenido anterior.
+    visitBox.innerHTML = '';
+
+    // Creamos el nuevo elemento de enlace (<a>).
+    const statsLink = document.createElement('a');
+    statsLink.href = 'stats.html'; // Enlace relativo a tu nueva página de estadísticas.
+    
+    // Construimos el texto final.
+    const numero = totalVisitas.trim();
+    statsLink.textContent = `${numero} visitas desde el 1 de julio de 2025`;
+    
+    // Añadimos el enlace al contenedor.
+    visitBox.appendChild(statsLink);
+  })
+  .catch(() => {
+    const visitBox = document.getElementById('visit-box');
+    if (visitBox) visitBox.textContent = '–';
+  });
