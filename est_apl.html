@@ -9,39 +9,41 @@
     <!-- Chart.js para crear los gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <!-- PapaParse para leer el archivo CSV desde la URL -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
-        /* Estilos personalizados para mejorar la apariencia */
+        /* Estilos personalizados para mejorar la apariencia (Tema Claro) */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #111827; /* Gris oscuro */
-            color: #f3f4f6; /* Gris claro */
+            background-color: #f3f4f6; /* Gris muy claro */
+            color: #1f2937; /* Gris oscuro */
         }
         .chart-container {
-            background-color: #1f2937; /* Gris un poco más claro */
+            background-color: #ffffff; /* Blanco */
             padding: 1.5rem;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: transform 0.3s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
         .chart-container:hover {
             transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
         }
         .stat-card {
-            background-color: #374151;
+            background-color: #ffffff; /* Blanco */
             padding: 1.5rem;
             border-radius: 0.75rem;
             text-align: center;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
         }
         .stat-card .value {
             font-size: 2.5rem;
             font-weight: 700;
-            color: #34d399; /* Verde esmeralda */
+            color: #10b981; /* Verde esmeralda */
         }
         #loading-spinner {
-            border: 8px solid #f3f4f6;
-            border-top: 8px solid #34d399;
+            border: 8px solid #e5e7eb;
+            border-top: 8px solid #10b981;
             border-radius: 50%;
             width: 60px;
             height: 60px;
@@ -64,8 +66,8 @@
 
         <!-- Título y descripción -->
         <header class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Análisis de Aplicaciones Educativas</h1>
-            <p class="text-lg text-gray-400">Visualización interactiva de datos del repositorio de aplicaciones.</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-2">Análisis de Aplicaciones Educativas Activas</h1>
+            <p class="text-lg text-gray-600">Visualización interactiva de datos del repositorio de aplicaciones.</p>
         </header>
 
         <!-- Spinner de carga -->
@@ -77,86 +79,58 @@
             <!-- Estadísticas clave -->
             <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <div class="stat-card">
-                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Total de Apps</h3>
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">Apps Activas</h3>
                     <p id="total-apps" class="value">0</p>
                 </div>
                 <div class="stat-card">
-                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Materias Únicas</h3>
-                    <p id="total-subjects" class="value">0</p>
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">Total de Áreas</h3>
+                    <p id="total-areas" class="value">0</p>
                 </div>
                 <div class="stat-card">
-                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Idiomas Diferentes</h3>
-                    <p id="total-languages" class="value">0</p>
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">Tipos de Licencia</h3>
+                    <p id="total-licenses" class="value">0</p>
                 </div>
             </section>
 
             <!-- Grid de gráficos -->
             <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Gráfico: ¿Necesita registro? -->
+                <!-- Gráfico: Plataforma de creación -->
                 <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">¿Necesita registro?</h2>
-                    <canvas id="registroChart"></canvas>
+                    <h2 class="text-xl font-semibold mb-4 text-center">Plataforma de creación</h2>
+                    <canvas id="plataformaChart"></canvas>
                 </div>
 
-                <!-- Gráfico: ¿Es gratuita? -->
+                <!-- Gráfico: Tipo de recurso -->
                 <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">¿Es gratuita?</h2>
-                    <canvas id="gratuitaChart"></canvas>
+                    <h2 class="text-xl font-semibold mb-4 text-center">Tipo de recurso</h2>
+                    <canvas id="tipoRecursoChart"></canvas>
                 </div>
 
-                <!-- Gráfico: ¿Tiene publicidad? -->
+                <!-- Gráfico: Licencia de uso -->
                 <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">¿Tiene publicidad?</h2>
-                    <canvas id="publicidadChart"></canvas>
+                    <h2 class="text-xl font-semibold mb-4 text-center">Licencia de uso</h2>
+                    <canvas id="licenciaChart"></canvas>
                 </div>
+                
+                <!-- Gráfico: Placeholder para mantener el layout -->
+                <div class="chart-container bg-transparent border-none shadow-none"></div>
 
-                <!-- Gráfico: ¿Es de código abierto? -->
-                <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">¿Es de código abierto?</h2>
-                    <canvas id="codigoAbiertoChart"></canvas>
-                </div>
 
-                <!-- Gráfico: Materias -->
+                <!-- Gráfico: Área o áreas de conocimiento -->
                 <div class="chart-container lg:col-span-2">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Materias que cubren las aplicaciones</h2>
-                    <canvas id="materiasChart"></canvas>
+                    <h2 class="text-xl font-semibold mb-4 text-center">Área o áreas de conocimiento</h2>
+                    <canvas id="areasChart"></canvas>
                 </div>
 
-                <!-- Gráfico: Niveles Educativos -->
+                <!-- Gráfico: Nivel o niveles educativos -->
                 <div class="chart-container lg:col-span-2">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Niveles educativos</h2>
+                    <h2 class="text-xl font-semibold mb-4 text-center">Nivel o niveles educativos</h2>
                     <canvas id="nivelesChart"></canvas>
                 </div>
 
-                <!-- Gráfico: Idiomas -->
-                <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Idiomas disponibles</h2>
-                    <canvas id="idiomasChart"></canvas>
-                </div>
-
-                <!-- Gráfico: Tipos de aplicación -->
-                <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Tipos de aplicación</h2>
-                    <canvas id="tiposChart"></canvas>
-                </div>
             </section>
         </main>
         
-        <!-- Pie de página -->
-        <footer class="text-center mt-12 text-gray-500">
-            <p>Datos obtenidos en tiempo real de un repositorio público.</p>
-            <!-- 
-            Aquí se podría añadir el pie de página que me indicaste:
-            <div class="mt-4 space-x-4">
-                <a href="https://labia.tiddlyhost.com" class="hover:text-white">Laboratorio de aplicaciones educativas</a>
-                <span>-</span>
-                <a href="https://bilateria.org" class="hover:text-white">Aplicación hecha por Juan José de Haro</a>
-                <span>-</span>
-                <a href="URL_DE_LA_LICENCIA" class="hover:text-white">Licencia Creative Commons BY-SA</a>
-            </div>
-            -->
-        </footer>
-
     </div>
 
     <script>
@@ -210,17 +184,15 @@
 
             // Función para crear un gráfico de tipo pie o dona
             const createPieChart = (ctx, label, data) => {
-                const labels = Object.keys(data);
-                const values = Object.values(data);
-                new Chart(ctx, {
+                const chart = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
-                        labels: labels,
+                        labels: Object.keys(data),
                         datasets: [{
                             label: label,
-                            data: values,
-                            backgroundColor: labels.map((_, i) => getColor(i)),
-                            borderColor: '#1f2937',
+                            data: Object.values(data),
+                            backgroundColor: Object.keys(data).map((_, i) => getColor(i)),
+                            borderColor: '#ffffff', // Borde blanco para el tema claro
                             borderWidth: 3
                         }]
                     },
@@ -230,9 +202,23 @@
                             legend: {
                                 position: 'top',
                                 labels: {
-                                    color: '#d1d5db' // Color del texto de la leyenda
+                                    color: '#374151' // Color de texto de la leyenda para tema claro
                                 }
                             }
+                        },
+                        // NUEVA FUNCIONALIDAD: onClick para filtrar
+                        onClick: (evt) => {
+                            const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+                            if (points.length) {
+                                const firstPoint = points[0];
+                                const label = chart.data.labels[firstPoint.index];
+                                const url = `index.html?search=${encodeURIComponent(label)}`;
+                                window.open(url, '_blank').focus();
+                            }
+                        },
+                        // NUEVA FUNCIONALIDAD: Cambiar cursor al pasar por encima
+                        onHover: (event, chartElement) => {
+                            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
                         }
                     }
                 });
@@ -245,19 +231,19 @@
                 const labels = sortedData.map(entry => entry[0]);
                 const values = sortedData.map(entry => entry[1]);
 
-                new Chart(ctx, {
+                const chart = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [{
                             label: label,
                             data: values,
-                            backgroundColor: labels.map((_, i) => getColor(i + 1)),
+                            backgroundColor: labels.map((_, i) => getColor(i + 2)), // Offset de color
                             borderRadius: 4
                         }]
                     },
                     options: {
-                        indexAxis: axis, // 'y' para barras horizontales, 'x' para verticales
+                        indexAxis: axis,
                         responsive: true,
                         plugins: {
                             legend: {
@@ -266,13 +252,27 @@
                         },
                         scales: {
                             x: {
-                                ticks: { color: '#9ca3af' },
-                                grid: { color: '#374151' }
+                                ticks: { color: '#4b5563' },
+                                grid: { color: '#e5e7eb' }
                             },
                             y: {
-                                ticks: { color: '#9ca3af' },
-                                grid: { color: '#374151' }
+                                ticks: { color: '#4b5563' },
+                                grid: { color: '#e5e7eb' }
                             }
+                        },
+                        // NUEVA FUNCIONALIDAD: onClick para filtrar
+                        onClick: (evt) => {
+                            const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+                            if (points.length) {
+                                const firstPoint = points[0];
+                                const label = chart.data.labels[firstPoint.index];
+                                const url = `index.html?search=${encodeURIComponent(label)}`;
+                                window.open(url, '_blank').focus();
+                            }
+                        },
+                        // NUEVA FUNCIONALIDAD: Cambiar cursor al pasar por encima
+                        onHover: (event, chartElement) => {
+                            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
                         }
                     }
                 });
@@ -284,35 +284,61 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: (results) => {
-                    const data = results.data;
+                    // --- INICIO DE LA LÓGICA DE FILTRADO DE APPS ACTIVAS ---
+                    const allData = results.data;
+                    const deletionUrlColumn = 'Marca la casilla y escribe más abajo la URL que tiene tu aplicación. En el resto de campos, escribe cualquier cosa y envía el formulario';
+                    const appUrlColumn = 'Enlace (URL) a la aplicación';
+                    const timestampColumn = 'Marca temporal';
+                    const deletionFlagColumn = '¿QUIERES ELIMINAR UN REGISTRO?';
+
+                    const deletedUrls = new Set();
+                    allData.forEach(row => {
+                        if (row[deletionFlagColumn] === 'Sí' && row[deletionUrlColumn]) {
+                            deletedUrls.add(row[deletionUrlColumn].trim());
+                        }
+                    });
+
+                    let activeApps = allData.filter(row => {
+                        const appUrl = row[appUrlColumn]?.trim();
+                        return appUrl && !deletedUrls.has(appUrl);
+                    });
+
+                    activeApps.sort((a, b) => new Date(b[timestampColumn]) - new Date(a[timestampColumn]));
+
+                    const uniqueActiveApps = [];
+                    const seenUrls = new Set();
+                    for (const app of activeApps) {
+                        const appUrl = app[appUrlColumn].trim();
+                        if (!seenUrls.has(appUrl)) {
+                            uniqueActiveApps.push(app);
+                            seenUrls.add(appUrl);
+                        }
+                    }
                     
-                    // Actualizar estadísticas clave
+                    const data = uniqueActiveApps;
+                    // --- FIN DE LA LÓGICA DE FILTRADO ---
+
+                    // Actualizar estadísticas clave con los datos filtrados
                     document.getElementById('total-apps').textContent = data.length;
 
-                    // Procesar datos para cada gráfico
-                    const registroData = countSingleValueItems(data, '¿La aplicación necesita registro?');
-                    const gratuitaData = countSingleValueItems(data, '¿La aplicación es gratuita?');
-                    const publicidadData = countSingleValueItems(data, '¿La aplicación tiene publicidad?');
-                    const codigoAbiertoData = countSingleValueItems(data, '¿La aplicación es de código abierto?');
-                    const materiasData = countMultiValueItems(data, '¿Qué materias o áreas de conocimiento cubre la aplicación?');
-                    const nivelesData = countMultiValueItems(data, '¿Para qué niveles educativos es adecuada la aplicación?');
-                    const idiomasData = countMultiValueItems(data, '¿En qué idiomas está disponible la aplicación?');
-                    const tiposData = countMultiValueItems(data, '¿Qué tipo de aplicación es?');
+                    // Procesar datos para cada gráfico usando los nombres exactos de las columnas del CSV
+                    const plataformaData = countSingleValueItems(data, 'Plataforma de creación');
+                    const tipoRecursoData = countSingleValueItems(data, 'Tipo de recurso');
+                    const licenciaData = countSingleValueItems(data, 'Licencia de uso');
+                    const areasData = countMultiValueItems(data, 'Área o áreas de conocimiento');
+                    const nivelesData = countMultiValueItems(data, 'Nivel o niveles educativos');
                     
                     // Actualizar más estadísticas
-                    document.getElementById('total-subjects').textContent = Object.keys(materiasData).length;
-                    document.getElementById('total-languages').textContent = Object.keys(idiomasData).length;
+                    document.getElementById('total-areas').textContent = Object.keys(areasData).length;
+                    document.getElementById('total-licenses').textContent = Object.keys(licenciaData).length;
 
                     // Crear los gráficos
-                    createPieChart(document.getElementById('registroChart').getContext('2d'), '# de Apps', registroData);
-                    createPieChart(document.getElementById('gratuitaChart').getContext('2d'), '# de Apps', gratuitaData);
-                    createPieChart(document.getElementById('publicidadChart').getContext('2d'), '# de Apps', publicidadData);
-                    createPieChart(document.getElementById('codigoAbiertoChart').getContext('2d'), '# de Apps', codigoAbiertoData);
+                    createPieChart(document.getElementById('plataformaChart').getContext('2d'), '# de Apps', plataformaData);
+                    createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'), '# de Apps', tipoRecursoData);
+                    createPieChart(document.getElementById('licenciaChart').getContext('2d'), '# de Apps', licenciaData);
                     
-                    createBarChart(document.getElementById('materiasChart').getContext('2d'), '# de Apps', materiasData, 'y');
-                    createBarChart(document.getElementById('nivelesChart').getContext('2d'), '# de Apps', nivelesData, 'x');
-                    createBarChart(document.getElementById('idiomasChart').getContext('2d'), '# de Apps', idiomasData, 'y');
-                    createBarChart(document.getElementById('tiposChart').getContext('2d'), '# de Apps', tiposData, 'x');
+                    createBarChart(document.getElementById('areasChart').getContext('2d'), '# de Apps', areasData, 'y');
+                    createBarChart(document.getElementById('nivelesChart').getContext('2d'), '# de Apps', nivelesData, 'y');
 
                     // Ocultar spinner y mostrar contenido
                     loadingSpinner.style.display = 'none';
