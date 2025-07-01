@@ -172,10 +172,13 @@
 
     <!-- Modal de Ayuda -->
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full relative overflow-y-auto max-h-[90vh]">
-            <button id="close-help-btn" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-3xl font-bold z-10 p-2 leading-none">&times;</button>
-            <div id="help-modal-content">
-                <!-- El contenido de ayuda.html se cargará aquí -->
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full h-[85vh] flex flex-col">
+            <div class="flex-shrink-0 p-3 border-b flex justify-end items-center relative">
+                 <h3 class="text-xl font-bold text-gray-800 absolute left-1/2 -translate-x-1/2">Ayuda</h3>
+                 <button id="close-help-btn" class="text-gray-500 hover:text-gray-800 text-3xl font-bold p-1 leading-none">&times;</button>
+            </div>
+            <div class="overflow-auto flex-grow">
+                <iframe id="help-frame" src="about:blank" class="w-full h-full border-0"></iframe>
             </div>
         </div>
     </div>
@@ -677,37 +680,25 @@
                 const helpBtn = document.getElementById('help-btn');
                 const helpModal = document.getElementById('help-modal');
                 const closeHelpBtn = document.getElementById('close-help-btn');
-                const helpModalContent = document.getElementById('help-modal-content');
-                let helpContentLoaded = false;
+                const helpFrame = document.getElementById('help-frame');
+                let helpFrameLoaded = false;
 
                 helpBtn.addEventListener('click', () => {
                     helpModal.classList.remove('hidden');
-                    if (!helpContentLoaded) {
-                        helpModalContent.innerHTML = '<p class="p-6 text-center">Cargando...</p>';
-                        fetch('ayuda.html')
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('La respuesta de la red no fue correcta');
-                                }
-                                return response.text();
-                            })
-                            .then(html => {
-                                const parser = new DOMParser();
-                                const doc = parser.parseFromString(html, 'text/html');
-                                helpModalContent.innerHTML = doc.body.innerHTML;
-                                helpContentLoaded = true;
-                            })
-                            .catch(error => {
-                                helpModalContent.innerHTML = '<p class="p-6 text-red-600 text-center">No se pudo cargar la ayuda. Por favor, inténtalo de nuevo más tarde.</p>';
-                                console.error('Error al cargar el archivo de ayuda:', error);
-                            });
+                    if (!helpFrameLoaded) {
+                        helpFrame.src = 'ayuda.html';
+                        helpFrameLoaded = true;
                     }
                 });
 
-                closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+                closeHelpBtn.addEventListener('click', () => {
+                    helpModal.classList.add('hidden');
+                });
+
                 helpModal.addEventListener('click', e => {
+                    // Cierra el modal si se hace clic en el fondo oscuro
                     if (e.target.id === 'help-modal') {
-                        e.currentTarget.classList.add('hidden');
+                        helpModal.classList.add('hidden');
                     }
                 });
             }
