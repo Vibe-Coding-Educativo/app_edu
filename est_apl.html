@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis Visual de Aplicaciones Educativas</title>
+    <!-- Tailwind CSS para un diseño moderno y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para crear los gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- PapaParse para leer el archivo CSV desde la URL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+    <style>
+        /* Estilos personalizados para mejorar la apariencia */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Gris oscuro */
+            color: #f3f4f6; /* Gris claro */
+        }
+        .chart-container {
+            background-color: #1f2937; /* Gris un poco más claro */
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+        .chart-container:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card {
+            background-color: #374151;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #34d399; /* Verde esmeralda */
+        }
+        #loading-spinner {
+            border: 8px solid #f3f4f6;
+            border-top: 8px solid #34d399;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Contenedor principal -->
+    <div class="container mx-auto p-4 md:p-8">
+
+        <!-- Título y descripción -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Análisis de Aplicaciones Educativas</h1>
+            <p class="text-lg text-gray-400">Visualización interactiva de datos del repositorio de aplicaciones.</p>
+        </header>
+
+        <!-- Spinner de carga -->
+        <div id="loading-spinner"></div>
+
+        <!-- Contenido principal (se muestra después de cargar los datos) -->
+        <main id="dashboard-content" class="hidden">
+
+            <!-- Estadísticas clave -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="stat-card">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Total de Apps</h3>
+                    <p id="total-apps" class="value">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Materias Únicas</h3>
+                    <p id="total-subjects" class="value">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="text-lg font-semibold text-gray-300 mb-2">Idiomas Diferentes</h3>
+                    <p id="total-languages" class="value">0</p>
+                </div>
+            </section>
+
+            <!-- Grid de gráficos -->
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Gráfico: ¿Necesita registro? -->
+                <div class="chart-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">¿Necesita registro?</h2>
+                    <canvas id="registroChart"></canvas>
+                </div>
+
+                <!-- Gráfico: ¿Es gratuita? -->
+                <div class="chart-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">¿Es gratuita?</h2>
+                    <canvas id="gratuitaChart"></canvas>
+                </div>
+
+                <!-- Gráfico: ¿Tiene publicidad? -->
+                <div class="chart-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">¿Tiene publicidad?</h2>
+                    <canvas id="publicidadChart"></canvas>
+                </div>
+
+                <!-- Gráfico: ¿Es de código abierto? -->
+                <div class="chart-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">¿Es de código abierto?</h2>
+                    <canvas id="codigoAbiertoChart"></canvas>
+                </div>
+
+                <!-- Gráfico: Materias -->
+                <div class="chart-container lg:col-span-2">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Materias que cubren las aplicaciones</h2>
+                    <canvas id="materiasChart"></canvas>
+                </div>
+
+                <!-- Gráfico: Niveles Educativos -->
+                <div class="chart-container lg:col-span-2">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Niveles educativos</h2>
+                    <canvas id="nivelesChart"></canvas>
+                </div>
+
+                <!-- Gráfico: Idiomas -->
+                <div class="chart-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Idiomas disponibles</h2>
+                    <canvas id="idiomasChart"></canvas>
+                </div>
+
+                <!-- Gráfico: Tipos de aplicación -->
+                <div class="chart-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Tipos de aplicación</h2>
+                    <canvas id="tiposChart"></canvas>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Pie de página -->
+        <footer class="text-center mt-12 text-gray-500">
+            <p>Datos obtenidos en tiempo real de un repositorio público.</p>
+            <!-- 
+            Aquí se podría añadir el pie de página que me indicaste:
+            <div class="mt-4 space-x-4">
+                <a href="https://labia.tiddlyhost.com" class="hover:text-white">Laboratorio de aplicaciones educativas</a>
+                <span>-</span>
+                <a href="https://bilateria.org" class="hover:text-white">Aplicación hecha por Juan José de Haro</a>
+                <span>-</span>
+                <a href="URL_DE_LA_LICENCIA" class="hover:text-white">Licencia Creative Commons BY-SA</a>
+            </div>
+            -->
+        </footer>
+
+    </div>
+
+    <script>
+        // Se utiliza window.onload para asegurar que todos los scripts externos (como PapaParse)
+        // se hayan cargado completamente antes de ejecutar nuestro código.
+        window.onload = () => {
+            // URL del CSV publicado desde Google Sheets
+            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
+
+            // Elementos del DOM
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const dashboardContent = document.getElementById('dashboard-content');
+
+            // Paleta de colores para los gráficos
+            const chartColors = [
+                '#34d399', '#60a5fa', '#f87171', '#fbbf24', '#a78bfa',
+                '#f472b6', '#22d3ee', '#a3e635', '#fb923c', '#9ca3af'
+            ];
+
+            // Función para obtener un color de la paleta
+            const getColor = (index) => chartColors[index % chartColors.length];
+
+            // Función para procesar columnas con múltiples valores separados por coma
+            const countMultiValueItems = (data, columnName) => {
+                const counts = {};
+                data.forEach(row => {
+                    const items = row[columnName];
+                    if (items) {
+                        items.split(',').forEach(item => {
+                            const trimmedItem = item.trim();
+                            if (trimmedItem) {
+                                counts[trimmedItem] = (counts[trimmedItem] || 0) + 1;
+                            }
+                        });
+                    }
+                });
+                return counts;
+            };
+
+            // Función para procesar columnas con un solo valor
+            const countSingleValueItems = (data, columnName) => {
+                const counts = {};
+                data.forEach(row => {
+                    const item = row[columnName]?.trim();
+                    if (item) {
+                        counts[item] = (counts[item] || 0) + 1;
+                    }
+                });
+                return counts;
+            };
+
+            // Función para crear un gráfico de tipo pie o dona
+            const createPieChart = (ctx, label, data) => {
+                const labels = Object.keys(data);
+                const values = Object.values(data);
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: values,
+                            backgroundColor: labels.map((_, i) => getColor(i)),
+                            borderColor: '#1f2937',
+                            borderWidth: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: '#d1d5db' // Color del texto de la leyenda
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+            
+            // Función para crear un gráfico de barras
+            const createBarChart = (ctx, label, data, axis = 'y') => {
+                 // Ordenar los datos para mostrar las barras más grandes primero
+                const sortedData = Object.entries(data).sort(([, a], [, b]) => b - a);
+                const labels = sortedData.map(entry => entry[0]);
+                const values = sortedData.map(entry => entry[1]);
+
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: label,
+                            data: values,
+                            backgroundColor: labels.map((_, i) => getColor(i + 1)),
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: axis, // 'y' para barras horizontales, 'x' para verticales
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#9ca3af' },
+                                grid: { color: '#374151' }
+                            },
+                            y: {
+                                ticks: { color: '#9ca3af' },
+                                grid: { color: '#374151' }
+                            }
+                        }
+                    }
+                });
+            };
+
+            // Cargar y procesar los datos
+            Papa.parse(csvUrl, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    const data = results.data;
+                    
+                    // Actualizar estadísticas clave
+                    document.getElementById('total-apps').textContent = data.length;
+
+                    // Procesar datos para cada gráfico
+                    const registroData = countSingleValueItems(data, '¿La aplicación necesita registro?');
+                    const gratuitaData = countSingleValueItems(data, '¿La aplicación es gratuita?');
+                    const publicidadData = countSingleValueItems(data, '¿La aplicación tiene publicidad?');
+                    const codigoAbiertoData = countSingleValueItems(data, '¿La aplicación es de código abierto?');
+                    const materiasData = countMultiValueItems(data, '¿Qué materias o áreas de conocimiento cubre la aplicación?');
+                    const nivelesData = countMultiValueItems(data, '¿Para qué niveles educativos es adecuada la aplicación?');
+                    const idiomasData = countMultiValueItems(data, '¿En qué idiomas está disponible la aplicación?');
+                    const tiposData = countMultiValueItems(data, '¿Qué tipo de aplicación es?');
+                    
+                    // Actualizar más estadísticas
+                    document.getElementById('total-subjects').textContent = Object.keys(materiasData).length;
+                    document.getElementById('total-languages').textContent = Object.keys(idiomasData).length;
+
+                    // Crear los gráficos
+                    createPieChart(document.getElementById('registroChart').getContext('2d'), '# de Apps', registroData);
+                    createPieChart(document.getElementById('gratuitaChart').getContext('2d'), '# de Apps', gratuitaData);
+                    createPieChart(document.getElementById('publicidadChart').getContext('2d'), '# de Apps', publicidadData);
+                    createPieChart(document.getElementById('codigoAbiertoChart').getContext('2d'), '# de Apps', codigoAbiertoData);
+                    
+                    createBarChart(document.getElementById('materiasChart').getContext('2d'), '# de Apps', materiasData, 'y');
+                    createBarChart(document.getElementById('nivelesChart').getContext('2d'), '# de Apps', nivelesData, 'x');
+                    createBarChart(document.getElementById('idiomasChart').getContext('2d'), '# de Apps', idiomasData, 'y');
+                    createBarChart(document.getElementById('tiposChart').getContext('2d'), '# de Apps', tiposData, 'x');
+
+                    // Ocultar spinner y mostrar contenido
+                    loadingSpinner.style.display = 'none';
+                    dashboardContent.classList.remove('hidden');
+                },
+                error: (error) => {
+                    console.error("Error al cargar o procesar el archivo CSV:", error);
+                    loadingSpinner.style.display = 'none';
+                    dashboardContent.innerHTML = `<p class="text-center text-red-500">No se pudieron cargar los datos. Por favor, inténtalo de nuevo más tarde.</p>`;
+                    dashboardContent.classList.remove('hidden');
+                }
+            });
+        };
+    </script>
+
+</body>
+</html>
