@@ -59,7 +59,7 @@ details[open] summary .arrow { transform: rotate(90deg); }
 .favorite-btn:hover svg {
     transform: scale(1.1);
 }
-button:disabled {
+button:disabled, select:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
@@ -67,4 +67,21 @@ button:disabled {
   text-align:center;
   font-size:0.9rem;
   margin-top:0.1rem;
+}
+#pagination-container button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db; /* gray-300 */
+    background-color: white;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: 500;
+}
+#pagination-container button:hover:not(:disabled) {
+    background-color: #f3f4f6; /* gray-100 */
+}
+#pagination-container span {
+    padding: 0.5rem;
+    font-size: 0.875rem; /* text-sm */
+    color: #4b5563; /* gray-600 */
 }
