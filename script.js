@@ -199,4 +199,501 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>
                     ${descriptionHtml}
                     <div class="text-xs text-gray-500 space-y-1 mt-auto">
-                        ${app.nivel_educativo ? `<p><strong>Nivel:</strong> ${createFilterLink(app.nivel_educativo, '
+                        ${app.nivel_educativo ? `<p><strong>Nivel:</strong> ${createFilterLink(app.nivel_educativo, 'nivel_educativo')}</p>` : ''}
+                        ${app.area_conocimiento ? `<p><strong>Área:</strong> ${createFilterLink(app.area_conocimiento, 'area_conocimiento')}</p>` : ''}
+                        ${app.licencia ? `<p><strong>Licencia:</strong> ${app.licencia}</p>` : ''}
+                    </div>
+                </div>
+                <div class="p-4 border-t border-gray-200 bg-gray-50">
+                    <div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div>
+                    <a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">Visitar Aplicación</a>
+                </div>`;
+            elements.appsContainer.appendChild(card);
+        });
+
+        setupPagination(apps.length);
+    }
+
+    function setupPagination(totalItems) {
+        elements.paginationContainer.innerHTML = '';
+        const effectiveItemsPerPage = itemsPerPage === 'all' ? totalItems : parseInt(itemsPerPage);
+        if (totalItems <= effectiveItemsPerPage) return;
+
+        const totalPages = Math.ceil(totalItems / effectiveItemsPerPage);
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Anterior';
+        prevButton.className = 'pagination-btn';
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                applyAndDisplay();
+                window.scrollTo(0, 0);
+            }
+        });
+        elements.paginationContainer.appendChild(prevButton);
+
+        const pageInfo = document.createElement('span');
+        pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+        elements.paginationContainer.appendChild(pageInfo);
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Siguiente';
+        nextButton.className = 'pagination-btn';
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                applyAndDisplay();
+                window.scrollTo(0, 0);
+            }
+        });
+        elements.paginationContainer.appendChild(nextButton);
+    }
+
+    function createFilterLink(text, category) {
+        return text.split(',').map(v => v.trim()).filter(Boolean).map(val =>
+            `<a href="#" class="filter-link" data-category="${category}" data-filter="${val}">${val}</a>`
+        ).join(', ');
+    }
+
+    function applyAndDisplay() {
+        const searchText = normalizeString(elements.searchInput.value);
+        let appsToFilter = allApps;
+
+        if (showingFavoritesOnly) {
+            appsToFilter = allApps.filter(app => favorites.has(app.key));
+        }
+
+        const filteredApps = appsToFilter.filter(app => {
+            if (searchText && !normalizeString(Object.values(app).join(' ')).includes(searchText)) {
+                return false;
+            }
+
+            for (const category in activeFilters) {
+                const selectedFilters = activeFilters[category];
+                if (selectedFilters.size === 0) {
+                    continue;
+                }
+
+                const appValuesRaw = app[category] || '';
+                if (!appValuesRaw) {
+                    return false;
+                }
+                const appValues = appValuesRaw.split(',').map(v => v.trim());
+
+                const hasMatch = appValues.some(appVal =>
+                    [...selectedFilters].some(filterVal => normalizeString(appVal) === normalizeString(filterVal))
+                );
+
+                if (!hasMatch) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        displayApps(filteredApps);
+        updateControls();
+    }
+
+    function updateControls() {
+        elements.activeFiltersDisplay.innerHTML = '';
+        let hasActiveFilter = false;
+
+        Object.entries(activeFilters).forEach(([category, filterSet]) => {
+            if(filterSet.size === 0) return;
+            hasActiveFilter = true;
+            const catName = document.querySelector(`[data-category="${category}"]`)?.closest('details')?.querySelector('.font-semibold')?.textContent || 'Palabra Clave';
+            filterSet.forEach(filterValue => {
+                const tag = document.createElement('div');
+                tag.className = 'flex items-center bg-gray-200 text-gray-800 text-sm font-medium pl-3 pr-2 py-1 rounded-full';
+                tag.innerHTML = `<span>${catName}: ${filterValue}</span><button class="ml-2 text-gray-500 hover:text-gray-800" data-category="${category}" data-filter="${filterValue}" title="Eliminar filtro">&times;</button>`;
+                elements.activeFiltersDisplay.appendChild(tag);
+            });
+        });
+
+        const hasSearchText = elements.searchInput.value.length > 0;
+        const showFilterActions = hasActiveFilter || hasSearchText;
+        const showFavoriteActions = showingFavoritesOnly && favorites.size > 0;
+        const showActionsBar = showFilterActions || showFavoriteActions;
+        elements.actionsBar.classList.toggle('hidden', !showActionsBar);
+        elements.actionsBar.parentElement.classList.toggle('justify-between', showActionsBar);
+        elements.actionsBar.parentElement.classList.toggle('justify-end', !showActionsBar);
+
+
+        if (showActionsBar) {
+            elements.shareUrlBtn.classList.toggle('hidden', !showFilterActions);
+            elements.clearAllBtn.classList.toggle('hidden', !showFilterActions);
+            elements.shareFavoritesBtn.classList.toggle('hidden', !showFavoriteActions);
+            elements.clearFavoritesBtn.classList.toggle('hidden', !showFavoriteActions);
+        }
+    }
+
+    function resetAllFilters(options = {}) {
+        currentPage = 1;
+        if (!options.preserveSearch) {
+            elements.searchInput.value = '';
+            elements.clearSearchBtn.classList.add('hidden');
+        }
+        for (const category in activeFilters) activeFilters[category].clear();
+
+        document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active'));
+        elements.filtersContainer.querySelectorAll('details').forEach(d => { d.open = false; });
+
+        showingFavoritesOnly = false;
+        elements.toggleFavoritesBtn.classList.remove('active');
+
+        applyAndDisplay();
+    }
+
+    function clearAllFavorites() {
+        if (favorites.size > 0) {
+            currentPage = 1;
+            favorites.clear();
+            saveFavorites();
+            applyAndDisplay();
+        }
+    }
+
+    const paramMapping = { subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso', platform: 'plataforma', author: 'nombre_autor', keyword: 'palabras_clave', search: 'search' };
+
+    function applyFiltersFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        params.forEach((value, key) => {
+            const category = paramMapping[key.toLowerCase()];
+            if (!category) return;
+
+            const valuesFromUrl = value.split(',');
+            if (category === 'search') {
+                elements.searchInput.value = value;
+                elements.clearSearchBtn.classList.toggle('hidden', !elements.searchInput.value);
+            } else if (activeFilters[category]) {
+                 valuesFromUrl.forEach(urlVal => {
+                    activeFilters[category].add(urlVal);
+                    const normalized = normalizeString(urlVal);
+                    document.querySelectorAll(`[data-category="${category}"] .filter-btn`).forEach(btn => {
+                        if (normalizeString(btn.dataset.filter).includes(normalized)) btn.classList.add('active');
+                    });
+                });
+            }
+        });
+    }
+
+    function generateShareableURL(type = 'filters') {
+        const params = new URLSearchParams();
+        if (type === 'favorites' && favorites.size > 0) {
+            params.set('ids', [...favorites].join(','));
+        } else {
+            const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse()));
+            if (elements.searchInput.value) params.set('search', elements.searchInput.value);
+            for (const category in activeFilters) {
+                if (activeFilters[category].size > 0) {
+                    const paramName = reverseMapping[category];
+                    if (paramName) params.set(paramName, [...activeFilters[category]].join(','));
+                }
+            }
+        }
+        return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+    }
+
+    function copyToClipboard(text) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            const msg = document.getElementById('copy-confirm-msg');
+            msg.classList.remove('opacity-0', '-translate-y-5');
+            setTimeout(() => msg.classList.add('opacity-0', '-translate-y-5'), 2000);
+        });
+    }
+
+    function applyUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        const ids = params.get('ids');
+
+        if (ids) {
+            isCustomView = true;
+            const sharedKeys = new Set(ids.split(','));
+            const sharedApps = allApps.filter(app => sharedKeys.has(app.key));
+
+            elements.searchInput.disabled = true;
+            elements.toggleFiltersBtn.disabled = true;
+            elements.toggleFavoritesBtn.disabled = true;
+            elements.filterPanel.classList.add('hidden');
+            elements.itemsPerPageSelector.disabled = true;
+
+            elements.customViewMsg.innerHTML = `Estás viendo una colección personalizada de <strong>${sharedApps.length}</strong> aplicaciones. <button id="exit-custom-view" class="font-bold underline ml-2 hover:text-blue-600">Ver todas</button>`;
+            elements.customViewMsg.classList.remove('hidden');
+
+            document.getElementById('exit-custom-view').addEventListener('click', () => {
+                window.location.href = window.location.pathname;
+            });
+
+            displayApps(sharedApps);
+            elements.resultsCounter.textContent = `Mostrando una colección personalizada de ${sharedApps.length} aplicaciones.`;
+        } else {
+            isCustomView = false;
+            applyFiltersFromURL();
+            applyAndDisplay();
+        }
+    }
+
+    function setupEventListeners() {
+        elements.toggleFiltersBtn.addEventListener('click', () => elements.filterPanel.classList.toggle('hidden'));
+
+        elements.toggleFavoritesBtn.addEventListener('click', () => {
+            showingFavoritesOnly = !showingFavoritesOnly;
+            elements.toggleFavoritesBtn.classList.toggle('active');
+            currentPage = 1;
+            if (showingFavoritesOnly) {
+                elements.filterPanel.classList.add('hidden');
+                elements.toggleFiltersBtn.classList.remove('active');
+            }
+            applyAndDisplay();
+        });
+
+        elements.searchInput.addEventListener('input', () => {
+            elements.clearSearchBtn.classList.toggle('hidden', !elements.searchInput.value);
+            currentPage = 1;
+            applyAndDisplay();
+        });
+
+        elements.clearSearchBtn.addEventListener('click', () => {
+            elements.searchInput.value = '';
+            elements.clearSearchBtn.classList.add('hidden');
+            currentPage = 1;
+            applyAndDisplay();
+            elements.searchInput.focus();
+        });
+
+        elements.itemsPerPageSelector.addEventListener('change', (e) => {
+            const value = e.target.value;
+            itemsPerPage = value === 'all' ? 'all' : parseInt(value, 10);
+            localStorage.setItem('itemsPerPagePref', value);
+            currentPage = 1;
+            applyAndDisplay();
+        });
+
+        elements.filtersContainer.addEventListener('click', e => {
+            const target = e.target.closest('button.filter-btn');
+            if (!target) return;
+
+            const category = target.parentElement.dataset.category;
+            const filter = target.dataset.filter;
+
+            target.classList.toggle('active');
+            currentPage = 1;
+
+            if (activeFilters[category].has(filter)) {
+                activeFilters[category].delete(filter);
+            } else {
+                activeFilters[category].add(filter);
+            }
+
+            applyAndDisplay();
+        });
+
+        elements.appsContainer.addEventListener('click', e => {
+            const favBtn = e.target.closest('.favorite-btn');
+            if (favBtn) {
+                e.preventDefault();
+                const key = favBtn.dataset.key;
+                const svg = favBtn.querySelector('svg');
+                if (favorites.has(key)) {
+                    favorites.delete(key);
+                    svg.classList.remove('text-red-500', 'fill-red-500');
+                    svg.classList.add('text-gray-400');
+                    svg.setAttribute('fill', 'none');
+                } else {
+                    favorites.add(key);
+                    svg.classList.add('text-red-500', 'fill-red-500');
+                    svg.classList.remove('text-gray-400');
+                    svg.setAttribute('fill', 'currentColor');
+                }
+                saveFavorites();
+                if(showingFavoritesOnly) {
+                    currentPage = 1;
+                    applyAndDisplay();
+                } else {
+                    updateControls();
+                }
+                return;
+            }
+
+            const keywordTag = e.target.closest('.keyword-tag');
+            if (keywordTag) {
+                e.preventDefault();
+                const keyword = keywordTag.dataset.keyword;
+                currentPage = 1;
+                if (activeFilters.palabras_clave.has(keyword)) {
+                    activeFilters.palabras_clave.delete(keyword);
+                } else {
+                    activeFilters.palabras_clave.add(keyword);
+                }
+                applyAndDisplay();
+                return;
+            }
+
+            const filterLink = e.target.closest('.filter-link');
+            if (filterLink) {
+                e.preventDefault();
+                const { category, filter } = filterLink.dataset;
+                const correspondingButton = document.querySelector(`#filters-container [data-category='${category}'] [data-filter='${filter}']`);
+                if (correspondingButton) {
+                    currentPage = 1;
+                    correspondingButton.click();
+                }
+            }
+
+            // --- Start: Read More/Less Click Handler ---
+            const target = e.target;
+            if (target.classList.contains('read-more') || target.classList.contains('read-less')) {
+                e.preventDefault();
+                const container = target.closest('.description-container');
+                const shortDesc = container.querySelector('.short-desc');
+                const longDesc = container.querySelector('.long-desc');
+
+                shortDesc.classList.toggle('hidden');
+                longDesc.classList.toggle('hidden');
+            }
+            // --- End: Read More/Less Click Handler ---
+        });
+
+        elements.activeFiltersDisplay.addEventListener('click', e => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const { category, filter } = target.dataset;
+            if (activeFilters[category] && activeFilters[category].has(filter)) {
+                const correspondingButton = document.querySelector(`#filters-container [data-category='${category}'] [data-filter='${filter}']`);
+                if (correspondingButton) {
+                    currentPage = 1;
+                    correspondingButton.click();
+                } else {
+                     activeFilters[category].delete(filter);
+                     currentPage = 1;
+                     applyAndDisplay();
+                }
+            }
+        });
+
+        document.getElementById('reset-filters-btn').addEventListener('click', () => resetAllFilters({ preserveSearch: true }));
+        elements.clearAllBtn.addEventListener('click', () => resetAllFilters());
+        elements.shareUrlBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('filters')));
+        elements.shareFavoritesBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('favorites')));
+        elements.clearFavoritesBtn.addEventListener('click', clearAllFavorites);
+
+        const helpBtn = document.getElementById('help-btn');
+        const helpModal = document.getElementById('help-modal');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+        const helpFrame = document.getElementById('help-frame');
+        let helpFrameLoaded = false;
+
+        helpBtn.addEventListener('click', () => {
+            helpModal.classList.remove('hidden');
+            if (!helpFrameLoaded) {
+                helpFrame.src = 'ayuda.html';
+                helpFrameLoaded = true;
+            }
+        });
+
+        closeHelpBtn.addEventListener('click', () => {
+            helpModal.classList.add('hidden');
+        });
+
+        helpModal.addEventListener('click', e => {
+            if (e.target.id === 'help-modal') {
+                helpModal.classList.add('hidden');
+            }
+        });
+    }
+
+    loadFavorites();
+
+    Papa.parse(CSV_URL, {
+        download: true, header: false, skipEmptyLines: true,
+        complete: (results) => {
+            elements.loadingMsg.style.display = 'none';
+            allApps = processData(results.data);
+            if(allApps.length > 0) {
+                const savedItemsPerPage = localStorage.getItem('itemsPerPagePref') || '50';
+                itemsPerPage = savedItemsPerPage === 'all' ? 'all' : parseInt(savedItemsPerPage, 10);
+                elements.itemsPerPageSelector.value = savedItemsPerPage;
+
+                setupFilters(allApps);
+                setupEventListeners();
+                applyUrlParams();
+            } else {
+                elements.noResultsMsg.classList.remove('hidden');
+            }
+        },
+        error: (error) => {
+            console.error("Error al cargar o parsear el CSV:", error);
+            elements.loadingMsg.style.display = 'none';
+            elements.errorMsg.classList.remove('hidden');
+        }
+    });
+
+    /* ----- Lógica del contador de visitas y Modal de Estadísticas ----- */
+    const INTERVAL_MIN = 15;
+    const lastPing = Number(localStorage.getItem('visit_ping') || 0);
+    const now = Date.now();
+
+    // Registra una visita si han pasado más de 15 min.
+    if (now - lastPing > INTERVAL_MIN * 60 * 1000) {
+      const img = new Image();
+      img.src = 'https://bilateria.org/vce/stats/contador.php?' + now;
+      img.style.display = 'none';
+      document.body.appendChild(img);
+      localStorage.setItem('visit_ping', now.toString());
+    }
+
+    // Obtiene el número total y configura el enlace para abrir el modal.
+    fetch('https://bilateria.org/vce/stats/total.php?' + now)
+      .then(response => response.text())
+      .then(totalVisitas => {
+        const visitBox = document.getElementById('visit-box');
+        if (!visitBox) return;
+
+        // Preparamos los elementos del Modal
+        const modal = document.getElementById('stats-modal');
+        const closeModalBtn = document.getElementById('modal-close-btn');
+        const modalIframe = document.getElementById('modal-iframe');
+        
+        if (!modal || !closeModalBtn || !modalIframe) return;
+
+        // Limpiamos COMPLETAMENTE el contenido del div antes de añadir nada.
+        visitBox.innerHTML = ''; 
+        
+        const statsLink = document.createElement('a');
+        statsLink.href = '#';
+        statsLink.textContent = `${totalVisitas.trim()} visitas desde el 1 de julio de 2025`;
+        visitBox.appendChild(statsLink);
+
+        // ---- Lógica para ABRIR el modal ----
+        statsLink.addEventListener('click', (event) => {
+            event.preventDefault(); 
+            modalIframe.src = 'https://bilateria.org/vce/stats/stats.html';
+            modal.style.display = 'flex';
+        });
+
+        // ---- Lógica para CERRAR el modal ----
+        const closeModal = () => {
+            modal.style.display = 'none';
+            modalIframe.src = 'about:blank';
+        };
+
+        closeModalBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+      })
+      .catch(() => {
+        const visitBox = document.getElementById('visit-box');
+        if (visitBox) {
+            visitBox.innerHTML = '–';
+        }
+      });
+});
