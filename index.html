@@ -61,15 +61,7 @@
             <div id="results-counter" class="text-sm text-gray-600 font-medium order-2 sm:order-1"></div>
 
             <div class="flex items-center gap-4 order-1 sm:order-2">
-                 <div class="flex items-center gap-2">
-                    <label for="items-per-page-selector" class="text-sm font-medium text-gray-600">Mostrar:</label>
-                    <select id="items-per-page-selector" class="text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-1">
-                        <option value="25">25</option>
-                        <option value="50" selected>50</option>
-                        <option value="100">100</option>
-                        <option value="all">Todas</option>
-                    </select>
-                </div>
+                 
                  <div id="actions-bar" class="hidden flex items-center gap-4">
                     <button id="share-url-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
@@ -87,6 +79,15 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
                         Limpiar todo
                     </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label for="items-per-page-selector" class="text-sm font-medium text-gray-600">Mostrar:</label>
+                    <select id="items-per-page-selector" class="text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-1">
+                        <option value="25">25</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="all">Todas</option>
+                    </select>
                 </div>
             </div>
         </div>
