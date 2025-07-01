@@ -1,21 +1,40 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" style="height: 100%;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estadísticas - Repositorio de aplicaciones educativas</title>
-    <link rel="stylesheet" href="estilos.css">
+    <style>
+        /*
+         * ESTILOS CORREGIDOS
+         * Hacemos que tanto el HTML como el BODY ocupen el 100% de la altura.
+         * Esto es fundamental para que el iframe pueda expandirse correctamente.
+        */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Evita barras de scroll dobles */
+        }
+        
+        /*
+         * El iframe ocupará todo el espacio disponible de su contenedor (el body).
+        */
+        .stats-iframe {
+            width: 100%;
+            height: 100%;
+            border: none; /* Quitamos cualquier borde */
+        }
+    </style>
 </head>
-<body class="stats-body">
+<body style="height: 100%;">
 
-    <div class="iframe-container">
-        <iframe 
-            src="https://bilateria.org/vce/stats/stats.html" 
-            class="stats-iframe" 
-            frameborder="0"
-            title="Panel de Estadísticas de Visitas">
-        </iframe>
-    </div>
+    <iframe 
+        src="https://bilateria.org/vce/stats/stats.html" 
+        class="stats-iframe"
+        title="Panel de Estadísticas de Visitas">
+    </iframe>
 
 </body>
 </html>
