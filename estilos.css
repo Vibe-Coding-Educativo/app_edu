@@ -95,3 +95,62 @@ button:disabled, select:disabled {
     text-decoration: underline; /* Añade un subrayado solo al pasar el ratón por encima */
     color: #3b82f6; /* Cambia a color azul al pasar el ratón (opcional) */
 }
+/* --- Estilos para la ventana modal de estadísticas --- */
+
+.modal-overlay {
+    /* Por defecto, está oculta y no ocupa espacio */
+    display: none;
+    position: fixed; /* Cubre toda la pantalla, incluso al hacer scroll */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Fondo negro semitransparente */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Se asegura de que esté por encima de todo lo demás */
+}
+
+/* El contenedor blanco de la ventana */
+.modal-content {
+    position: relative;
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    /* El 90% del ancho y alto de la ventana, pero con un máximo */
+    width: 90%;
+    height: 90%;
+    max-width: 1200px;
+    display: flex; /* Para que el iframe se expanda bien */
+    flex-direction: column;
+}
+
+/* Botón de cierre (la 'X') */
+.modal-close-btn {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background: #333;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 24px;
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 1010;
+}
+.modal-close-btn:hover {
+    background: #e11d48; /* Rojo al pasar el ratón */
+}
+
+/* El iframe donde se cargarán las estadísticas */
+#modal-iframe {
+    flex-grow: 1; /* Ocupa todo el espacio vertical disponible */
+    border: none;
+    width: 100%;
+    height: 100%;
+}
