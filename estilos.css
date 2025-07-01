@@ -67,7 +67,7 @@ button:disabled, select:disabled {
   text-align: center;
   font-size: 0.9rem;
   margin-top: 0.1rem;
-  margin-bottom: 1.5rem; /* <-- Añade esta línea para crear espacio abajo */
+  margin-bottom: 2.5rem; /* <-- Añade esta línea para crear espacio abajo */
 }
 #pagination-container button {
     padding: 0.5rem 1rem;
