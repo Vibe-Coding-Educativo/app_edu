@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
         }
 
-        const effectiveItemsPerPage = itemsPerPage === 'all' ? apps.length : itemsPerPage;
+        const effectiveItemsPerPage = itemsPerPage === 'all' ? apps.length : parseInt(itemsPerPage);
         const startIndex = (currentPage - 1) * effectiveItemsPerPage;
         const endIndex = startIndex + effectiveItemsPerPage;
         const paginatedApps = apps.slice(startIndex, endIndex);
@@ -200,13 +200,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setupPagination(totalItems) {
         elements.paginationContainer.innerHTML = '';
-        const effectiveItemsPerPage = itemsPerPage === 'all' ? totalItems : itemsPerPage;
+        const effectiveItemsPerPage = itemsPerPage === 'all' ? totalItems : parseInt(itemsPerPage);
         if (totalItems <= effectiveItemsPerPage) return;
 
         const totalPages = Math.ceil(totalItems / effectiveItemsPerPage);
 
         const prevButton = document.createElement('button');
         prevButton.textContent = 'Anterior';
+        prevButton.className = 'pagination-btn';
         prevButton.disabled = currentPage === 1;
         prevButton.addEventListener('click', () => {
             if (currentPage > 1) {
@@ -223,6 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const nextButton = document.createElement('button');
         nextButton.textContent = 'Siguiente';
+        nextButton.className = 'pagination-btn';
         nextButton.disabled = currentPage === totalPages;
         nextButton.addEventListener('click', () => {
             if (currentPage < totalPages) {
@@ -254,14 +256,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             for (const category in activeFilters) {
-                if (selectedFilters.size === 0) continue;
+                const selectedFilters = activeFilters[category]; // <-- FIX IS HERE
+                if (selectedFilters.size === 0) {
+                    continue;
+                }
+
                 const appValuesRaw = app[category] || '';
-                if (!appValuesRaw) return false;
+                if (!appValuesRaw) {
+                    return false;
+                }
                 const appValues = appValuesRaw.split(',').map(v => v.trim());
-                if (!appValues.some(appVal => [...selectedFilters].some(filterVal => normalizeString(appVal) === normalizeString(filterVal)))) {
+
+                const hasMatch = appValues.some(appVal =>
+                    [...selectedFilters].some(filterVal => normalizeString(appVal) === normalizeString(filterVal))
+                );
+
+                if (!hasMatch) {
                     return false;
                 }
             }
+
             return true;
         });
 
@@ -357,252 +371,3 @@ document.addEventListener('DOMContentLoaded', () => {
         if (type === 'favorites' && favorites.size > 0) {
             params.set('ids', [...favorites].join(','));
         } else {
-            const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse()));
-            if (elements.searchInput.value) params.set('search', elements.searchInput.value);
-            for (const category in activeFilters) {
-                if (activeFilters[category].size > 0) {
-                    const paramName = reverseMapping[category];
-                    if (paramName) params.set(paramName, [...activeFilters[category]].join(','));
-                }
-            }
-        }
-        return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
-    }
-
-    function copyToClipboard(text) {
-        if (!text) return;
-        navigator.clipboard.writeText(text).then(() => {
-            const msg = document.getElementById('copy-confirm-msg');
-            msg.classList.remove('opacity-0', '-translate-y-5');
-            setTimeout(() => msg.classList.add('opacity-0', '-translate-y-5'), 2000);
-        });
-    }
-
-    function applyUrlParams() {
-        const params = new URLSearchParams(window.location.search);
-        const ids = params.get('ids');
-
-        if (ids) {
-            isCustomView = true;
-            const sharedKeys = new Set(ids.split(','));
-            const sharedApps = allApps.filter(app => sharedKeys.has(app.key));
-
-            elements.searchInput.disabled = true;
-            elements.toggleFiltersBtn.disabled = true;
-            elements.toggleFavoritesBtn.disabled = true;
-            elements.filterPanel.classList.add('hidden');
-            elements.itemsPerPageSelector.disabled = true;
-
-            elements.customViewMsg.innerHTML = `Estás viendo una colección personalizada de <strong>${sharedApps.length}</strong> aplicaciones. <button id="exit-custom-view" class="font-bold underline ml-2 hover:text-blue-600">Ver todas</button>`;
-            elements.customViewMsg.classList.remove('hidden');
-
-            document.getElementById('exit-custom-view').addEventListener('click', () => {
-                window.location.href = window.location.pathname;
-            });
-
-            displayApps(sharedApps);
-            elements.resultsCounter.textContent = `Mostrando una colección personalizada de ${sharedApps.length} aplicaciones.`;
-        } else {
-            isCustomView = false;
-            applyFiltersFromURL();
-            applyAndDisplay();
-        }
-    }
-
-    function setupEventListeners() {
-        elements.toggleFiltersBtn.addEventListener('click', () => elements.filterPanel.classList.toggle('hidden'));
-
-        elements.toggleFavoritesBtn.addEventListener('click', () => {
-            showingFavoritesOnly = !showingFavoritesOnly;
-            elements.toggleFavoritesBtn.classList.toggle('active');
-            currentPage = 1;
-            if (showingFavoritesOnly) {
-                elements.filterPanel.classList.add('hidden');
-                elements.toggleFiltersBtn.classList.remove('active');
-            }
-            applyAndDisplay();
-        });
-
-        elements.searchInput.addEventListener('input', () => {
-            elements.clearSearchBtn.classList.toggle('hidden', !elements.searchInput.value);
-            currentPage = 1;
-            applyAndDisplay();
-        });
-
-        elements.clearSearchBtn.addEventListener('click', () => {
-            elements.searchInput.value = '';
-            elements.clearSearchBtn.classList.add('hidden');
-            currentPage = 1;
-            applyAndDisplay();
-            elements.searchInput.focus();
-        });
-
-        elements.itemsPerPageSelector.addEventListener('change', (e) => {
-            const value = e.target.value;
-            itemsPerPage = value === 'all' ? allApps.length : parseInt(value, 10);
-            currentPage = 1;
-            applyAndDisplay();
-        });
-
-        elements.filtersContainer.addEventListener('click', e => {
-            const target = e.target.closest('button.filter-btn');
-            if (!target) return;
-
-            const category = target.parentElement.dataset.category;
-            const filter = target.dataset.filter;
-
-            target.classList.toggle('active');
-            currentPage = 1;
-
-            if (activeFilters[category].has(filter)) {
-                activeFilters[category].delete(filter);
-            } else {
-                activeFilters[category].add(filter);
-            }
-
-            applyAndDisplay();
-        });
-
-        elements.appsContainer.addEventListener('click', e => {
-            const favBtn = e.target.closest('.favorite-btn');
-            if (favBtn) {
-                e.preventDefault();
-                const key = favBtn.dataset.key;
-                const svg = favBtn.querySelector('svg');
-                if (favorites.has(key)) {
-                    favorites.delete(key);
-                    svg.classList.remove('text-red-500', 'fill-red-500');
-                    svg.classList.add('text-gray-400');
-                    svg.setAttribute('fill', 'none');
-                } else {
-                    favorites.add(key);
-                    svg.classList.add('text-red-500', 'fill-red-500');
-                    svg.classList.remove('text-gray-400');
-                    svg.setAttribute('fill', 'currentColor');
-                }
-                saveFavorites();
-                if(showingFavoritesOnly) {
-                    currentPage = 1;
-                    applyAndDisplay();
-                } else {
-                    updateControls();
-                }
-                return;
-            }
-
-            const keywordTag = e.target.closest('.keyword-tag');
-            if (keywordTag) {
-                e.preventDefault();
-                const keyword = keywordTag.dataset.keyword;
-                currentPage = 1;
-                if (activeFilters.palabras_clave.has(keyword)) {
-                    activeFilters.palabras_clave.delete(keyword);
-                } else {
-                    activeFilters.palabras_clave.add(keyword);
-                }
-                applyAndDisplay();
-                return;
-            }
-
-            const filterLink = e.target.closest('.filter-link');
-            if (filterLink) {
-                e.preventDefault();
-                const { category, filter } = filterLink.dataset;
-                const correspondingButton = document.querySelector(`#filters-container [data-category='${category}'] [data-filter='${filter}']`);
-                if (correspondingButton) {
-                    currentPage = 1;
-                    correspondingButton.click();
-                }
-            }
-        });
-
-        elements.activeFiltersDisplay.addEventListener('click', e => {
-            const target = e.target.closest('button');
-            if (!target) return;
-            const { category, filter } = target.dataset;
-            if (activeFilters[category] && activeFilters[category].has(filter)) {
-                const correspondingButton = document.querySelector(`#filters-container [data-category='${category}'] [data-filter='${filter}']`);
-                if (correspondingButton) {
-                    currentPage = 1;
-                    correspondingButton.click();
-                } else {
-                     activeFilters[category].delete(filter);
-                     currentPage = 1;
-                     applyAndDisplay();
-                }
-            }
-        });
-
-        document.getElementById('reset-filters-btn').addEventListener('click', () => resetAllFilters({ preserveSearch: true }));
-        elements.clearAllBtn.addEventListener('click', () => resetAllFilters());
-        elements.shareUrlBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('filters')));
-        elements.shareFavoritesBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('favorites')));
-        elements.clearFavoritesBtn.addEventListener('click', clearAllFavorites);
-
-        const helpBtn = document.getElementById('help-btn');
-        const helpModal = document.getElementById('help-modal');
-        const closeHelpBtn = document.getElementById('close-help-btn');
-        const helpFrame = document.getElementById('help-frame');
-        let helpFrameLoaded = false;
-
-        helpBtn.addEventListener('click', () => {
-            helpModal.classList.remove('hidden');
-            if (!helpFrameLoaded) {
-                helpFrame.src = 'ayuda.html';
-                helpFrameLoaded = true;
-            }
-        });
-
-        closeHelpBtn.addEventListener('click', () => {
-            helpModal.classList.add('hidden');
-        });
-
-        helpModal.addEventListener('click', e => {
-            if (e.target.id === 'help-modal') {
-                helpModal.classList.add('hidden');
-            }
-        });
-    }
-
-    loadFavorites();
-
-    Papa.parse(CSV_URL, {
-        download: true, header: false, skipEmptyLines: true,
-        complete: (results) => {
-            elements.loadingMsg.style.display = 'none';
-            allApps = processData(results.data);
-            if(allApps.length > 0) {
-                itemsPerPage = 50; // Set initial value
-                elements.itemsPerPageSelector.value = "50";
-                setupFilters(allApps);
-                setupEventListeners();
-                applyUrlParams();
-            } else {
-                elements.noResultsMsg.classList.remove('hidden');
-            }
-        },
-        error: (error) => {
-            console.error("Error al cargar o parsear el CSV:", error);
-            elements.loadingMsg.style.display = 'none';
-            elements.errorMsg.classList.remove('hidden');
-        }
-    });
-});
-
-/* ----- Lógica del contador de visitas ----- */
-const INTERVAL_MIN = 15;
-const lastPing = Number(localStorage.getItem('visit_ping') || 0);
-const now = Date.now();
-
-if (now - lastPing > INTERVAL_MIN * 60 * 1000) {
-  const img = new Image();
-  img.src = 'https://bilateria.org/vce/stats/contador.php?' + now;
-  img.style.display = 'none';
-  document.body.appendChild(img);
-  localStorage.setItem('visit_ping', now.toString());
-}
-
-fetch('https://bilateria.org/vce/stats/total.php?' + now)
-  .then(r => r.text())
-  .then(n => { document.getElementById('visit-total').textContent = n.trim(); })
-  .catch(() => { document.getElementById('visit-total').textContent = '–'; });
