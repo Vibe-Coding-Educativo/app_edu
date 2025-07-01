@@ -172,25 +172,10 @@
 
     <!-- Modal de Ayuda -->
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh]">
-            <button id="close-help-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-2xl font-bold">&times;</button>
-            <h3 class="text-2xl font-bold mb-4 text-gray-900 border-b pb-2">Guía de uso del repositorio</h3>
-            <div class="space-y-6 text-gray-700 leading-relaxed">
-                <div>
-                    <h4 class="text-lg font-semibold mt-4 mb-2 text-gray-800">2. Gestionar tus preferencias y búsquedas</h4>
-                    <ul class="list-disc list-inside space-y-3 pl-2">
-                        <li><strong>Guardar tus favoritos:</strong> Haz clic en el icono del <strong>corazón</strong> (♡) en la esquina de una tarjeta para guardarla. Se guardan en tu navegador.</li>
-                        <li><strong>Ver solo favoritos:</strong> Pulsa el botón <strong>Favoritos</strong> (con un corazón) para ver únicamente las aplicaciones que has guardado.</li>
-                        <li><strong>Compartir tus búsquedas:</strong>
-                            <ul class="list-disc list-inside space-y-2 pl-6 mt-2 text-sm text-gray-600">
-                                <li><strong>Para filtros:</strong> Tras aplicar filtros o buscar, pulsa <strong>"Compartir Filtros"</strong> para copiar una URL con esa vista.</li>
-                                <li><strong>Para favoritos:</strong> Cuando estés viendo tus favoritos, pulsa <strong>"Compartir Favoritos"</strong> para obtener un enlace a esa colección específica.</li>
-                            </ul>
-                        </li>
-                        <li><strong>Limpiar favoritos:</strong> En la vista de favoritos, aparecerá un botón para <strong>eliminar todos</strong> tus favoritos de una sola vez.</li>
-                        <li><strong>Limpiar todo:</strong> Restablece la página por completo: borra la búsqueda, desactiva todos los filtros y te muestra el listado completo.</li>
-                    </ul>
-                </div>
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full relative overflow-y-auto max-h-[90vh]">
+            <button id="close-help-btn" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-3xl font-bold z-10 p-2 leading-none">&times;</button>
+            <div id="help-modal-content">
+                <!-- El contenido de ayuda.html se cargará aquí -->
             </div>
         </div>
     </div>
@@ -687,9 +672,44 @@
                 elements.shareUrlBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('filters')));
                 elements.shareFavoritesBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('favorites')));
                 elements.clearFavoritesBtn.addEventListener('click', clearAllFavorites);
-                document.getElementById('help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.remove('hidden'));
-                document.getElementById('close-help-btn').addEventListener('click', () => document.getElementById('help-modal').classList.add('hidden'));
-                document.getElementById('help-modal').addEventListener('click', e => { if (e.target.id === 'help-modal') e.currentTarget.classList.add('hidden'); });
+
+                // --- Lógica del Modal de Ayuda ---
+                const helpBtn = document.getElementById('help-btn');
+                const helpModal = document.getElementById('help-modal');
+                const closeHelpBtn = document.getElementById('close-help-btn');
+                const helpModalContent = document.getElementById('help-modal-content');
+                let helpContentLoaded = false;
+
+                helpBtn.addEventListener('click', () => {
+                    helpModal.classList.remove('hidden');
+                    if (!helpContentLoaded) {
+                        helpModalContent.innerHTML = '<p class="p-6 text-center">Cargando...</p>';
+                        fetch('ayuda.html')
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('La respuesta de la red no fue correcta');
+                                }
+                                return response.text();
+                            })
+                            .then(html => {
+                                const parser = new DOMParser();
+                                const doc = parser.parseFromString(html, 'text/html');
+                                helpModalContent.innerHTML = doc.body.innerHTML;
+                                helpContentLoaded = true;
+                            })
+                            .catch(error => {
+                                helpModalContent.innerHTML = '<p class="p-6 text-red-600 text-center">No se pudo cargar la ayuda. Por favor, inténtalo de nuevo más tarde.</p>';
+                                console.error('Error al cargar el archivo de ayuda:', error);
+                            });
+                    }
+                });
+
+                closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+                helpModal.addEventListener('click', e => {
+                    if (e.target.id === 'help-modal') {
+                        e.currentTarget.classList.add('hidden');
+                    }
+                });
             }
 
             // --- Main Execution ---
