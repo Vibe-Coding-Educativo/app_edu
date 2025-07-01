@@ -716,5 +716,28 @@
             });
         });
     </script>
+
+<!-- suma 1 visita -->
+<img src="https://bilateria.org/vce/stats/contador.php" alt="" style="display:none">
+
+<!-- total de visitas, centrado y con letra más pequeña -->
+<div id="visit-box"><span id="visit-total">–</span> visitas</div>
+
+<style>
+#visit-box{
+  text-align:center;
+  font-size:0.9rem;    /* un poco más pequeño que el texto normal */
+  margin-top:1rem;
+}
+</style>
+
+<script>
+fetch('https://bilateria.org/vce/stats/total.php?' + Date.now())
+  .then(r => r.text())
+  .then(n => { document.getElementById('visit-total').textContent = n.trim(); })
+  .catch(() => { document.getElementById('visit-total').textContent = '–'; });
+</script>
+
+
 </body>
 </html>
