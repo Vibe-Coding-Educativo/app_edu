@@ -3,35 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ayuda</title>
+  <title>Guía de uso del repositorio</title>
   <style>
+    /* —— Tipografía y color de fondo —— */
     body {
       font-family: system-ui, sans-serif;
       margin: 0;
-      padding: 1.5rem;
-      background: white;
-      color: #374151;
+      padding: 2rem 1.5rem;
+      background: #ffffff;
+      color: #374151;               /* gris oscuro */
       line-height: 1.6;
     }
+
+    /* —— Títulos —— */
+    h3 {
+      font-size: 1.75rem;           /* ≈ text-2xl */
+      font-weight: 700;
+      margin: 0 0 1rem;
+      color: #1f2937;               /* gris más oscuro */
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+    h4 {
+      font-size: 1.125rem;          /* ≈ text-lg */
+      font-weight: 600;
+      margin: 1.5rem 0 0.5rem;
+      color: #1f2937;
+    }
+
+    /* —— Listas —— */
+    ul { padding-left: 1.25em; margin-top: 0.5rem; }
+    li { margin: 0.4rem 0; }
+
+    /* —— Caja de aviso amarillo —— */
     .alert {
-      background-color: #FFFBEB;
+      background-color: #FFFBEB;    /* amarillo muy claro */
       border-left: 4px solid #FBBF24;
       padding: 1rem;
       border-radius: 0.5em;
       color: #78350F;
+      margin-top: 2rem;
     }
     .alert p:first-child {
-      font-weight: bold;
-      margin-top: 0;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
     }
+
+    /* —— Mensaje final —— */
     .final-message {
       text-align: center;
       margin-top: 2rem;
-      color: #4B5563;
+      color: #4B5563;               /* gris medio */
     }
   </style>
 </head>
 <body>
+
+  <h3>Guía de uso del repositorio</h3>
+
+  <h4>1. Encontrar la aplicación perfecta</h4>
+  <ul>
+    <li><strong>La búsqueda principal:</strong> Es la barra de búsqueda grande que ves al principio. Puedes escribir cualquier término (el nombre de un autor, una palabra del título, un concepto como “gamificación”, etc.) y la aplicación buscará en todos los campos de todas las tarjetas.</li>
+
+    <li><strong>Filtrado detallado:</strong> Para búsquedas más precisas, el panel de filtros es tu mejor aliado.
+      <ul>
+        <li>Haz clic en el botón <em>Filtros</em> para mostrarlo u ocultarlo.</li>
+        <li>Dentro, encontrarás categorías como <em>Área de Conocimiento</em>, <em>Nivel Educativo</em> o <em>Tipo de Recurso</em>.</li>
+        <li>Haz clic en los botones de cada categoría para aplicar los filtros. En algunas categorías puedes seleccionar varias opciones a la vez (por ejemplo, Primaria y Secundaria).</li>
+        <li>Usa el botón <em>“Limpiar Filtros”</em> para eliminar la selección de este panel sin afectar a la búsqueda principal.</li>
+      </ul>
+    </li>
+
+    <li><strong>Filtros rápidos desde las tarjetas:</strong> Dentro de cada tarjeta de aplicación, verás que el nombre del autor, el nivel, el área y las palabras clave son enlaces. Si haces clic en uno de ellos, se aplicará ese filtro automáticamente.</li>
+  </ul>
+
+  <h4>2. Gestionar tus preferencias y búsquedas</h4>
+  <ul>
+    <li><strong>Guardar tus favoritos:</strong>
+      <ul>
+        <li>Haz clic en el icono del corazón (♡) en la esquina superior derecha de la tarjeta. Se volverá rojo (♥) y se guardará en tus favoritos.</li>
+        <li>Los favoritos se guardan localmente en tu navegador.</li>
+        <li>Para ver solo tus aplicaciones favoritas, pulsa el botón <em>Favoritos</em> (con el icono del corazón) al lado de la barra de búsqueda. Vuelve a pulsarlo para ver todas las aplicaciones.</li>
+      </ul>
+    </li>
+
+    <li><strong>Compartir tus búsquedas:</strong>
+      <ul>
+        <li>Una vez aplicados los filtros, pulsa el botón <em>“Compartir URL”</em>. Se copiará un enlace único al portapapeles con tu selección de filtros.</li>
+      </ul>
+    </li>
+
+    <li><strong>Limpiar todo:</strong>
+      <ul>
+        <li>El botón <em>“Limpiar todo”</em> restablece la página: borra la búsqueda, desactiva filtros y muestra todas las aplicaciones.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h4>3. Entendiendo una tarjeta de aplicación</h4>
+  <ul>
+    <li><strong>Borde de color:</strong> Indica la plataforma principal con la que se ha creado la aplicación (por ejemplo, morado para Gemini, naranja para Claude, etc.).</li>
+    <li><strong>Título y autor:</strong> El nombre de la aplicación y quién la ha creado.</li>
+    <li><strong>Nivel y área:</strong> Campos educativos a los que se dirige. Son filtros rápidos.</li>
+    <li><strong>Palabras clave:</strong> Etiquetas que describen la aplicación. También son filtros rápidos.</li>
+    <li><strong>Visitar aplicación:</strong> Botón principal para abrir la aplicación en otra pestaña.</li>
+  </ul>
+
+  <h4>4. ¿Quieres añadir tu propia aplicación?</h4>
+  <p>Este es un proyecto colaborativo. Si has creado una aplicación y quieres que aparezca aquí, solo tienes que unirte al grupo de Telegram <a href="https://t.me/vceduca" target="_blank">Vibe Coding Educativo</a> y seguir las instrucciones del mensaje fijado para rellenar el formulario.</p>
+
+  <h4>5. Principios de uso y responsabilidad</h4>
+  <p>El uso de estas herramientas debe realizarse siempre de forma responsable y en consonancia con los principios éticos y de uso adecuado de las tecnologías digitales en el ámbito educativo.</p>
+
   <div class="alert">
     <p>Aviso importante</p>
     <p>
@@ -42,5 +125,6 @@
   <p class="final-message">
     ¡Esperamos que encuentres herramientas útiles para tus clases!
   </p>
+
 </body>
 </html>
