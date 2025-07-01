@@ -7,82 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-        .card {
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            border-top-width: 4px;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .action-btn {
-            transition: all 0.2s ease-in-out;
-        }
-        .action-btn.active {
-            background-color: #3b82f6; /* blue-600 */
-            color: white;
-            border-color: #3b82f6; /* blue-600 */
-        }
-        .filter-btn {
-            transition: all 0.2s ease-in-out;
-            border: 1px solid #d1d5db; /* gray-300 */
-        }
-        .filter-btn.active {
-            background-color: #3b82f6; /* blue-600 */
-            color: white;
-            border-color: #3b82f6; /* blue-600 */
-        }
-        .filter-btn:not(.active):hover {
-            background-color: #f3f4f6; /* gray-100 */
-            border-color: #9ca3af; /* gray-400 */
-        }
-        details > summary { list-style: none; }
-        details > summary::-webkit-details-marker { display: none; }
-        details[open] summary .arrow { transform: rotate(90deg); }
-        .keyword-tag { cursor: pointer; }
-        .keyword-tag:hover, .keyword-tag.active {
-            background-color: #38bdf8; /* sky-500 */
-            color: white;
-        }
-        .filter-link {
-            text-decoration: underline;
-            text-decoration-thickness: 1px;
-            text-underline-offset: 2px;
-            color: #4b5563; /* gray-600 */
-        }
-        .filter-link:hover {
-            color: #1d4ed8; /* blue-700 */
-            background-color: #eff6ff; /* blue-50 */
-        }
-        .hidden { display: none; }
-        #copy-confirm-msg {
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-        }
-        .favorite-btn svg {
-            transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .favorite-btn:hover svg {
-            transform: scale(1.1);
-        }
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    </style>
+    <link rel="stylesheet" href="estilos.css">
 </head>
 <body class="text-gray-800">
 
     <div class="container mx-auto p-4 md:p-8">
-        <!-- Encabezado -->
         <header class="text-center mb-4 p-6 rounded-xl bg-gradient-to-b from-blue-50 to-gray-50">
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900">Repositorio de aplicaciones educativas</h1>
             <p class="mt-4 text-lg text-gray-600">
-                Una colección de aplicaciones y recursos educativos creados por la comunidad 
+                Una colección de aplicaciones y recursos educativos creados por la comunidad
                 <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>.
             </p>
             <p class="mt-2 text-sm text-gray-500">
@@ -90,9 +23,7 @@
             </p>
         </header>
 
-        <!-- Barra de Búsqueda y Filtros -->
         <div class="flex flex-col md:flex-row gap-4 items-center mb-4">
-            <!-- Búsqueda libre -->
             <div class="relative w-full md:flex-grow">
                 <label for="search-input" class="sr-only">Búsqueda libre</label>
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -104,7 +35,6 @@
                 </button>
             </div>
 
-            <!-- Botones de acción -->
             <div class="flex-shrink-0 flex gap-2 w-full md:w-auto">
                  <button id="toggle-favorites-btn" title="Mostrar solo favoritos" class="action-btn flex flex-grow justify-center items-center gap-2 bg-white text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-100 shadow-sm border border-gray-300">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -120,14 +50,13 @@
             </div>
         </div>
 
-        <!-- Panel de Filtros (Colapsable) -->
         <div id="filter-panel" class="bg-white p-4 sm:p-6 rounded-xl shadow-sm mb-8 sticky top-4 z-10 border border-gray-200 hidden">
             <div id="filters-container" class="space-y-4"></div>
             <div class="mt-6 border-t pt-4 flex justify-end">
                  <button id="reset-filters-btn" class="w-full sm:w-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">Limpiar Filtros</button>
             </div>
         </div>
-        
+
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 min-h-[2rem] gap-4">
             <div id="results-counter" class="text-sm text-gray-600 font-medium order-2 sm:order-1"></div>
             <div id="actions-bar" class="hidden order-1 sm:order-2 flex items-center gap-4">
@@ -152,7 +81,6 @@
         <div id="custom-view-message" class="hidden text-center p-4 mb-4 bg-blue-100 text-blue-800 rounded-lg shadow"></div>
         <div id="active-filters-display" class="flex flex-wrap gap-2 mb-4"></div>
 
-        <!-- Mensajes -->
         <div id="loading-message" class="flex flex-col items-center justify-center text-center py-20">
             <svg class="animate-spin h-10 w-10 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="text-lg text-gray-600 font-semibold">Cargando aplicaciones...</p>
@@ -162,15 +90,13 @@
         <div id="no-favorites-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No tienes aplicaciones favoritas.<br><span class="text-sm">Haz clic en el corazón de una aplicación para añadirla.</span></p></div>
 
 
-        <!-- Contenedor de las tarjetas -->
         <div id="apps-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
     </div>
-    
+
     <footer class="text-center py-8 mt-12 border-t border-gray-200 text-sm text-gray-500">
         <p>Una iniciativa del grupo <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>.</p>
     </footer>
 
-    <!-- Modal de Ayuda -->
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full h-[85vh] flex flex-col">
             <div class="flex-shrink-0 p-3 border-b flex justify-end items-center relative">
@@ -182,7 +108,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="copy-confirm-msg" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm py-2 px-4 rounded-full opacity-0 -translate-y-5 pointer-events-none">
         ¡URL copiada al portapapeles!
     </div>
@@ -191,7 +117,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
-            
+
             // --- State Variables ---
             let allApps = [];
             let favorites = new Set();
@@ -204,7 +130,7 @@
             };
 
             const REQUIRED_FIELDS = ['correo_autor', 'nombre_autor', 'titulo_app', 'url_app'];
-            
+
             // --- DOM Elements ---
             const elements = {
                 loadingMsg: document.getElementById('loading-message'),
@@ -255,11 +181,11 @@
 
             function processData(data) {
                 const FULL_COLUMN_KEYS = [
-                    'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app', 
-                    'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo', 
+                    'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app',
+                    'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo',
                     'area_conocimiento', 'palabras_clave', 'licencia', 'eliminar_registro'
                 ];
-                
+
                 const rows = data.slice(1);
                 const mappedData = rows.map(rowArray => {
                     const newRow = {};
@@ -276,7 +202,7 @@
                     }
                 });
 
-                const appsWithoutDeleted = mappedData.filter(app => 
+                const appsWithoutDeleted = mappedData.filter(app =>
                     !app.url_app || !urlsToDelete.has(app.url_app.trim())
                 );
 
@@ -284,7 +210,7 @@
                     if (REQUIRED_FIELDS.some(field => !app[field])) return false;
                     try { new URL(app.url_app); return true; } catch (_) { return false; }
                 });
-                
+
                 const seenUrls = new Set();
                 const finalData = [];
                 for (let i = validApps.length - 1; i >= 0; i--) {
@@ -297,11 +223,11 @@
                         finalData.push(app);
                     }
                 }
-                
+
                 // Return data sorted from newest to oldest.
                 return finalData;
             }
-            
+
             function setupFilters(apps) {
                 const filterCategories = [
                     { id: 'area_conocimiento', name: 'Área de Conocimiento', multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>' },
@@ -314,7 +240,7 @@
                 filterCategories.forEach(cat => {
                     const values = new Set(apps.flatMap(app => app[cat.id]?.split(',') || []).map(v => v.trim()).filter(Boolean));
                     if (values.size === 0) return;
-                    
+
                     const sortedValues = Array.from(values).sort((a,b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
                     const details = document.createElement('details');
                     details.className = 'border-b border-gray-200 last:border-b-0 pb-4';
@@ -345,7 +271,7 @@
                 if (showingFavoritesOnly && favorites.size > 0 && apps.length === 0) {
                      elements.noResultsMsg.classList.remove('hidden');
                 }
-                
+
                 if (!isCustomView) {
                     elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
                 }
@@ -353,7 +279,7 @@
                 apps.forEach(app => {
                     const card = document.createElement('div');
                     card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col ${getPlatformStyle(app.plataforma)}`;
-                    
+
                     const isFavorite = favorites.has(app.key);
                     const favClass = isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500';
 
@@ -379,9 +305,9 @@
                     elements.appsContainer.appendChild(card);
                 });
             }
-            
+
             function createFilterLink(text, category) {
-                return text.split(',').map(v => v.trim()).filter(Boolean).map(val => 
+                return text.split(',').map(v => v.trim()).filter(Boolean).map(val =>
                     `<a href="#" class="filter-link" data-category="${category}" data-filter="${val}">${val}</a>`
                 ).join(', ');
             }
@@ -414,7 +340,7 @@
 
                         // This implements an OR logic within the same category.
                         // It checks if any of the app's values for this category matches any of the selected filters.
-                        const hasMatch = appValues.some(appVal => 
+                        const hasMatch = appValues.some(appVal =>
                             [...selectedFilters].some(filterVal => normalizeString(appVal) === normalizeString(filterVal))
                         );
 
@@ -425,11 +351,11 @@
 
                     return true; // If the app has passed all category checks, it is included.
                 });
-                
+
                 displayApps(filteredApps);
                 updateControls();
             }
-            
+
             function updateControls() {
                 elements.activeFiltersDisplay.innerHTML = '';
                 let hasActiveFilter = false;
@@ -445,13 +371,13 @@
                         elements.activeFiltersDisplay.appendChild(tag);
                     });
                 });
-                
+
                 const hasSearchText = elements.searchInput.value.length > 0;
                 const showFilterActions = hasActiveFilter || hasSearchText;
                 const showFavoriteActions = showingFavoritesOnly && favorites.size > 0;
                 const showActionsBar = showFilterActions || showFavoriteActions;
                 elements.actionsBar.classList.toggle('hidden', !showActionsBar);
-                
+
                 if (showActionsBar) {
                     elements.shareUrlBtn.classList.toggle('hidden', !showFilterActions);
                     elements.clearAllBtn.classList.toggle('hidden', !showFilterActions);
@@ -459,23 +385,23 @@
                     elements.clearFavoritesBtn.classList.toggle('hidden', !showFavoriteActions);
                 }
             }
-            
+
             function resetAllFilters(options = {}) {
                 if (!options.preserveSearch) {
                     elements.searchInput.value = '';
                     elements.clearSearchBtn.classList.add('hidden');
                 }
                 for (const category in activeFilters) activeFilters[category].clear();
-                
+
                 document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active'));
                 elements.filtersContainer.querySelectorAll('details').forEach(d => { d.open = false; });
-                
+
                 showingFavoritesOnly = false;
                 elements.toggleFavoritesBtn.classList.remove('active');
 
                 applyAndDisplay();
             }
-            
+
             function clearAllFavorites() {
                 if (favorites.size > 0) {
                     favorites.clear();
@@ -483,7 +409,7 @@
                     applyAndDisplay();
                 }
             }
-            
+
             const paramMapping = { subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso', platform: 'plataforma', author: 'nombre_autor', keyword: 'palabras_clave', search: 'search' };
 
             function applyFiltersFromURL() {
@@ -491,7 +417,7 @@
                 params.forEach((value, key) => {
                     const category = paramMapping[key.toLowerCase()];
                     if (!category) return;
-                    
+
                     const valuesFromUrl = value.split(',');
                     if (category === 'search') {
                         elements.searchInput.value = value;
@@ -507,7 +433,7 @@
                     }
                 });
             }
-            
+
             function generateShareableURL(type = 'filters') {
                 const params = new URLSearchParams();
                 if (type === 'favorites' && favorites.size > 0) {
@@ -542,7 +468,7 @@
                     isCustomView = true;
                     const sharedKeys = new Set(ids.split(','));
                     const sharedApps = allApps.filter(app => sharedKeys.has(app.key));
-                    
+
                     elements.searchInput.disabled = true;
                     elements.toggleFiltersBtn.disabled = true;
                     elements.toggleFavoritesBtn.disabled = true;
@@ -550,7 +476,7 @@
 
                     elements.customViewMsg.innerHTML = `Estás viendo una colección personalizada de <strong>${sharedApps.length}</strong> aplicaciones. <button id="exit-custom-view" class="font-bold underline ml-2 hover:text-blue-600">Ver todas</button>`;
                     elements.customViewMsg.classList.remove('hidden');
-                    
+
                     document.getElementById('exit-custom-view').addEventListener('click', () => {
                         window.location.href = window.location.pathname;
                     });
@@ -567,7 +493,7 @@
             // --- Event Listeners Setup ---
             function setupEventListeners() {
                 elements.toggleFiltersBtn.addEventListener('click', () => elements.filterPanel.classList.toggle('hidden'));
-                
+
                 elements.toggleFavoritesBtn.addEventListener('click', () => {
                     showingFavoritesOnly = !showingFavoritesOnly;
                     elements.toggleFavoritesBtn.classList.toggle('active');
@@ -596,7 +522,7 @@
 
                     const category = target.parentElement.dataset.category;
                     const filter = target.dataset.filter;
-                    
+
                     target.classList.toggle('active');
 
                     if (activeFilters[category].has(filter)) {
@@ -604,7 +530,7 @@
                     } else {
                         activeFilters[category].add(filter);
                     }
-                    
+
                     applyAndDisplay();
                 });
 
@@ -654,7 +580,7 @@
                         }
                     }
                 });
-                
+
                 elements.activeFiltersDisplay.addEventListener('click', e => {
                     const target = e.target.closest('button');
                     if (!target) return;
@@ -669,7 +595,7 @@
                         }
                     }
                 });
-                
+
                 document.getElementById('reset-filters-btn').addEventListener('click', () => resetAllFilters({ preserveSearch: true }));
                 elements.clearAllBtn.addEventListener('click', () => resetAllFilters());
                 elements.shareUrlBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('filters')));
@@ -705,7 +631,7 @@
 
             // --- Main Execution ---
             loadFavorites();
-            
+
             Papa.parse(CSV_URL, {
                 download: true, header: false, skipEmptyLines: true,
                 complete: (results) => {
@@ -728,7 +654,6 @@
         });
     </script>
 
-<!-- caja del contador (centrado y letra algo menor) -->
 <div id="visit-box"><span id="visit-total">–</span> visitas</div>
 
 <style>
