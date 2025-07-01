@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let favorites = new Set();
     let showingFavoritesOnly = false;
     let isCustomView = false;
+    let currentPage = 1;
+    let itemsPerPage = 50;
     let activeFilters = {
         area_conocimiento: new Set(), nivel_educativo: new Set(),
         tipo_recurso: new Set(), plataforma: new Set(),
@@ -35,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
         shareFavoritesBtn: document.getElementById('share-favorites-btn'),
         clearFavoritesBtn: document.getElementById('clear-favorites-btn'),
         clearAllBtn: document.getElementById('clear-all-btn'),
+        itemsPerPageSelector: document.getElementById('items-per-page-selector'),
+        paginationContainer: document.getElementById('pagination-container'),
     };
 
     function normalizeString(str) {
@@ -106,8 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 finalData.push(app);
             }
         }
-
-        // Return data sorted from newest to oldest.
         return finalData;
     }
 
@@ -159,7 +161,12 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
         }
 
-        apps.forEach(app => {
+        const effectiveItemsPerPage = itemsPerPage === 'all' ? apps.length : itemsPerPage;
+        const startIndex = (currentPage - 1) * effectiveItemsPerPage;
+        const endIndex = startIndex + effectiveItemsPerPage;
+        const paginatedApps = apps.slice(startIndex, endIndex);
+
+        paginatedApps.forEach(app => {
             const card = document.createElement('div');
             card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col ${getPlatformStyle(app.plataforma)}`;
 
@@ -187,6 +194,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
             elements.appsContainer.appendChild(card);
         });
+
+        setupPagination(apps.length);
+    }
+
+    function setupPagination(totalItems) {
+        elements.paginationContainer.innerHTML = '';
+        const effectiveItemsPerPage = itemsPerPage === 'all' ? totalItems : itemsPerPage;
+        if (totalItems <= effectiveItemsPerPage) return;
+
+        const totalPages = Math.ceil(totalItems / effectiveItemsPerPage);
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = 'Anterior';
+        prevButton.disabled = currentPage === 1;
+        prevButton.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                applyAndDisplay();
+                window.scrollTo(0, 0);
+            }
+        });
+        elements.paginationContainer.appendChild(prevButton);
+
+        const pageInfo = document.createElement('span');
+        pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+        elements.paginationContainer.appendChild(pageInfo);
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Siguiente';
+        nextButton.disabled = currentPage === totalPages;
+        nextButton.addEventListener('click', () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                applyAndDisplay();
+                window.scrollTo(0, 0);
+            }
+        });
+        elements.paginationContainer.appendChild(nextButton);
     }
 
     function createFilterLink(text, category) {
@@ -209,26 +254,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             for (const category in activeFilters) {
-                const selectedFilters = activeFilters[category];
-                if (selectedFilters.size === 0) {
-                    continue;
-                }
-
+                if (selectedFilters.size === 0) continue;
                 const appValuesRaw = app[category] || '';
-                if (!appValuesRaw) {
-                    return false;
-                }
+                if (!appValuesRaw) return false;
                 const appValues = appValuesRaw.split(',').map(v => v.trim());
-
-                const hasMatch = appValues.some(appVal =>
-                    [...selectedFilters].some(filterVal => normalizeString(appVal) === normalizeString(filterVal))
-                );
-
-                if (!hasMatch) {
+                if (!appValues.some(appVal => [...selectedFilters].some(filterVal => normalizeString(appVal) === normalizeString(filterVal)))) {
                     return false;
                 }
             }
-
             return true;
         });
 
@@ -257,6 +290,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const showFavoriteActions = showingFavoritesOnly && favorites.size > 0;
         const showActionsBar = showFilterActions || showFavoriteActions;
         elements.actionsBar.classList.toggle('hidden', !showActionsBar);
+        elements.actionsBar.parentElement.classList.toggle('justify-between', showActionsBar);
+        elements.actionsBar.parentElement.classList.toggle('justify-end', !showActionsBar);
+
 
         if (showActionsBar) {
             elements.shareUrlBtn.classList.toggle('hidden', !showFilterActions);
@@ -267,6 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function resetAllFilters(options = {}) {
+        currentPage = 1;
         if (!options.preserveSearch) {
             elements.searchInput.value = '';
             elements.clearSearchBtn.classList.add('hidden');
@@ -284,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function clearAllFavorites() {
         if (favorites.size > 0) {
+            currentPage = 1;
             favorites.clear();
             saveFavorites();
             applyAndDisplay();
@@ -353,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.toggleFiltersBtn.disabled = true;
             elements.toggleFavoritesBtn.disabled = true;
             elements.filterPanel.classList.add('hidden');
+            elements.itemsPerPageSelector.disabled = true;
 
             elements.customViewMsg.innerHTML = `Estás viendo una colección personalizada de <strong>${sharedApps.length}</strong> aplicaciones. <button id="exit-custom-view" class="font-bold underline ml-2 hover:text-blue-600">Ver todas</button>`;
             elements.customViewMsg.classList.remove('hidden');
@@ -376,6 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.toggleFavoritesBtn.addEventListener('click', () => {
             showingFavoritesOnly = !showingFavoritesOnly;
             elements.toggleFavoritesBtn.classList.toggle('active');
+            currentPage = 1;
             if (showingFavoritesOnly) {
                 elements.filterPanel.classList.add('hidden');
                 elements.toggleFiltersBtn.classList.remove('active');
@@ -385,14 +425,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.searchInput.addEventListener('input', () => {
             elements.clearSearchBtn.classList.toggle('hidden', !elements.searchInput.value);
+            currentPage = 1;
             applyAndDisplay();
         });
 
         elements.clearSearchBtn.addEventListener('click', () => {
             elements.searchInput.value = '';
             elements.clearSearchBtn.classList.add('hidden');
+            currentPage = 1;
             applyAndDisplay();
             elements.searchInput.focus();
+        });
+
+        elements.itemsPerPageSelector.addEventListener('change', (e) => {
+            const value = e.target.value;
+            itemsPerPage = value === 'all' ? allApps.length : parseInt(value, 10);
+            currentPage = 1;
+            applyAndDisplay();
         });
 
         elements.filtersContainer.addEventListener('click', e => {
@@ -403,6 +452,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const filter = target.dataset.filter;
 
             target.classList.toggle('active');
+            currentPage = 1;
 
             if (activeFilters[category].has(filter)) {
                 activeFilters[category].delete(filter);
@@ -431,8 +481,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     svg.setAttribute('fill', 'currentColor');
                 }
                 saveFavorites();
-                if(showingFavoritesOnly) applyAndDisplay();
-                else updateControls();
+                if(showingFavoritesOnly) {
+                    currentPage = 1;
+                    applyAndDisplay();
+                } else {
+                    updateControls();
+                }
                 return;
             }
 
@@ -440,6 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (keywordTag) {
                 e.preventDefault();
                 const keyword = keywordTag.dataset.keyword;
+                currentPage = 1;
                 if (activeFilters.palabras_clave.has(keyword)) {
                     activeFilters.palabras_clave.delete(keyword);
                 } else {
@@ -455,6 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { category, filter } = filterLink.dataset;
                 const correspondingButton = document.querySelector(`#filters-container [data-category='${category}'] [data-filter='${filter}']`);
                 if (correspondingButton) {
+                    currentPage = 1;
                     correspondingButton.click();
                 }
             }
@@ -467,9 +523,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (activeFilters[category] && activeFilters[category].has(filter)) {
                 const correspondingButton = document.querySelector(`#filters-container [data-category='${category}'] [data-filter='${filter}']`);
                 if (correspondingButton) {
+                    currentPage = 1;
                     correspondingButton.click();
                 } else {
                      activeFilters[category].delete(filter);
+                     currentPage = 1;
                      applyAndDisplay();
                 }
             }
@@ -481,7 +539,6 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.shareFavoritesBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('favorites')));
         elements.clearFavoritesBtn.addEventListener('click', clearAllFavorites);
 
-        // --- Lógica del Modal de Ayuda ---
         const helpBtn = document.getElementById('help-btn');
         const helpModal = document.getElementById('help-modal');
         const closeHelpBtn = document.getElementById('close-help-btn');
@@ -515,6 +572,8 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.loadingMsg.style.display = 'none';
             allApps = processData(results.data);
             if(allApps.length > 0) {
+                itemsPerPage = 50; // Set initial value
+                elements.itemsPerPageSelector.value = "50";
                 setupFilters(allApps);
                 setupEventListeners();
                 applyUrlParams();
