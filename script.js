@@ -177,8 +177,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const fullDescription = app.descripcion_app || 'No hay descripción.';
             let descriptionHtml;
 
-            if (fullDescription.length > 250) {
-                const shortDescription = fullDescription.substring(0, 250).trim();
+            if (fullDescription.length > 350) {
+                const shortDescription = fullDescription.substring(0, 350).trim();
                 descriptionHtml = `
                     <div class="description-container text-gray-600 text-sm mb-4 flex-grow">
                         <p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline">más</a></p>
