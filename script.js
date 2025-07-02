@@ -616,7 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.loadingMsg.style.display = 'none';
             allApps = processData(results.data);
             if(allApps.length > 0) {
-                const savedItemsPerPage = localStorage.getItem('itemsPerPagePref') || '50';
+                const savedItemsPerPage = localStorage.getItem('itemsPerPagePref') || '25';
                 itemsPerPage = savedItemsPerPage === 'all' ? 'all' : parseInt(savedItemsPerPage, 10);
                 elements.itemsPerPageSelector.value = savedItemsPerPage;
 
