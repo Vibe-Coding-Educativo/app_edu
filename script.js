@@ -3,16 +3,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State Variables ---
     let allApps = [];
-    let favorites = new Set();
+    // INICIO: Cambio en la estructura de favoritos
+    // Ahora es un objeto para almacenar apps por categoría.
+    // Ejemplo: { "General": ["key1", "key2"], "Matemáticas": ["key3"] }
+    let favorites = { "General": [] };
+    // FIN: Cambio en la estructura de favoritos
     let showingFavoritesOnly = false;
     let isCustomView = false;
     let currentPage = 1;
-    let itemsPerPage = 50; // Default value, will be overwritten by localStorage if available
+    let itemsPerPage = 50;
     let activeFilters = {
         area_conocimiento: new Set(), nivel_educativo: new Set(),
         tipo_recurso: new Set(), plataforma: new Set(),
         nombre_autor: new Set(), palabras_clave: new Set(),
     };
+    // INICIO: Variable para el modal de categorías
+    let currentAppKeyForModal = null;
+    // FIN: Variable para el modal de categorías
 
     const REQUIRED_FIELDS = ['correo_autor', 'nombre_autor', 'titulo_app', 'url_app'];
 
@@ -39,6 +46,16 @@ document.addEventListener('DOMContentLoaded', () => {
         clearAllBtn: document.getElementById('clear-all-btn'),
         itemsPerPageSelector: document.getElementById('items-per-page-selector'),
         paginationContainer: document.getElementById('pagination-container'),
+        // INICIO: Elementos del modal de categorías
+        categoryModal: document.getElementById('category-modal'),
+        categoryModalTitle: document.getElementById('category-modal-title'),
+        categorySelect: document.getElementById('category-select'),
+        newCategoryInput: document.getElementById('new-category-input'),
+        categoryModalError: document.getElementById('category-modal-error'),
+        saveCategoryBtn: document.getElementById('save-category-btn'),
+        cancelCategoryBtn: document.getElementById('cancel-category-btn'),
+        removeFavoriteBtn: document.getElementById('remove-favorite-btn'),
+        // FIN: Elementos del modal de categorías
     };
 
     function normalizeString(str) {
@@ -46,25 +63,60 @@ document.addEventListener('DOMContentLoaded', () => {
         return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     }
 
+    // INICIO: Funciones modificadas para gestionar favoritos por categoría
     function loadFavorites() {
         try {
             const storedFavorites = localStorage.getItem('educationalAppsFavorites');
             if (storedFavorites) {
-                favorites = new Set(JSON.parse(storedFavorites));
+                const parsed = JSON.parse(storedFavorites);
+                // Asegurarse de que el formato es correcto y hay una categoría "General"
+                if (typeof parsed === 'object' && !Array.isArray(parsed) && Object.keys(parsed).length > 0) {
+                    favorites = parsed;
+                    if (!favorites["General"]) {
+                        favorites["General"] = [];
+                    }
+                } else {
+                     // Si el formato antiguo (un array) existe, lo migramos
+                     if(Array.isArray(parsed)) {
+                        favorites = { "General": parsed };
+                        saveFavorites();
+                     } else {
+                        favorites = { "General": [] };
+                     }
+                }
             }
         } catch (e) {
             console.error("Error loading favorites from localStorage", e);
-            favorites = new Set();
+            favorites = { "General": [] };
         }
     }
 
     function saveFavorites() {
         try {
-            localStorage.setItem('educationalAppsFavorites', JSON.stringify([...favorites]));
+            // Limpiar categorías vacías antes de guardar, excepto "General"
+            Object.keys(favorites).forEach(cat => {
+                if (cat !== "General" && favorites[cat].length === 0) {
+                    delete favorites[cat];
+                }
+            });
+            localStorage.setItem('educationalAppsFavorites', JSON.stringify(favorites));
         } catch (e) {
              console.error("Error saving favorites to localStorage", e);
         }
     }
+
+    function isFavorite(appKey) {
+        return Object.values(favorites).some(arr => arr.includes(appKey));
+    }
+
+    function findCategoryForApp(appKey) {
+        return Object.keys(favorites).find(cat => favorites[cat].includes(appKey));
+    }
+    
+    function getTotalFavoritesCount() {
+        return Object.values(favorites).reduce((sum, arr) => sum + arr.length, 0);
+    }
+    // FIN: Funciones modificadas
 
     function processData(data) {
         const FULL_COLUMN_KEYS = [
@@ -147,72 +199,125 @@ document.addEventListener('DOMContentLoaded', () => {
         const key = Object.keys(STYLES).find(k => platform.includes(k) && k !== 'Default');
         return STYLES[key] || STYLES.Default;
     }
-
+    
+    // INICIO: Función de renderizado modificada
     function displayApps(apps) {
         elements.appsContainer.innerHTML = '';
-        elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && favorites.size === 0) || isCustomView);
-        elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || favorites.size > 0 || isCustomView);
+        const totalFavorites = getTotalFavoritesCount();
 
-        if (showingFavoritesOnly && favorites.size > 0 && apps.length === 0) {
+        elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && totalFavorites === 0) || isCustomView);
+        elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || totalFavorites > 0 || isCustomView);
+
+        if (showingFavoritesOnly && totalFavorites > 0 && apps.length === 0) {
              elements.noResultsMsg.classList.remove('hidden');
         }
 
         if (!isCustomView) {
             elements.resultsCounter.textContent = `Mostrando ${apps.length} de ${allApps.length} aplicaciones.`;
         }
+        
+        // Si no estamos en la vista de favoritos, renderizamos normalmente
+        if (!showingFavoritesOnly) {
+            renderAppGrid(apps);
+        } else {
+            // Si estamos en favoritos, renderizamos por categoría
+            renderFavoritesByCategory();
+        }
+    }
 
-        const effectiveItemsPerPage = itemsPerPage === 'all' ? apps.length : parseInt(itemsPerPage);
+    function renderAppGrid(appsToRender, container = elements.appsContainer) {
+        const effectiveItemsPerPage = itemsPerPage === 'all' ? appsToRender.length : parseInt(itemsPerPage);
         const startIndex = (currentPage - 1) * effectiveItemsPerPage;
         const endIndex = startIndex + effectiveItemsPerPage;
-        const paginatedApps = apps.slice(startIndex, endIndex);
+        const paginatedApps = appsToRender.slice(startIndex, endIndex);
 
         paginatedApps.forEach(app => {
-            const card = document.createElement('div');
-            card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col ${getPlatformStyle(app.plataforma)}`;
-
-            const isFavorite = favorites.has(app.key);
-            const favClass = isFavorite ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500';
-
-            // --- Start: Read More/Less Logic ---
-            const fullDescription = app.descripcion_app || 'No hay descripción.';
-            let descriptionHtml;
-
-            if (fullDescription.length > 350) {
-                const shortDescription = fullDescription.substring(0, 350).trim();
-                descriptionHtml = `
-                    <div class="description-container text-gray-600 text-sm mb-4 flex-grow">
-                        <p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline">más</a></p>
-                        <p class="long-desc hidden">${fullDescription} <a href="#" class="read-less font-semibold text-blue-600 hover:underline">menos</a></p>
-                    </div>`;
-            } else {
-                descriptionHtml = `<p class="text-gray-600 text-sm mb-4 flex-grow">${fullDescription}</p>`;
-            }
-            // --- End: Read More/Less Logic ---
-
-            card.innerHTML = `
-                <div class="p-5 flex-grow flex flex-col relative">
-                    <button class="favorite-btn absolute top-3 right-3 p-1 rounded-full bg-white/50 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-red-400" title="Añadir/quitar de favoritos" data-key="${app.key}">
-                        <svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFavorite ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
-                    </button>
-                    <p class="text-sm font-semibold text-gray-600 mb-3 pr-8">${app.plataforma || 'Sin plataforma'}</p>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">${app.titulo_app}</h3>
-                    <p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>
-                    ${descriptionHtml}
-                    <div class="text-xs text-gray-500 space-y-1 mt-auto">
-                        ${app.nivel_educativo ? `<p><strong>Nivel:</strong> ${createFilterLink(app.nivel_educativo, 'nivel_educativo')}</p>` : ''}
-                        ${app.area_conocimiento ? `<p><strong>Área:</strong> ${createFilterLink(app.area_conocimiento, 'area_conocimiento')}</p>` : ''}
-                        ${app.licencia ? `<p><strong>Licencia:</strong> ${app.licencia}</p>` : ''}
-                    </div>
-                </div>
-                <div class="p-4 border-t border-gray-200 bg-gray-50">
-                    <div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div>
-                    <a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">Visitar Aplicación</a>
-                </div>`;
-            elements.appsContainer.appendChild(card);
+            const card = createAppCard(app);
+            container.appendChild(card);
         });
-
-        setupPagination(apps.length);
+        if (container === elements.appsContainer) {
+            setupPagination(appsToRender.length);
+        }
     }
+    
+    function renderFavoritesByCategory() {
+        elements.appsContainer.innerHTML = ''; // Limpiar el contenedor principal
+        setupPagination(0); // Ocultar paginación en la vista de categorías
+        
+        const sortedCategories = Object.keys(favorites).sort((a,b) => a.localeCompare(b));
+
+        sortedCategories.forEach(category => {
+            const appKeysInCategory = favorites[category];
+            if (appKeysInCategory.length === 0) return;
+
+            const categorySection = document.createElement('div');
+            categorySection.className = 'col-span-full mb-8';
+
+            const categoryHeader = document.createElement('h2');
+            categoryHeader.className = 'text-2xl font-bold text-gray-800 mb-4 border-b pb-2';
+            categoryHeader.textContent = category;
+            categorySection.appendChild(categoryHeader);
+
+            const categoryGrid = document.createElement('div');
+            categoryGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+            
+            const appsInCategory = appKeysInCategory
+                .map(key => allApps.find(app => app.key === key))
+                .filter(Boolean); // Filtrar por si alguna app ya no existe
+
+            appsInCategory.forEach(app => {
+                const card = createAppCard(app);
+                categoryGrid.appendChild(card);
+            });
+
+            categorySection.appendChild(categoryGrid);
+            elements.appsContainer.appendChild(categorySection);
+        });
+    }
+
+    function createAppCard(app) {
+        const card = document.createElement('div');
+        card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col ${getPlatformStyle(app.plataforma)}`;
+
+        const isFav = isFavorite(app.key);
+        const favClass = isFav ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500';
+
+        const fullDescription = app.descripcion_app || 'No hay descripción.';
+        let descriptionHtml;
+
+        if (fullDescription.length > 350) {
+            const shortDescription = fullDescription.substring(0, 350).trim();
+            descriptionHtml = `
+                <div class="description-container text-gray-600 text-sm mb-4 flex-grow">
+                    <p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline">más</a></p>
+                    <p class="long-desc hidden">${fullDescription} <a href="#" class="read-less font-semibold text-blue-600 hover:underline">menos</a></p>
+                </div>`;
+        } else {
+            descriptionHtml = `<p class="text-gray-600 text-sm mb-4 flex-grow">${fullDescription}</p>`;
+        }
+        
+        card.innerHTML = `
+            <div class="p-5 flex-grow flex flex-col relative">
+                <button class="favorite-btn absolute top-3 right-3 p-1 rounded-full bg-white/50 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-red-400" title="Añadir/quitar de favoritos" data-key="${app.key}">
+                    <svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg>
+                </button>
+                <p class="text-sm font-semibold text-gray-600 mb-3 pr-8">${app.plataforma || 'Sin plataforma'}</p>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">${app.titulo_app}</h3>
+                <p class="text-sm text-gray-500 mb-3">por <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>
+                ${descriptionHtml}
+                <div class="text-xs text-gray-500 space-y-1 mt-auto">
+                    ${app.nivel_educativo ? `<p><strong>Nivel:</strong> ${createFilterLink(app.nivel_educativo, 'nivel_educativo')}</p>` : ''}
+                    ${app.area_conocimiento ? `<p><strong>Área:</strong> ${createFilterLink(app.area_conocimiento, 'area_conocimiento')}</p>` : ''}
+                    ${app.licencia ? `<p><strong>Licencia:</strong> ${app.licencia}</p>` : ''}
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200 bg-gray-50">
+                <div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div>
+                <a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">Visitar Aplicación</a>
+            </div>`;
+        return card;
+    }
+    // FIN: Función de renderizado modificada
 
     function setupPagination(totalItems) {
         elements.paginationContainer.innerHTML = '';
@@ -261,9 +366,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyAndDisplay() {
         const searchText = normalizeString(elements.searchInput.value);
         let appsToFilter = allApps;
+        
+        const totalFavorites = getTotalFavoritesCount();
 
         if (showingFavoritesOnly) {
-            appsToFilter = allApps.filter(app => favorites.has(app.key));
+            const favoriteKeys = new Set(Object.values(favorites).flat());
+            appsToFilter = allApps.filter(app => favoriteKeys.has(app.key));
         }
 
         const filteredApps = appsToFilter.filter(app => {
@@ -273,25 +381,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             for (const category in activeFilters) {
                 const selectedFilters = activeFilters[category];
-                if (selectedFilters.size === 0) {
-                    continue;
-                }
-
+                if (selectedFilters.size === 0) continue;
                 const appValuesRaw = app[category] || '';
-                if (!appValuesRaw) {
-                    return false;
-                }
+                if (!appValuesRaw) return false;
                 const appValues = appValuesRaw.split(',').map(v => v.trim());
-
                 const hasMatch = appValues.some(appVal =>
                     [...selectedFilters].some(filterVal => normalizeString(appVal) === normalizeString(filterVal))
                 );
-
-                if (!hasMatch) {
-                    return false;
-                }
+                if (!hasMatch) return false;
             }
-
             return true;
         });
 
@@ -314,10 +412,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.activeFiltersDisplay.appendChild(tag);
             });
         });
-
+        
+        const totalFavorites = getTotalFavoritesCount();
         const hasSearchText = elements.searchInput.value.length > 0;
         const showFilterActions = hasActiveFilter || hasSearchText;
-        const showFavoriteActions = showingFavoritesOnly && favorites.size > 0;
+        const showFavoriteActions = showingFavoritesOnly && totalFavorites > 0;
         const showActionsBar = showFilterActions || showFavoriteActions;
         elements.actionsBar.classList.toggle('hidden', !showActionsBar);
         elements.actionsBar.parentElement.classList.toggle('justify-between', showActionsBar);
@@ -350,9 +449,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function clearAllFavorites() {
-        if (favorites.size > 0) {
+        if (getTotalFavoritesCount() > 0) {
             currentPage = 1;
-            favorites.clear();
+            favorites = { "General": [] };
             saveFavorites();
             applyAndDisplay();
         }
@@ -384,8 +483,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generateShareableURL(type = 'filters') {
         const params = new URLSearchParams();
-        if (type === 'favorites' && favorites.size > 0) {
-            params.set('ids', [...favorites].join(','));
+        if (type === 'favorites' && getTotalFavoritesCount() > 0) {
+            // La URL compartida de favoritos ahora es más compleja, podríamos simplemente
+            // enlazar a la página o serializar todo el objeto de favoritos.
+            // Por simplicidad, por ahora compartirá todas las keys de favoritos.
+            const allFavKeys = Object.values(favorites).flat();
+            params.set('ids', allFavKeys.join(','));
         } else {
             const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse()));
             if (elements.searchInput.value) params.set('search', elements.searchInput.value);
@@ -438,6 +541,94 @@ document.addEventListener('DOMContentLoaded', () => {
             applyAndDisplay();
         }
     }
+
+    // INICIO: Funciones para el modal de categorías
+    function openCategoryModal(appKey) {
+        currentAppKeyForModal = appKey;
+        const app = allApps.find(a => a.key === appKey);
+        if (!app) return;
+
+        elements.categoryModalTitle.textContent = `Gestionar "${app.titulo_app}"`;
+        elements.newCategoryInput.value = '';
+        elements.categoryModalError.classList.add('hidden');
+
+        // Poblar el select con las categorías existentes
+        elements.categorySelect.innerHTML = '';
+        const sortedCategories = Object.keys(favorites).sort((a,b) => a.localeCompare(b));
+        sortedCategories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            elements.categorySelect.appendChild(option);
+        });
+
+        const currentCategory = findCategoryForApp(appKey);
+        if (currentCategory) {
+            elements.categorySelect.value = currentCategory;
+            elements.removeFavoriteBtn.classList.remove('hidden');
+        } else {
+            elements.categorySelect.value = "General";
+            elements.removeFavoriteBtn.classList.add('hidden');
+        }
+        elements.categoryModal.classList.remove('hidden');
+    }
+
+    function closeCategoryModal() {
+        elements.categoryModal.classList.add('hidden');
+        currentAppKeyForModal = null;
+    }
+
+    function saveFavoriteToCategory() {
+        const newCategoryName = elements.newCategoryInput.value.trim();
+        let targetCategory = elements.categorySelect.value;
+    
+        if (newCategoryName) {
+            // Validar que el nombre no exista ya (insensible a mayúsculas)
+            const existingCategory = Object.keys(favorites).find(cat => cat.toLowerCase() === newCategoryName.toLowerCase());
+            if(existingCategory && existingCategory !== newCategoryName) {
+                elements.categoryModalError.textContent = `La categoría "${existingCategory}" ya existe.`;
+                elements.categoryModalError.classList.remove('hidden');
+                return;
+            }
+            targetCategory = newCategoryName;
+        }
+    
+        if (!targetCategory) {
+             elements.categoryModalError.textContent = 'Por favor, elige o crea un nombre de categoría válido.';
+             elements.categoryModalError.classList.remove('hidden');
+             return;
+        }
+
+        // Quitar de la categoría anterior si existe
+        removeFavorite(currentAppKeyForModal, false);
+
+        // Añadir a la nueva categoría
+        if (!favorites[targetCategory]) {
+            favorites[targetCategory] = [];
+        }
+        if (!favorites[targetCategory].includes(currentAppKeyForModal)) {
+            favorites[targetCategory].push(currentAppKeyForModal);
+        }
+        
+        finishFavoriteUpdate();
+    }
+
+    function removeFavorite(appKey, shouldUpdateUI = true) {
+        const category = findCategoryForApp(appKey);
+        if (category) {
+            favorites[category] = favorites[category].filter(key => key !== appKey);
+            if (shouldUpdateUI) {
+                finishFavoriteUpdate();
+            }
+        }
+    }
+    
+    function finishFavoriteUpdate() {
+        saveFavorites();
+        applyAndDisplay(); // Actualiza la vista principal para reflejar los cambios
+        closeCategoryModal();
+    }
+    // FIN: Funciones para el modal de categorías
 
     function setupEventListeners() {
         elements.toggleFiltersBtn.addEventListener('click', () => elements.filterPanel.classList.toggle('hidden'));
@@ -493,34 +684,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             applyAndDisplay();
         });
-
+        
+        // INICIO: Event listener del contenedor de apps modificado
         elements.appsContainer.addEventListener('click', e => {
             const favBtn = e.target.closest('.favorite-btn');
             if (favBtn) {
                 e.preventDefault();
-                const key = favBtn.dataset.key;
-                const svg = favBtn.querySelector('svg');
-                if (favorites.has(key)) {
-                    favorites.delete(key);
-                    svg.classList.remove('text-red-500', 'fill-red-500');
-                    svg.classList.add('text-gray-400');
-                    svg.setAttribute('fill', 'none');
-                } else {
-                    favorites.add(key);
-                    svg.classList.add('text-red-500', 'fill-red-500');
-                    svg.classList.remove('text-gray-400');
-                    svg.setAttribute('fill', 'currentColor');
-                }
-                saveFavorites();
-                if(showingFavoritesOnly) {
-                    currentPage = 1;
-                    applyAndDisplay();
-                } else {
-                    updateControls();
-                }
+                openCategoryModal(favBtn.dataset.key);
                 return;
             }
-
+            // ... resto de los listeners (keyword, filter-link, read-more)
             const keywordTag = e.target.closest('.keyword-tag');
             if (keywordTag) {
                 e.preventDefault();
@@ -546,7 +719,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // --- Start: Read More/Less Click Handler ---
             const target = e.target;
             if (target.classList.contains('read-more') || target.classList.contains('read-less')) {
                 e.preventDefault();
@@ -557,8 +729,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 shortDesc.classList.toggle('hidden');
                 longDesc.classList.toggle('hidden');
             }
-            // --- End: Read More/Less Click Handler ---
         });
+        // FIN: Event listener del contenedor de apps modificado
 
         elements.activeFiltersDisplay.addEventListener('click', e => {
             const target = e.target.closest('button');
@@ -582,6 +754,12 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.shareUrlBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('filters')));
         elements.shareFavoritesBtn.addEventListener('click', () => copyToClipboard(generateShareableURL('favorites')));
         elements.clearFavoritesBtn.addEventListener('click', clearAllFavorites);
+        
+        // INICIO: Event listeners del modal
+        elements.saveCategoryBtn.addEventListener('click', saveFavoriteToCategory);
+        elements.cancelCategoryBtn.addEventListener('click', closeCategoryModal);
+        elements.removeFavoriteBtn.addEventListener('click', () => removeFavorite(currentAppKeyForModal));
+        // FIN: Event listeners del modal
 
         const helpBtn = document.getElementById('help-btn');
         const helpModal = document.getElementById('help-modal');
@@ -633,13 +811,15 @@ document.addEventListener('DOMContentLoaded', () => {
             elements.errorMsg.classList.remove('hidden');
         }
     });
-
+    
     /* ----- Lógica del contador de visitas y Modal de Estadísticas ----- */
     const INTERVAL_MIN = 15;
     const lastPing = Number(localStorage.getItem('visit_ping') || 0);
     const now = Date.now();
+    
+    // El contador de visitas está fijado a una fecha futura
+    const visitDate = new Date('2025-07-01T00:00:00');
 
-    // Registra una visita si han pasado más de 15 min.
     if (now - lastPing > INTERVAL_MIN * 60 * 1000) {
       const img = new Image();
       img.src = 'https://bilateria.org/vce/stats/contador.php?' + now;
@@ -648,21 +828,18 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('visit_ping', now.toString());
     }
 
-    // Obtiene el número total y configura el enlace para abrir el modal.
     fetch('https://bilateria.org/vce/stats/total.php?' + now)
       .then(response => response.text())
       .then(totalVisitas => {
         const visitBox = document.getElementById('visit-box');
         if (!visitBox) return;
 
-        // Preparamos los elementos del Modal
         const modal = document.getElementById('stats-modal');
         const closeModalBtn = document.getElementById('modal-close-btn');
         const modalIframe = document.getElementById('modal-iframe');
         
         if (!modal || !closeModalBtn || !modalIframe) return;
 
-        // Limpiamos COMPLETAMENTE el contenido del div antes de añadir nada.
         visitBox.innerHTML = ''; 
         
         const statsLink = document.createElement('a');
@@ -670,14 +847,12 @@ document.addEventListener('DOMContentLoaded', () => {
         statsLink.textContent = `${totalVisitas.trim()} visitas desde el 1 de julio de 2025`;
         visitBox.appendChild(statsLink);
 
-        // ---- Lógica para ABRIR el modal ----
         statsLink.addEventListener('click', (event) => {
             event.preventDefault(); 
             modalIframe.src = 'https://bilateria.org/vce/stats/stats.html';
             modal.style.display = 'flex';
         });
 
-        // ---- Lógica para CERRAR el modal ----
         const closeModal = () => {
             modal.style.display = 'none';
             modalIframe.src = 'about:blank';
