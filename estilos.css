@@ -64,14 +64,14 @@ button:disabled, select:disabled {
     cursor: not-allowed;
 }
 
-/* --- INICIO: Estilos para las pestañas de favoritos --- */
+/* --- Estilos para las pestañas de favoritos --- */
 .fav-tab-btn {
     padding: 0.75rem 1.25rem;
     font-weight: 600;
     color: #4b5563; /* gray-600 */
     border-bottom: 2px solid transparent;
     transition: color 0.2s, border-color 0.2s;
-    margin-bottom: -1px; /* Para que el borde inferior se solape con el del contenedor */
+    margin-bottom: -1px;
 }
 .fav-tab-btn:hover {
     color: #1d4ed8; /* blue-700 */
@@ -81,7 +81,20 @@ button:disabled, select:disabled {
     color: #1d4ed8; /* blue-700 */
     border-bottom-color: #3b82f6; /* blue-600 */
 }
-/* --- FIN: Estilos para las pestañas de favoritos --- */
+.delete-category-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    margin-left: 8px; /* Espacio entre el texto y el icono */
+    color: #9ca3af; /* gray-400 */
+    line-height: 1; /* Alinear mejor el icono */
+}
+.fav-tab-btn:hover .delete-category-btn {
+    opacity: 0.6;
+}
+.delete-category-btn:hover {
+    opacity: 1 !important;
+    color: #ef4444; /* red-500 */
+}
 
 #visit-box {
   text-align: center;
