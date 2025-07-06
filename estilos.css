@@ -63,15 +63,35 @@ button:disabled, select:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* --- INICIO: Estilos para las pestañas de favoritos --- */
+.fav-tab-btn {
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    color: #4b5563; /* gray-600 */
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    margin-bottom: -1px; /* Para que el borde inferior se solape con el del contenedor */
+}
+.fav-tab-btn:hover {
+    color: #1d4ed8; /* blue-700 */
+    border-bottom-color: #d1d5db; /* gray-300 */
+}
+.fav-tab-btn.active {
+    color: #1d4ed8; /* blue-700 */
+    border-bottom-color: #3b82f6; /* blue-600 */
+}
+/* --- FIN: Estilos para las pestañas de favoritos --- */
+
 #visit-box {
   text-align: center;
   font-size: 0.9rem;
   margin-top: 0.1rem;
-  margin-bottom: 2.5rem; /* <-- Añade esta línea para crear espacio abajo */
+  margin-bottom: 2.5rem;
 }
 #pagination-container button {
     padding: 0.5rem 1rem;
-    border: 1px solid #d1d5db; /* gray-300 */
+    border: 1px solid #d1d5db;
     background-color: white;
     border-radius: 0.5rem;
     cursor: pointer;
@@ -79,55 +99,45 @@ button:disabled, select:disabled {
     font-weight: 500;
 }
 #pagination-container button:hover:not(:disabled) {
-    background-color: #f3f4f6; /* gray-100 */
+    background-color: #f3f4f6;
 }
 #pagination-container span {
     padding: 0.5rem;
-    font-size: 0.875rem; /* text-sm */
-    color: #4b5563; /* gray-600 */
+    font-size: 0.875rem;
+    color: #4b5563;
 }
-/* --- Estilo para el enlace del contador de visitas --- */
 #visit-box a {
-    color: inherit; /* Hereda el color del texto de su contenedor (gris oscuro) */
-    text-decoration: none; /* Elimina el subrayado azul */
+    color: inherit;
+    text-decoration: none;
 }
-
 #visit-box a:hover {
-    text-decoration: underline; /* Añade un subrayado solo al pasar el ratón por encima */
-    color: #3b82f6; /* Cambia a color azul al pasar el ratón (opcional) */
+    text-decoration: underline;
+    color: #3b82f6;
 }
-/* --- Estilos para la ventana modal de estadísticas --- */
-
 .modal-overlay {
-    /* Por defecto, está oculta y no ocupa espacio */
     display: none;
-    position: fixed; /* Cubre toda la pantalla, incluso al hacer scroll */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Fondo negro semitransparente */
+    background-color: rgba(0, 0, 0, 0.6);
     justify-content: center;
     align-items: center;
-    z-index: 1000; /* Se asegura de que esté por encima de todo lo demás */
+    z-index: 1000;
 }
-
-/* El contenedor blanco de la ventana */
 .modal-content {
     position: relative;
     background-color: white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    /* El 90% del ancho y alto de la ventana, pero con un máximo */
     width: 90%;
     height: 90%;
     max-width: 1200px;
-    display: flex; /* Para que el iframe se expanda bien */
+    display: flex;
     flex-direction: column;
 }
-
-/* Botón de cierre (la 'X') */
 .modal-close-btn {
     position: absolute;
     top: -15px;
@@ -145,12 +155,10 @@ button:disabled, select:disabled {
     z-index: 1010;
 }
 .modal-close-btn:hover {
-    background: #e11d48; /* Rojo al pasar el ratón */
+    background: #e11d48;
 }
-
-/* El iframe donde se cargarán las estadísticas */
 #modal-iframe {
-    flex-grow: 1; /* Ocupa todo el espacio vertical disponible */
+    flex-grow: 1;
     border: none;
     width: 100%;
     height: 100%;
