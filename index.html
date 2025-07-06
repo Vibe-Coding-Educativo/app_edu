@@ -67,10 +67,6 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
                         Compartir Filtros
                     </button>
-                    <button id="share-favorites-btn" class="hidden text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                        Compartir Favoritos
-                    </button>
                     <button id="clear-favorites-btn" class="hidden text-sm text-red-600 hover:text-red-800 font-semibold flex items-center gap-1">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         Limpiar Favoritos
@@ -102,7 +98,8 @@
         <div id="error-message" class="hidden text-center py-10 bg-red-100 text-red-700 rounded-lg"><p class="text-lg">No se pudieron cargar los datos.</p></div>
         <div id="no-results-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No se encontraron aplicaciones.</p></div>
         <div id="no-favorites-message" class="hidden text-center py-10"><p class="text-lg text-gray-500">No tienes aplicaciones favoritas.<br><span class="text-sm">Haz clic en el corazón de una aplicación para añadirla.</span></p></div>
-
+        
+        <div id="favorites-tabs-container" class="mb-6"></div>
 
         <div id="apps-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
 
@@ -118,7 +115,7 @@
                 <div class="mb-4">
                     <label for="category-select" class="block text-sm font-medium text-gray-700 mb-1">Elige una categoría</label>
                     <select id="category-select" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        </select>
+                    </select>
                 </div>
                 <div class="mb-4">
                     <label for="new-category-input" class="block text-sm font-medium text-gray-700 mb-1">O crea una nueva</label>
@@ -135,8 +132,10 @@
             </div>
         </div>
     </div>
+
+
     <footer class="text-center pt-8 pb-4 mt-12 border-t border-gray-200 text-sm text-gray-500">
-        <p>Una iniciativa del grupo <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>. Versión 1.1</p>
+        <p>Una iniciativa del grupo <a href="https://t.me/vceduca" target="_blank" class="text-blue-600 hover:underline font-semibold">Vibe Coding Educativo</a>. Versión 1.2</p>
         <p class="mt-4">
             <a href="https://github.com/Vibe-Coding-Educativo/app_edu/" target="_blank" class="text-gray-600 hover:text-blue-600 font-semibold inline-flex items-center">
                 <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor">
@@ -162,6 +161,7 @@
         </a>
       </div>
     </footer>
+
     <div id="help-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full h-[85vh] flex flex-col">
             <div class="flex-shrink-0 p-3 border-b flex justify-end items-center relative">
