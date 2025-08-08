@@ -59,57 +59,55 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelDeleteCategoryBtn: document.getElementById('cancel-delete-category-btn'),
     };
     
-    // --- GESTIÓN DEL TEMA (CLARO/OSCURO) ---
+    // --- GESTIÓN DEL TEMA (CLARO/OSCURO) - LÓGICA CORREGIDA ---
     function setupThemeManager() {
         const themeButtons = {
             light: document.getElementById('theme-light-btn'),
             dark: document.getElementById('theme-dark-btn'),
             system: document.getElementById('theme-system-btn'),
         };
-        const osThemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const htmlEl = document.documentElement;
 
         function applyTheme(theme) {
-            htmlEl.classList.remove('dark');
-            Object.values(themeButtons).forEach(btn => {
-                if(btn) btn.classList.remove('active');
-            });
-
+            // Actualiza la clase en <html> y la preferencia en localStorage
             if (theme === 'dark') {
                 htmlEl.classList.add('dark');
-                if (themeButtons.dark) themeButtons.dark.classList.add('active');
+                localStorage.setItem('theme', 'dark');
             } else if (theme === 'light') {
-                if (themeButtons.light) themeButtons.light.classList.add('active');
-            } else { // System
-                if (osThemeQuery.matches) {
+                htmlEl.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else { // 'system'
+                localStorage.removeItem('theme');
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
                     htmlEl.classList.add('dark');
+                } else {
+                    htmlEl.classList.remove('dark');
                 }
-                if (themeButtons.system) themeButtons.system.classList.add('active');
+            }
+
+            // Actualiza el estado visual de los botones
+            Object.values(themeButtons).forEach(btn => btn.classList.remove('active'));
+            if (themeButtons[theme]) {
+                themeButtons[theme].classList.add('active');
             }
         }
 
-        function setTheme(theme) {
-            if (theme === 'system') {
-                localStorage.removeItem('theme');
-            } else {
-                localStorage.setItem('theme', theme);
-            }
-            applyTheme(theme);
-        }
-        
-        osThemeQuery.addEventListener('change', () => {
-            const savedTheme = localStorage.getItem('theme');
-            if (!savedTheme || savedTheme === 'system') {
+        // Listener para cambios en el tema del sistema
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            // Solo aplica el cambio si el usuario no ha forzado un modo manual
+            if (!localStorage.getItem('theme')) {
                 applyTheme('system');
             }
         });
 
-        Object.entries(themeButtons).forEach(([themeName, button]) => {
-            if(button) button.addEventListener('click', () => setTheme(themeName));
-        });
+        // Listeners para los botones
+        themeButtons.light.addEventListener('click', () => applyTheme('light'));
+        themeButtons.dark.addEventListener('click', () => applyTheme('dark'));
+        themeButtons.system.addEventListener('click', () => applyTheme('system'));
 
-        const initialTheme = localStorage.getItem('theme') || 'system';
-        applyTheme(initialTheme);
+        // Carga inicial del tema
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        applyTheme(savedTheme);
     }
 
     function normalizeString(str) { if (!str) return ''; return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
