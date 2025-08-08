@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelDeleteCategoryBtn: document.getElementById('cancel-delete-category-btn'),
     };
     
-    // --- GESTIÓN DEL TEMA (CLARO/OSCURO) - LÓGICA CORREGIDA ---
+    // --- GESTIÓN DEL TEMA (CLARO/OSCURO) ---
     function setupThemeManager() {
         const themeButtons = {
             light: document.getElementById('theme-light-btn'),
@@ -301,3 +301,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const INTERVAL_MIN = 15; const lastPing = Number(localStorage.getItem('visit_ping') || 0); const now = Date.now(); if (now - lastPing > INTERVAL_MIN * 60 * 1000) { const img = new Image(); img.src = 'https://bilateria.org/vce/stats/contador.php?' + now; img.style.display = 'none'; document.body.appendChild(img); localStorage.setItem('visit_ping', now.toString()); } fetch('https://bilateria.org/vce/stats/total.php?' + now) .then(response => response.text()) .then(totalVisitas => { const visitBox = document.getElementById('visit-box'); if (!visitBox) return; const modal = document.getElementById('stats-modal'); const closeModalBtn = document.getElementById('modal-close-btn'); const modalIframe = document.getElementById('modal-iframe'); if (!modal || !closeModalBtn || !modalIframe) return; visitBox.innerHTML = ''; const statsLink = document.createElement('a'); statsLink.href = '#'; statsLink.textContent = `${totalVisitas.trim()} visitas desde el 1 de julio de 2025`; visitBox.appendChild(statsLink); statsLink.addEventListener('click', (event) => { event.preventDefault(); modalIframe.src = 'https://bilateria.org/vce/stats/stats.html'; modal.style.display = 'flex'; }); const closeModal = () => { modal.style.display = 'none'; modalIframe.src = 'about:blank'; }; closeModalBtn.addEventListener('click', closeModal); modal.addEventListener('click', (event) => { if (event.target === modal) { closeModal(); } }); }) .catch(() => { const visitBox = document.getElementById('visit-box'); if (visitBox) { visitBox.innerHTML = '–'; } });
 });
+}
