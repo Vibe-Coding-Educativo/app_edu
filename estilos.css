@@ -1,3 +1,10 @@
+:root { 
+    color-scheme: light; 
+}
+html.dark { 
+    color-scheme: dark; 
+}
+
 body {
     font-family: 'Inter', sans-serif;
     /* Los colores base se gestionan con clases de Tailwind en el body */
