@@ -1,3 +1,4 @@
+/* === base (original) === */
 body {
     font-family: 'Inter', sans-serif;
     background-color: #f8f9fa;
@@ -84,9 +85,9 @@ button:disabled, select:disabled {
 .delete-category-btn {
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
-    margin-left: 8px; /* Espacio entre el texto y el icono */
+    margin-left: 8px;
     color: #9ca3af; /* gray-400 */
-    line-height: 1; /* Alinear mejor el icono */
+    line-height: 1;
 }
 .fav-tab-btn:hover .delete-category-btn {
     opacity: 0.6;
@@ -102,6 +103,7 @@ button:disabled, select:disabled {
   margin-top: 0.1rem;
   margin-bottom: 2.5rem;
 }
+
 #pagination-container button {
     padding: 0.5rem 1rem;
     border: 1px solid #d1d5db;
@@ -119,6 +121,7 @@ button:disabled, select:disabled {
     font-size: 0.875rem;
     color: #4b5563;
 }
+
 #visit-box a {
     color: inherit;
     text-decoration: none;
@@ -127,6 +130,7 @@ button:disabled, select:disabled {
     text-decoration: underline;
     color: #3b82f6;
 }
+
 .modal-overlay {
     display: none;
     position: fixed;
@@ -175,4 +179,98 @@ button:disabled, select:disabled {
     border: none;
     width: 100%;
     height: 100%;
+}
+
+/* === modo oscuro (añadido) === */
+html.dark body {
+    background-color: #0b1220; /* fondo principal */
+    color: #e5e7eb;           /* texto base */
+}
+
+html.dark .card {
+    background-color: #1f2937; /* gray-800 */
+    border-color: #374151;      /* si hay borde */
+    box-shadow: none;
+}
+html.dark .card:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+}
+
+html.dark .action-btn {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    border-color: #4b5563;
+}
+html.dark .action-btn:hover {
+    background-color: #374151;
+    border-color: #6b7280;
+}
+
+html.dark .filter-btn {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    border-color: #4b5563;
+}
+html.dark .filter-btn:not(.active):hover {
+    background-color: #374151;
+    border-color: #6b7280;
+}
+html.dark .filter-btn.active {
+    background-color: #0b1220;
+    color: #f9fafb;
+    border-color: #111827;
+}
+
+html.dark .filter-link {
+    color: #d1d5db;
+}
+html.dark .filter-link:hover {
+    color: #93c5fd;              /* blue-300 */
+    background-color: #0f172a;   /* slate-900 */
+}
+
+html.dark #pagination-container button {
+    background-color: #1f2937;
+    color: #e5e7eb;
+    border-color: #4b5563;
+}
+html.dark #pagination-container button:hover:not(:disabled) {
+    background-color: #374151;
+}
+html.dark #pagination-container span {
+    color: #cbd5e1; /* slate-300 */
+}
+
+html.dark #copy-confirm-msg {
+    background: #111827;
+    color: #f9fafb;
+}
+
+html.dark .modal-overlay {
+    background-color: rgba(0,0,0,0.65);
+}
+html.dark .modal-content {
+    background-color: #111827; /* gray-900 */
+    color: #e5e7eb;
+    box-shadow: 0 20px 56px rgba(0,0,0,0.6);
+}
+html.dark .modal-close-btn {
+    background: #111827;
+    color: #f3f4f6;
+    border-color: #374151;
+}
+html.dark .modal-close-btn:hover {
+    background: #7f1d1d; /* red-900-ish */
+}
+
+/* pestañas de favoritos en oscuro */
+html.dark .fav-tab-btn {
+    color: #cbd5e1; /* slate-300 */
+}
+html.dark .fav-tab-btn:hover {
+    color: #e5e7eb;
+}
+html.dark .fav-tab-btn.active {
+    color: #93c5fd;   /* blue-300 */
+    border-bottom-color: #3b82f6; /* mantiene énfasis */
 }
