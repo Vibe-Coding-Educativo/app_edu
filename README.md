@@ -41,4 +41,5 @@ Este es un proyecto colaborativo. Si has creado una aplicación educativa y quie
 
 ## Licencia
 
-El programa se distribuye bajo la licencia Creative Commons BY-SA.
+- Código fuente: GNU AGPL v3 (consulta `LICENSE.txt`).
+- Contenidos (texto/imágenes): Creative Commons BY-SA 4.0.
