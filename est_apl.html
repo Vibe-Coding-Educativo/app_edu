@@ -86,10 +86,6 @@
                     <h3 class="text-lg font-semibold text-gray-500 mb-2">Total de Áreas</h3>
                     <p id="total-areas" class="value">0</p>
                 </div>
-                <div class="stat-card">
-                    <h3 class="text-lg font-semibold text-gray-500 mb-2">Tipos de Licencia</h3>
-                    <p id="total-licenses" class="value">0</p>
-                </div>
             </section>
 
             <!-- Grid de gráficos -->
@@ -106,11 +102,6 @@
                     <canvas id="tipoRecursoChart"></canvas>
                 </div>
 
-                <!-- Gráfico: Licencia de uso -->
-                <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Licencia de uso</h2>
-                    <canvas id="licenciaChart"></canvas>
-                </div>
                 
                 <!-- Gráfico: Placeholder para mantener el layout -->
                 <div class="chart-container bg-transparent border-none shadow-none"></div>
@@ -324,18 +315,15 @@
                     // Procesar datos para cada gráfico usando los nombres exactos de las columnas del CSV
                     const plataformaData = countSingleValueItems(data, 'Plataforma de creación');
                     const tipoRecursoData = countSingleValueItems(data, 'Tipo de recurso');
-                    const licenciaData = countSingleValueItems(data, 'Licencia de uso');
                     const areasData = countMultiValueItems(data, 'Área o áreas de conocimiento');
                     const nivelesData = countMultiValueItems(data, 'Nivel o niveles educativos');
                     
                     // Actualizar más estadísticas
                     document.getElementById('total-areas').textContent = Object.keys(areasData).length;
-                    document.getElementById('total-licenses').textContent = Object.keys(licenciaData).length;
 
                     // Crear los gráficos
                     createPieChart(document.getElementById('plataformaChart').getContext('2d'), '# de Apps', plataformaData);
                     createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'), '# de Apps', tipoRecursoData);
-                    createPieChart(document.getElementById('licenciaChart').getContext('2d'), '# de Apps', licenciaData);
                     
                     createBarChart(document.getElementById('areasChart').getContext('2d'), '# de Apps', areasData, 'y');
                     createBarChart(document.getElementById('nivelesChart').getContext('2d'), '# de Apps', nivelesData, 'y');
