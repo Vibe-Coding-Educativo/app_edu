@@ -35,6 +35,51 @@ html.dark .action-btn.active {
     color: white;
 }
 
+#toggle-favorites-btn.active {
+    background-color: #2563eb;
+    border-color: #1d4ed8;
+    box-shadow: 0 16px 30px -18px rgba(37, 99, 235, 0.75);
+}
+#toggle-favorites-btn.active:hover {
+    box-shadow: 0 20px 36px -18px rgba(37, 99, 235, 0.85);
+}
+#toggle-favorites-btn.active svg {
+    animation: favorites-heartbeat 2.2s ease-in-out infinite;
+}
+
+@keyframes favorites-heartbeat {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    30% { transform: scale(1.18); opacity: 0.9; }
+    55% { transform: scale(0.95); opacity: 1; }
+    75% { transform: scale(1.08); }
+}
+
+body.favorites-mode #apps-container,
+body.filters-active #apps-container {
+    background-color: rgba(239, 246, 255, 0.95);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    box-shadow: 0 28px 56px -32px rgba(59, 130, 246, 0.35);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+html.dark body.favorites-mode #apps-container,
+html.dark body.filters-active #apps-container {
+    background-color: rgba(30, 41, 59, 0.92);
+    border-color: rgba(59, 130, 246, 0.35);
+    box-shadow: 0 32px 60px -32px rgba(30, 64, 175, 0.55);
+}
+
+body.favorites-mode .card,
+body.filters-active .card {
+    border-top-color: #2563eb;
+    box-shadow: 0 18px 42px -24px rgba(37, 99, 235, 0.45);
+}
+body.favorites-mode .card:hover,
+body.filters-active .card:hover {
+    box-shadow: 0 22px 50px -22px rgba(37, 99, 235, 0.6);
+}
+
 .filter-btn {
     transition: all 0.2s ease-in-out;
     border: 1px solid #d1d5db; /* gray-300 */
@@ -114,47 +159,90 @@ button:disabled, select:disabled {
 
 /* --- Estilos para las pestañas de favoritos --- */
 .fav-tab-btn {
-    padding: 0.75rem 1.25rem;
-    font-weight: 600;
-    color: #4b5563; /* gray-600 */
-    border-bottom: 2px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
-    margin-bottom: -1px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0.75rem 0.75rem 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease;
 }
-html.dark .fav-tab-btn {
-    color: #9ca3af; /* gray-400 */
-}
-
 .fav-tab-btn:hover {
-    color: #1d4ed8; /* blue-700 */
-    border-bottom-color: #d1d5db; /* gray-300 */
+    transform: translateY(-1px);
 }
-html.dark .fav-tab-btn:hover {
-    color: #60a5fa; /* blue-400 */
-    border-bottom-color: #4b5563; /* gray-600 */
+.fav-tab-btn .fav-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.95rem;
+    border-radius: 9999px;
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
-.fav-tab-btn.active {
-    color: #1d4ed8; /* blue-700 */
-    border-bottom-color: #3b82f6; /* blue-600 */
+.fav-tab-btn .fav-chip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
 }
-html.dark .fav-tab-btn.active {
-    color: #60a5fa; /* blue-400 */
-    border-bottom-color: #60a5fa; /* blue-400 */
+.fav-tab-btn .fav-chip-text {
+    white-space: nowrap;
 }
-
-.delete-category-btn {
+.fav-tab-btn .fav-chip-count {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    font-variant-numeric: tabular-nums;
+}
+.fav-tab-btn.active .fav-chip {
+    background-color: rgba(37, 99, 235, 0.18);
+    box-shadow: 0 18px 32px -26px rgba(37, 99, 235, 0.55);
+    color: #1f2937;
+}
+.fav-tab-btn.active .fav-chip-icon {
+    color: #ef4444;
+}
+.fav-tab-btn:hover .fav-chip {
+    background-color: rgba(59, 130, 246, 0.18);
+}
+.fav-tab-btn .delete-category-btn {
     opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-    margin-left: 8px; /* Espacio entre el texto y el icono */
-    color: #9ca3af; /* gray-400 */
-    line-height: 1; /* Alinear mejor el icono */
+    padding: 0.25rem;
+    border-radius: 9999px;
+    transition: opacity 0.2s ease, color 0.2s ease, background 0.2s ease;
+    color: #9ca3af;
 }
 .fav-tab-btn:hover .delete-category-btn {
-    opacity: 0.6;
+    opacity: 1;
 }
-.delete-category-btn:hover {
-    opacity: 1 !important;
-    color: #ef4444; /* red-500 */
+.fav-tab-btn .delete-category-btn:hover {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.08);
+}
+html.dark .fav-tab-btn .fav-chip {
+    background-color: rgba(37, 99, 235, 0.22);
+    color: #bfdbfe;
+}
+html.dark .fav-tab-btn .fav-chip-icon {
+    color: #9ca3af;
+}
+html.dark .fav-tab-btn.active .fav-chip {
+    background-color: rgba(37, 99, 235, 0.28);
+    color: #dbeafe;
+    box-shadow: 0 20px 38px -28px rgba(37, 99, 235, 0.65);
+}
+html.dark .fav-tab-btn.active .fav-chip-icon {
+    color: #f87171;
+}
+html.dark .fav-tab-btn .delete-category-btn {
+    color: #d1d5db;
+}
+html.dark .fav-tab-btn .delete-category-btn:hover {
+    color: #fca5a5;
+    background-color: rgba(239, 68, 68, 0.12);
 }
 
 /* --- Estilos del selector de tema --- */

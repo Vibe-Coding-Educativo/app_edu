@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentAppKeyForModal = null;
     let activeFavoriteTab = 'General';
     let categoryToDelete = null;
+    let allAppKeys = new Set();
 
     const REQUIRED_FIELDS = ['correo_autor', 'nombre_autor', 'titulo_app', 'url_app'];
 
@@ -73,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pagination_next: 'Siguiente',
             pagination_page: 'Página {current} de {total}',
             share_filters: 'Compartir Filtros',
+            share_category: 'Compartir esta categoría',
             clear_favorites: 'Limpiar Favoritos',
             clear_all: 'Limpiar todo',
             copy_confirm: '¡URL copiada al portapapeles!',
@@ -132,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pagination_next: 'Següent',
             pagination_page: 'Pàgina {current} de {total}',
             share_filters: 'Compartir filtres',
+            share_category: 'Comparteix aquesta categoria',
             clear_favorites: 'Netejar preferits',
             clear_all: 'Netejar tot',
             copy_confirm: 'URL copiada al porta-retalls!',
@@ -191,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pagination_next: 'Seguinte',
             pagination_page: 'Páxina {current} de {total}',
             share_filters: 'Compartir filtros',
+            share_category: 'Compartir esta categoría',
             clear_favorites: 'Limpar favoritos',
             clear_all: 'Limpar todo',
             copy_confirm: 'URL copiada ao portapapeis!',
@@ -250,6 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pagination_next: 'Hurrengoa',
             pagination_page: '{current}/{total} orrialdea',
             share_filters: 'Iragazkiak partekatu',
+            share_category: 'Kategoria hau partekatu',
             clear_favorites: 'Gogokoak garbitu',
             clear_all: 'Dena garbitu',
             copy_confirm: 'URLa arbelera kopiatu da!',
@@ -309,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pagination_next: 'Next',
             pagination_page: 'Page {current} of {total}',
             share_filters: 'Share Filters',
+            share_category: 'Share this category',
             clear_favorites: 'Clear Favorites',
             clear_all: 'Clear All',
             copy_confirm: 'URL copied to clipboard!',
@@ -486,42 +492,116 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveFavorites() { try { Object.keys(favorites).forEach(cat => { if (cat !== "General" && favorites[cat].length === 0) { delete favorites[cat]; } }); localStorage.setItem('educationalAppsFavorites', JSON.stringify(favorites)); } catch (e) { console.error("Error saving favorites to localStorage", e); } }
     function isFavorite(appKey) { return Object.values(favorites).some(arr => arr.includes(appKey)); }
     function findCategoryForApp(appKey) { return Object.keys(favorites).find(cat => favorites[cat].includes(appKey)); }
-    function getTotalFavoritesCount() { return Object.values(favorites).reduce((sum, arr) => sum + arr.length, 0); }
+    function getFavoriteCountForCategory(category) {
+        if (!category || !favorites[category]) return 0;
+        let count = 0;
+        favorites[category].forEach(key => { if (allAppKeys.has(key)) count++; });
+        return count;
+    }
 
-    function displayApps(apps) { const totalFavorites = getTotalFavoritesCount(); elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && totalFavorites === 0) || isCustomView); elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || totalFavorites > 0 || isCustomView); if (showingFavoritesOnly) { elements.favoritesTabsContainer.classList.remove('hidden'); renderFavoriteTabsAndContent(apps); } else { elements.favoritesTabsContainer.classList.add('hidden'); elements.appsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'; renderAppGrid(apps); } if (!isCustomView) { elements.resultsCounter.textContent = t('results_counter', { n: apps.length, total: allApps.length }); } }
+    function getTotalFavoritesCount() {
+        return Object.keys(favorites).reduce((sum, category) => sum + getFavoriteCountForCategory(category), 0);
+    }
+
+    function displayApps(apps) {
+        document.body.classList.toggle('favorites-mode', showingFavoritesOnly);
+        const totalFavorites = getTotalFavoritesCount();
+        elements.noResultsMsg.classList.toggle('hidden', apps.length > 0 || (showingFavoritesOnly && totalFavorites === 0) || isCustomView);
+        elements.noFavoritesMsg.classList.toggle('hidden', !showingFavoritesOnly || apps.length > 0 || totalFavorites > 0 || isCustomView);
+        if (showingFavoritesOnly) {
+            elements.favoritesTabsContainer.classList.remove('hidden');
+            renderFavoriteTabsAndContent(apps);
+        } else {
+            elements.favoritesTabsContainer.classList.add('hidden');
+            elements.appsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
+            renderAppGrid(apps);
+        }
+        if (!isCustomView) {
+            elements.resultsCounter.textContent = t('results_counter', { n: apps.length, total: allApps.length });
+        }
+    }
     function renderAppGrid(appsToRender, container = elements.appsContainer) { container.innerHTML = ''; const effectiveItemsPerPage = itemsPerPage === 'all' ? appsToRender.length : parseInt(itemsPerPage); const startIndex = (currentPage - 1) * effectiveItemsPerPage; const endIndex = startIndex + effectiveItemsPerPage; const paginatedApps = appsToRender.slice(startIndex, endIndex); paginatedApps.forEach(app => { const card = createAppCard(app); container.appendChild(card); }); if (container === elements.appsContainer) { setupPagination(appsToRender.length); } }
     
     function renderFavoriteTabsAndContent(allFavoriteApps) {
         elements.favoritesTabsContainer.innerHTML = '';
         elements.appsContainer.innerHTML = '';
         setupPagination(0);
-        const sortedCategories = Object.keys(favorites).sort((a,b) => a.localeCompare(b));
+
+        const sortedCategories = Object.keys(favorites).sort((a, b) => a.localeCompare(b));
         const tabsList = document.createElement('div');
-        tabsList.className = 'flex border-b border-gray-200 dark:border-gray-700 flex-wrap';
+        tabsList.className = 'flex flex-wrap items-center gap-2';
+
         sortedCategories.forEach(category => {
-            if (favorites[category].length === 0 && category !== 'General') return;
+            const availableCount = getFavoriteCountForCategory(category);
+            if (availableCount === 0 && category !== 'General') return;
+
             const tabButton = document.createElement('button');
-            tabButton.className = 'fav-tab-btn flex items-center';
+            tabButton.className = 'fav-tab-btn';
             tabButton.dataset.category = category;
             if (category === activeFavoriteTab) { tabButton.classList.add('active'); }
-            let tabContent = `<span>${category} (${favorites[category].length})</span>`;
-            if (category !== 'General') { tabContent += `<span class="delete-category-btn" title="Eliminar categoría '${category}'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></span>`; }
+
+            let tabContent = `
+                <span class="fav-chip">
+                    <span class="fav-chip-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 4 4 6.5 4a3.6 3.6 0 0 1 3.1 1.69h0.8A3.6 3.6 0 0 1 13.5 4C16 4 18 6 18 8.5c0 3.78-3.4 6.86-8.55 11.54z"/>
+                        </svg>
+                    </span>
+                    <span class="fav-chip-text">${category}</span>
+                    <span class="fav-chip-count">(${availableCount})</span>
+                </span>
+            `;
+
+            if (category !== 'General') {
+                tabContent += `<span class="delete-category-btn"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></span>`;
+            }
+
             tabButton.innerHTML = tabContent;
-            tabButton.addEventListener('click', (e) => { if (e.target.closest('.delete-category-btn')) return; activeFavoriteTab = category; renderFavoriteTabsAndContent(allFavoriteApps); });
+            tabButton.addEventListener('click', (e) => {
+                if (e.target.closest('.delete-category-btn')) return;
+                activeFavoriteTab = category;
+                renderFavoriteTabsAndContent(allFavoriteApps);
+            });
+
             const deleteBtn = tabButton.querySelector('.delete-category-btn');
-            if (deleteBtn) { deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); openDeleteCategoryModal(category); }); }
+            if (deleteBtn) {
+                const deleteMessage = `${t('delete_category_title')} ${category}`;
+                deleteBtn.setAttribute('title', deleteMessage);
+                deleteBtn.setAttribute('aria-label', deleteMessage);
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openDeleteCategoryModal(category);
+                });
+            }
+
             tabsList.appendChild(tabButton);
         });
+
         elements.favoritesTabsContainer.appendChild(tabsList);
+
         const activeCategoryHeader = document.createElement('div');
-        activeCategoryHeader.className = 'flex justify-between items-center mt-4 mb-4';
-        activeCategoryHeader.innerHTML = `<h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">${activeFavoriteTab}</h2><button class="share-category-btn text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 dark:text-blue-400 dark:hover:text-blue-300"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>Compartir esta categoría</button>`;
+        activeCategoryHeader.className = 'flex flex-col gap-3 md:flex-row md:items-center md:justify-between mt-4 mb-4';
+        activeCategoryHeader.innerHTML = `
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">${activeFavoriteTab}</h2>
+            <button class="share-category-btn inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                ${t('share_category')}
+            </button>
+        `;
         elements.appsContainer.appendChild(activeCategoryHeader);
-        activeCategoryHeader.querySelector('.share-category-btn').addEventListener('click', (e) => { e.preventDefault(); copyToClipboard(generateShareableURL('category', activeFavoriteTab)); });
+        activeCategoryHeader.querySelector('.share-category-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            copyToClipboard(generateShareableURL('category', activeFavoriteTab));
+        });
+
         const appsInActiveCategory = allFavoriteApps.filter(app => (favorites[activeFavoriteTab] || []).includes(app.key));
+
         const categoryGrid = document.createElement('div');
         categoryGrid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
-        appsInActiveCategory.forEach(app => { const card = createAppCard(app); categoryGrid.appendChild(card); });
+        appsInActiveCategory.forEach(app => {
+            const card = createAppCard(app);
+            categoryGrid.appendChild(card);
+        });
         elements.appsContainer.appendChild(categoryGrid);
         elements.appsContainer.className = '';
     }
@@ -653,7 +733,41 @@ document.addEventListener('DOMContentLoaded', () => {
     function createFilterLink(text, category) { return text.split(',').map(v => v.trim()).filter(Boolean).map(val => `<a href="#" class="filter-link" data-category="${category}" data-filter="${val}">${val}</a>`).join(', '); }
     function hasAnyActiveFilters() { return Object.values(activeFilters).some(set => set.size > 0); }
     function updateFiltersButtonHighlight(hasActiveFilter = hasAnyActiveFilters()) { const panelVisible = !elements.filterPanel.classList.contains('hidden'); const shouldHighlight = panelVisible || hasActiveFilter; elements.toggleFiltersBtn.classList.toggle('active', shouldHighlight); }
-    function updateControls() { elements.activeFiltersDisplay.innerHTML = ''; let hasActiveFilter = false; Object.entries(activeFilters).forEach(([category, filterSet]) => { if(filterSet.size === 0) return; hasActiveFilter = true; const catName = document.querySelector(`[data-category="${category}"]`)?.closest('details')?.querySelector('.font-semibold')?.textContent || 'Palabra Clave'; filterSet.forEach(filterValue => { const tag = document.createElement('div'); tag.className = 'flex items-center bg-gray-200 text-gray-800 text-sm font-medium pl-3 pr-2 py-1 rounded-full dark:bg-gray-600 dark:text-gray-200'; tag.innerHTML = `<span>${catName}: ${filterValue}</span><button class="ml-2 text-gray-500 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white" data-category="${category}" data-filter="${filterValue}" title="Eliminar filtro">&times;</button>`; elements.activeFiltersDisplay.appendChild(tag); }); }); const totalFavorites = getTotalFavoritesCount(); const hasSearchText = elements.searchInput.value.length > 0; const showFilterActions = hasActiveFilter || hasSearchText; const showFavoriteActions = showingFavoritesOnly && totalFavorites > 0; const showActionsBar = showFilterActions || showFavoriteActions; elements.actionsBar.classList.toggle('hidden', !showActionsBar); elements.actionsBar.parentElement.classList.toggle('justify-between', showActionsBar); elements.actionsBar.parentElement.classList.toggle('justify-end', !showActionsBar); if (showActionsBar) { elements.shareUrlBtn.classList.toggle('hidden', !showFilterActions); elements.clearAllBtn.classList.toggle('hidden', !showFilterActions); elements.clearFavoritesBtn.classList.toggle('hidden', !showFavoriteActions); } updateFiltersButtonHighlight(hasActiveFilter); }
+    function updateControls() {
+        elements.activeFiltersDisplay.innerHTML = '';
+        let hasActiveFilter = false;
+
+        Object.entries(activeFilters).forEach(([category, filterSet]) => {
+            if (filterSet.size === 0) return;
+            hasActiveFilter = true;
+            const catName = document.querySelector(`[data-category="${category}"]`)?.closest('details')?.querySelector('.font-semibold')?.textContent || 'Palabra Clave';
+            filterSet.forEach(filterValue => {
+                const tag = document.createElement('div');
+                tag.className = 'flex items-center bg-blue-100 text-blue-900 text-sm font-medium pl-3 pr-2 py-1 rounded-full shadow-sm dark:bg-blue-900/60 dark:text-blue-200';
+                tag.innerHTML = `<span>${catName}: ${filterValue}</span><button class="ml-2 text-blue-500 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100" data-category="${category}" data-filter="${filterValue}" title="Eliminar filtro">&times;</button>`;
+                elements.activeFiltersDisplay.appendChild(tag);
+            });
+        });
+
+        const totalFavorites = getTotalFavoritesCount();
+        const hasSearchText = elements.searchInput.value.length > 0;
+        const showFilterActions = hasActiveFilter || hasSearchText;
+        const showFavoriteActions = showingFavoritesOnly && totalFavorites > 0;
+        const showActionsBar = showFilterActions || showFavoriteActions;
+
+        elements.actionsBar.classList.toggle('hidden', !showActionsBar);
+        elements.actionsBar.parentElement.classList.toggle('justify-between', showActionsBar);
+        elements.actionsBar.parentElement.classList.toggle('justify-end', !showActionsBar);
+
+        if (showActionsBar) {
+            elements.shareUrlBtn.classList.toggle('hidden', !showFilterActions);
+            elements.clearAllBtn.classList.toggle('hidden', !showFilterActions);
+            elements.clearFavoritesBtn.classList.toggle('hidden', !showFavoriteActions);
+        }
+
+        document.body.classList.toggle('filters-active', hasActiveFilter);
+        updateFiltersButtonHighlight(hasActiveFilter);
+    }
     function resetAllFilters(options = {}) { currentPage = 1; if (!options.preserveSearch) { elements.searchInput.value = ''; elements.clearSearchBtn.classList.add('hidden'); } for (const category in activeFilters) activeFilters[category].clear(); document.querySelectorAll('.filter-btn.active').forEach(btn => btn.classList.remove('active')); elements.filtersContainer.querySelectorAll('details').forEach(d => { d.open = false; }); showingFavoritesOnly = false; elements.toggleFavoritesBtn.classList.remove('active'); elements.filterPanel.classList.add('hidden'); updateFiltersButtonHighlight(); applyAndDisplay(); }
     
     function clearAllFavorites() {
@@ -756,6 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
         complete: (results) => {
             elements.loadingMsg.style.display = 'none';
             allApps = processData(results.data);
+            allAppKeys = new Set(allApps.map(app => app.key));
             if(allApps.length > 0) {
                 const savedItemsPerPage = localStorage.getItem('itemsPerPagePref') || '25';
                 itemsPerPage = savedItemsPerPage === 'all' ? 'all' : parseInt(savedItemsPerPage, 10);
