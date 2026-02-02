@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeFilters = {
         area_conocimiento: new Set(), nivel_educativo: new Set(),
         tipo_recurso: new Set(), plataforma: new Set(),
+        idiomas_app: new Set(),
         nombre_autor: new Set(), palabras_clave: new Set(),
     };
     let currentAppKeyForModal = null;
@@ -85,7 +86,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_level: 'Nivel Educativo',
             filters_type: 'Tipo de Recurso',
             filters_platform: 'Plataforma',
-            filters_author: 'Autor/a'
+            filters_language: 'Idioma de la app',
+            filters_author: 'Autor/a',
+            language_label: 'Idioma(s):'
         },
         ca: {
             app_title: "Repositori d'aplicacions educatives",
@@ -145,7 +148,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_level: 'Nivell educatiu',
             filters_type: 'Tipus de recurs',
             filters_platform: 'Plataforma',
-            filters_author: 'Autor/a'
+            filters_language: "Idioma de l’app",
+            filters_author: 'Autor/a',
+            language_label: 'Idioma(es):'
         },
         gl: {
             app_title: 'Repositorio de aplicacións educativas',
@@ -205,7 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_level: 'Nivel educativo',
             filters_type: 'Tipo de recurso',
             filters_platform: 'Plataforma',
-            filters_author: 'Autor/a'
+            filters_language: 'Idioma da app',
+            filters_author: 'Autor/a',
+            language_label: 'Idioma(s):'
         },
         eu: {
             app_title: 'Hezkuntza aplikazioen biltegia',
@@ -265,7 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_level: 'Maila hezitzailea',
             filters_type: 'Baliabide mota',
             filters_platform: 'Plataforma',
-            filters_author: 'Egilea'
+            filters_language: 'Aplikazioaren hizkuntza',
+            filters_author: 'Egilea',
+            language_label: 'Hizkuntza(k):'
         },
         en: {
             app_title: 'Repository of educational apps',
@@ -325,7 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_level: 'Educational Level',
             filters_type: 'Resource Type',
             filters_platform: 'Platform',
-            filters_author: 'Author'
+            filters_language: 'App language',
+            filters_author: 'Author',
+            language_label: 'Language(s):'
         }
     });
 
@@ -606,7 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.appsContainer.className = '';
     }
 
-    function createAppCard(app) { const card = document.createElement('div'); card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col dark:bg-gray-800 ${getLevelStyle(app.nivel_educativo)}`; const isFav = isFavorite(app.key); const favClass = isFav ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'; const fullDescription = app.descripcion_app || t('no_description'); let descriptionHtml; if (fullDescription.length > 350) { const shortDescription = fullDescription.substring(0, 350).trim(); descriptionHtml = `<div class="description-container text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow"><p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_more')}</a></p><p class="long-desc hidden">${fullDescription} <a href="#" class="read-less font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_less')}</a></p></div>`; } else { descriptionHtml = `<p class="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow">${fullDescription}</p>`; } card.innerHTML = `<div class="p-5 flex-grow flex flex-col relative"><button class="favorite-btn absolute top-3 right-3 p-1 rounded-full bg-white/50 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-700/50 dark:hover:bg-gray-700/90" title=\"${t('manage_favorite_title')}\" data-key="${app.key}"><svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg></button><h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${app.titulo_app}</h3><p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${t('by')} <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>${descriptionHtml}<div class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-auto"><p><strong>${t('level_label')}</strong> ${app.nivel_educativo ? createFilterLink(app.nivel_educativo, 'nivel_educativo') : ''}</p><p><strong>${t('area_label')}</strong> ${app.area_conocimiento ? createFilterLink(app.area_conocimiento, 'area_conocimiento') : ''}</p></div></div><div class="p-4 border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"><div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full dark:bg-sky-900 dark:text-sky-300" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div><a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">${t('visit_app')}</a></div>`; return card; }
+    function createAppCard(app) { const card = document.createElement('div'); card.className = `card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col dark:bg-gray-800 ${getLevelStyle(app.nivel_educativo)}`; const isFav = isFavorite(app.key); const favClass = isFav ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'; const fullDescription = app.descripcion_app || t('no_description'); let descriptionHtml; if (fullDescription.length > 350) { const shortDescription = fullDescription.substring(0, 350).trim(); descriptionHtml = `<div class="description-container text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow"><p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_more')}</a></p><p class="long-desc hidden">${fullDescription} <a href="#" class="read-less font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_less')}</a></p></div>`; } else { descriptionHtml = `<p class="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow">${fullDescription}</p>`; } card.innerHTML = `<div class="p-5 flex-grow flex flex-col relative"><button class="favorite-btn absolute top-3 right-3 p-1 rounded-full bg-white/50 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-700/50 dark:hover:bg-gray-700/90" title=\"${t('manage_favorite_title')}\" data-key="${app.key}"><svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg></button><h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${app.titulo_app}</h3><p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${t('by')} <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>${descriptionHtml}<div class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-auto"><p><strong>${t('level_label')}</strong> ${app.nivel_educativo ? createFilterLink(app.nivel_educativo, 'nivel_educativo') : ''}</p><p><strong>${t('area_label')}</strong> ${app.area_conocimiento ? createFilterLink(app.area_conocimiento, 'area_conocimiento') : ''}</p><p><strong>${t('language_label')}</strong> ${app.idiomas_app ? createFilterLink(app.idiomas_app, 'idiomas_app') : ''}</p></div></div><div class="p-4 border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"><div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full dark:bg-sky-900 dark:text-sky-300" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div><a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">${t('visit_app')}</a></div>`; return card; }
     
     function openDeleteCategoryModal(categoryName) { categoryToDelete = categoryName; elements.deleteCategoryConfirmText.innerHTML = t('delete_category_confirm_html', { category: categoryName }); elements.deleteCategoryModal.classList.remove('hidden'); }
     function closeDeleteCategoryModal() { elements.deleteCategoryModal.classList.add('hidden'); categoryToDelete = null; }
@@ -614,24 +625,74 @@ document.addEventListener('DOMContentLoaded', () => {
     function finishFavoriteUpdate() { saveFavorites(); applyAndDisplay(); closeCategoryModal(); }
     
     function processData(data) {
-        const FULL_COLUMN_KEYS = [
-            'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app',
-            'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo',
-            'area_conocimiento', 'palabras_clave', 'licencia', 'eliminar_registro'
-        ];
-    
-        const rows = data.slice(1);
-    
-        const mappedData = rows.map(rowArray => {
-            const newRow = {};
-            FULL_COLUMN_KEYS.forEach((key, index) => {
-                newRow[key] = rowArray[index] ? rowArray[index].trim() : '';
+        const HEADER_MAPPING = {
+            timestamp: ['marca temporal'],
+            correo_autor: ['direccion de correo electronico', 'dirección de correo electrónico'],
+            nombre_autor: ['tu nombre'],
+            titulo_app: ['titulo de la aplicacion', 'título de la aplicación'],
+            url_app: ['enlace (url) a la aplicacion', 'enlace (url) a la aplicación', 'enlace (url)'],
+            descripcion_app: ['descripcion breve', 'descripción breve'],
+            plataforma: ['plataforma de creacion', 'plataforma de creación'],
+            tipo_recurso: ['tipo de recurso'],
+            nivel_educativo: ['nivel o niveles educativos'],
+            area_conocimiento: ['area o areas de conocimiento', 'área o áreas de conocimiento'],
+            palabras_clave: ['palabras clave'],
+            licencia: ['licencia de uso'],
+            idiomas_app: ['idiomas', 'idioma'],
+            eliminar_registro: ['quieres eliminar un registro', '¿quieres eliminar un registro?']
+        };
+
+        const headers = data?.[0] || [];
+        const normalizedHeaders = headers.map(h => normalizeString(h));
+
+        const findColumn = (candidates) => {
+            for (const cand of candidates) {
+                const needle = normalizeString(cand);
+                const idx = normalizedHeaders.findIndex(h => h.startsWith(needle));
+                if (idx !== -1) return idx;
+            }
+            return -1;
+        };
+
+        const colIdx = Object.fromEntries(
+            Object.entries(HEADER_MAPPING).map(([key, candidates]) => [key, findColumn(candidates)])
+        );
+
+        const fallbackToFixedOrder = () => {
+            const FULL_COLUMN_KEYS = [
+                'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app',
+                'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo',
+                'area_conocimiento', 'palabras_clave', 'licencia', 'eliminar_registro'
+            ];
+
+            return (data || []).slice(1).map(rowArray => {
+                const newRow = {};
+                FULL_COLUMN_KEYS.forEach((key, index) => {
+                    newRow[key] = rowArray?.[index] ? String(rowArray[index]).trim() : '';
+                });
+                newRow.idiomas_app = '';
+                return newRow;
             });
-            return newRow;
-        });
-    
+        };
+
+        const hasRequiredHeaderMapping =
+            colIdx.correo_autor !== -1 &&
+            colIdx.nombre_autor !== -1 &&
+            colIdx.titulo_app !== -1 &&
+            colIdx.url_app !== -1;
+
+        const mappedData = hasRequiredHeaderMapping
+            ? (data || []).slice(1).map(rowArray => {
+                const newRow = {};
+                Object.keys(HEADER_MAPPING).forEach(key => {
+                    const idx = colIdx[key];
+                    newRow[key] = idx >= 0 && rowArray?.[idx] ? String(rowArray[idx]).trim() : '';
+                });
+                return newRow;
+            })
+            : fallbackToFixedOrder();
+
         const deleteCutoff = new Map();
-    
         mappedData.forEach(app => {
             if (normalizeString(app.eliminar_registro) === 'si' && app.url_app) {
                 const url = app.url_app.trim();
@@ -640,14 +701,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (ts > prev) deleteCutoff.set(url, ts);
             }
         });
-    
+
         const appsWithoutDeleted = mappedData.filter(app => {
             if (!app.url_app) return true;
             const cut = deleteCutoff.get(app.url_app.trim());
             if (cut === undefined) return true;
             return new Date(app.timestamp).getTime() > cut;
         });
-    
+
         const validApps = appsWithoutDeleted.filter(app => {
             if (REQUIRED_FIELDS.some(field => !app[field])) return false;
             try {
@@ -657,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
         });
-    
+
         const seenUrls = new Set();
         const finalData = [];
         for (let i = validApps.length - 1; i >= 0; i--) {
@@ -681,6 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'nivel_educativo', name: t('filters_level'), multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.7.9 3.2 2.3 4.1"/><path d="M16 17a3 3 0 0 0-3-3 3 3 0 0 0-3 3v2h6v-2Z"/></svg>' },
             { id: 'tipo_recurso', name: t('filters_type'), multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.28 2.22a2.22 2.22 0 0 0-3.14 0l-12 12a2.22 2.22 0 0 0 0 3.14l3.14 3.14a2.22 2.22 0 0 0 3.14 0l12-12a2.22 2.22 0 0 0 0-3.14Z"/><path d="m14 7 3 3"/><path d="M5.5 16.5 10 12"/></svg>' },
             { id: 'plataforma', name: t('filters_platform'), multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>'},
+            { id: 'idiomas_app', name: t('filters_language'), multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>'},
             { id: 'nombre_autor', name: t('filters_author'), multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
         ];
 
@@ -793,7 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const paramMapping = { subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso', platform: 'plataforma', author: 'nombre_autor', keyword: 'palabras_clave', search: 'search', fav_category: 'fav_category' }; function generateShareableURL(type = 'filters', value = '') { const params = new URLSearchParams(); if (type === 'category' && value && favorites[value]) { params.set('fav_category', value); params.set('ids', favorites[value].join(',')); } else { const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse())); if (elements.searchInput.value) params.set('search', elements.searchInput.value); for (const category in activeFilters) { if (activeFilters[category].size > 0) { const paramName = reverseMapping[category]; if (paramName) params.set(paramName, [...activeFilters[category]].join(',')); } } } return `${window.location.origin}${window.location.pathname}?${params.toString()}`; }
+    const paramMapping = { subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso', platform: 'plataforma', app_lang: 'idiomas_app', author: 'nombre_autor', keyword: 'palabras_clave', search: 'search', fav_category: 'fav_category' }; function generateShareableURL(type = 'filters', value = '') { const params = new URLSearchParams(); if (type === 'category' && value && favorites[value]) { params.set('fav_category', value); params.set('ids', favorites[value].join(',')); } else { const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse())); if (elements.searchInput.value) params.set('search', elements.searchInput.value); for (const category in activeFilters) { if (activeFilters[category].size > 0) { const paramName = reverseMapping[category]; if (paramName) params.set(paramName, [...activeFilters[category]].join(',')); } } } return `${window.location.origin}${window.location.pathname}?${params.toString()}`; }
     function copyToClipboard(text) { if (!text) return; navigator.clipboard.writeText(text).then(() => { const msg = document.getElementById('copy-confirm-msg'); if (msg) msg.textContent = t('copy_confirm'); msg.classList.remove('opacity-0', '-translate-y-5'); setTimeout(() => msg.classList.add('opacity-0', '-translate-y-5'), 2000); }); }
     function applyUrlParams() { const params = new URLSearchParams(window.location.search); const ids = params.get('ids'); const favCategory = params.get('fav_category'); if (ids) { isCustomView = true; const sharedKeys = new Set(ids.split(',')); const sharedApps = allApps.filter(app => sharedKeys.has(app.key)); elements.searchInput.disabled = true; elements.toggleFiltersBtn.disabled = true; elements.toggleFavoritesBtn.disabled = true; elements.filterPanel.classList.add('hidden'); updateFiltersButtonHighlight(); elements.itemsPerPageSelector.disabled = true; const message = favCategory ? `Estás viendo la categoría de favoritos "<strong>${favCategory}</strong>".` : `Estás viendo una colección personalizada de <strong>${sharedApps.length}</strong> aplicaciones.`; elements.customViewMsg.innerHTML = `${message} <button id="exit-custom-view" class="font-bold underline ml-2 hover:text-blue-600 dark:hover:text-blue-400">Ver todas</button>`; elements.customViewMsg.classList.remove('hidden'); document.getElementById('exit-custom-view').addEventListener('click', () => { window.location.href = window.location.pathname; }); elements.appsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'; renderAppGrid(sharedApps); elements.resultsCounter.textContent = `Mostrando una colección de ${sharedApps.length} aplicaciones.`; } else { isCustomView = false; applyFiltersFromURL(); applyAndDisplay(); } }
     function applyFiltersFromURL() { const params = new URLSearchParams(window.location.search); params.forEach((value, key) => { const category = paramMapping[key.toLowerCase()]; if (!category) return; const valuesFromUrl = value.split(','); if (category === 'search') { elements.searchInput.value = value; elements.clearSearchBtn.classList.toggle('hidden', !elements.searchInput.value); } else if (activeFilters[category]) { valuesFromUrl.forEach(urlVal => { activeFilters[category].add(urlVal); const normalized = normalizeString(urlVal); document.querySelectorAll(`[data-category="${category}"] .filter-btn`).forEach(btn => { if (normalizeString(btn.dataset.filter).includes(normalized)) btn.classList.add('active'); }); }); } }); }
