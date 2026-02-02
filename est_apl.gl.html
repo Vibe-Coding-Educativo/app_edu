@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise visual de aplicacións educativas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
+        .chart-container { background-color: #ffffff; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); transition: transform 0.3s, box-shadow 0.3s; }
+        .chart-container:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07); }
+        .stat-card { background-color: #ffffff; padding: 1.5rem; border-radius: 0.75rem; text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); }
+        .stat-card .value { font-size: 2.5rem; font-weight: 700; color: #10b981; }
+        #loading-spinner { border: 8px solid #e5e7eb; border-top: 8px solid #10b981; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-2">Análise de aplicacións educativas activas</h1>
+            <p class="text-lg text-gray-600">Visualización interactiva dos datos do repositorio.</p>
+        </header>
+        <div id="loading-spinner"></div>
+        <main id="dashboard-content" class="hidden">
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="stat-card">
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">Aplicacións activas</h3>
+                    <p id="total-apps" class="value">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">Total de áreas</h3>
+                    <p id="total-areas" class="value">0</p>
+                </div>
+            </section>
+            <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="chart-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Plataforma de creación</h2>
+                    <canvas id="plataformaChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Tipo de recurso</h2>
+                    <canvas id="tipoRecursoChart"></canvas>
+                </div>
+                <div class="chart-container bg-transparent border-none shadow-none"></div>
+                <div class="chart-container lg:col-span-2">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Área(s) de coñecemento</h2>
+                    <canvas id="areasChart"></canvas>
+                </div>
+                <div class="chart-container lg:col-span-2">
+                    <h2 class="text-xl font-semibold mb-4 text-center">Nivel(éis) educativos</h2>
+                    <canvas id="nivelesChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        window.onload = () => {
+            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const dashboardContent = document.getElementById('dashboard-content');
+            const chartColors = ['#34d399','#60a5fa','#f87171','#fbbf24','#a78bfa','#f472b6','#22d3ee','#a3e635','#fb923c','#9ca3af'];
+            const getColor = (i) => chartColors[i % chartColors.length];
+            const countMultiValueItems = (data, col) => { const counts = {}; data.forEach(r => { const items = r[col]; if (items) { items.split(',').forEach(it => { const t = it.trim(); if (t) counts[t] = (counts[t]||0)+1; }); } }); return counts; };
+            const countSingleValueItems = (data, col) => { const counts={}; data.forEach(r => { const it = r[col]?.trim(); if (it) counts[it]=(counts[it]||0)+1; }); return counts; };
+            const createPieChart = (ctx, label, data) => { const chart = new Chart(ctx,{ type:'doughnut', data:{ labels:Object.keys(data), datasets:[{ label, data:Object.values(data), backgroundColor:Object.keys(data).map((_,i)=>getColor(i)), borderColor:'#ffffff', borderWidth:3 }]}, options:{ responsive:true, plugins:{ legend:{ position:'top', labels:{ color:'#374151' } } }, onClick:(evt)=>{ const pts = chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},true); if(pts.length){ const idx=pts[0].index; const lbl=chart.data.labels[idx]; const url=`index.html?search=${encodeURIComponent(lbl)}`; window.open(url,'_blank').focus(); } }, onHover:(e, el)=>{ e.native.target.style.cursor = el[0] ? 'pointer':'default'; } } }); };
+            const createBarChart = (ctx, label, data, axis='y') => { const sorted = Object.entries(data).sort(([,a],[,b])=>b-a); const labels=sorted.map(e=>e[0]); const values=sorted.map(e=>e[1]); const chart=new Chart(ctx,{ type:'bar', data:{ labels, datasets:[{ label, data:values, backgroundColor:labels.map((_,i)=>getColor(i+2)), borderRadius:4 }]}, options:{ indexAxis:axis, responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ color:'#4b5563' }, grid:{ color:'#e5e7eb' } }, y:{ ticks:{ color:'#4b5563' }, grid:{ color:'#e5e7eb' } } }, onClick:(evt)=>{ const pts=chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},true); if(pts.length){ const idx=pts[0].index; const lbl=chart.data.labels[idx]; const url=`index.html?search=${encodeURIComponent(lbl)}`; window.open(url,'_blank').focus(); } }, onHover:(e, el)=>{ e.native.target.style.cursor = el[0] ? 'pointer':'default'; } } }); };
+            Papa.parse(csvUrl,{ download:true, header:true, skipEmptyLines:true, complete:(results)=>{ const allData=results.data; const deletionUrlColumn='Marca la casilla y escribe más abajo la URL que tiene tu aplicación. En el resto de campos, escribe cualquier cosa y envía el formulario'; const appUrlColumn='Enlace (URL) a la aplicación'; const timestampColumn='Marca temporal'; const deletionFlagColumn='¿QUIERES ELIMINAR UN REGISTRO?'; const deletedUrls=new Set(); allData.forEach(row=>{ if(row[deletionFlagColumn]==='Sí' && row[deletionUrlColumn]){ deletedUrls.add(row[deletionUrlColumn].trim()); } }); let activeApps=allData.filter(row=>{ const appUrl=row[appUrlColumn]?.trim(); return appUrl && !deletedUrls.has(appUrl); }); activeApps.sort((a,b)=> new Date(b[timestampColumn]) - new Date(a[timestampColumn])); const uniqueActiveApps=[]; const seenUrls=new Set(); for(const app of activeApps){ const appUrl=app[appUrlColumn].trim(); if(!seenUrls.has(appUrl)){ uniqueActiveApps.push(app); seenUrls.add(appUrl); } } const data=uniqueActiveApps; document.getElementById('total-apps').textContent=data.length; const plataformaData=countSingleValueItems(data,'Plataforma de creación'); const tipoRecursoData=countSingleValueItems(data,'Tipo de recurso'); const areasData=countMultiValueItems(data,'Área o áreas de conocimiento'); const nivelesData=countMultiValueItems(data,'Nivel o niveles educativos'); document.getElementById('total-areas').textContent=Object.keys(areasData).length; createPieChart(document.getElementById('plataformaChart').getContext('2d'),'# de apps',plataformaData); createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'),'# de apps',tipoRecursoData); createBarChart(document.getElementById('areasChart').getContext('2d'),'# de apps',areasData,'y'); createBarChart(document.getElementById('nivelesChart').getContext('2d'),'# de apps',nivelesData,'y'); loadingSpinner.style.display='none'; dashboardContent.classList.remove('hidden'); }, error:(error)=>{ console.error('Erro ao cargar ou procesar o CSV:', error); loadingSpinner.style.display='none'; dashboardContent.innerHTML = `<p class="text-center text-red-500">Non se puideron cargar os datos. Téntao de novo máis tarde.</p>`; dashboardContent.classList.remove('hidden'); } });
+        };
+    </script>
+</body>
+</html>
