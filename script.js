@@ -658,7 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Object.entries(HEADER_MAPPING).map(([key, candidates]) => [key, findColumn(candidates)])
         );
 
-        const fallbackToFixedOrder = () => {
+        const fallbackToFixedOrder = (idiomasIdx = -1) => {
             const FULL_COLUMN_KEYS = [
                 'timestamp', 'correo_autor', 'nombre_autor', 'titulo_app', 'url_app',
                 'descripcion_app', 'plataforma', 'tipo_recurso', 'nivel_educativo',
@@ -670,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 FULL_COLUMN_KEYS.forEach((key, index) => {
                     newRow[key] = rowArray?.[index] ? String(rowArray[index]).trim() : '';
                 });
-                newRow.idiomas_app = '';
+                newRow.idiomas_app = idiomasIdx >= 0 && rowArray?.[idiomasIdx] ? String(rowArray[idiomasIdx]).trim() : '';
                 return newRow;
             });
         };
@@ -690,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 return newRow;
             })
-            : fallbackToFixedOrder();
+            : fallbackToFixedOrder(colIdx.idiomas_app);
 
         const deleteCutoff = new Map();
         mappedData.forEach(app => {
