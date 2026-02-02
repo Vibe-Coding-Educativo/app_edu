@@ -896,7 +896,28 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.saveCategoryBtn.addEventListener('click', saveFavoriteToCategory);
         elements.cancelCategoryBtn.addEventListener('click', closeCategoryModal);
         elements.removeFavoriteBtn.addEventListener('click', () => removeFavorite(currentAppKeyForModal));
-        const helpBtn = document.getElementById('help-btn'); const helpModal = document.getElementById('help-modal'); const closeHelpBtn = document.getElementById('close-help-btn'); const helpFrame = document.getElementById('help-frame'); let helpFrameLoaded = false; helpBtn.addEventListener('click', () => { helpModal.classList.remove('hidden'); if (!helpFrameLoaded) { const helpMap = { es: 'ayuda.html', en: 'ayuda.en.html', gl: 'ayuda.gl.html', eu: 'ayuda.eu.html' }; const helpSrc = helpMap[currentLang] || helpMap.es; helpFrame.src = helpSrc; helpFrameLoaded = true; } }); closeHelpBtn.addEventListener('click', () => { helpModal.classList.add('hidden'); }); helpModal.addEventListener('click', e => { if (e.target.id === 'help-modal') { helpModal.classList.add('hidden'); } });
+        const helpBtn = document.getElementById('help-btn');
+        const helpModal = document.getElementById('help-modal');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+        const helpFrame = document.getElementById('help-frame');
+        let helpFrameLoadedLang = null;
+
+        function syncHelpFrameLanguage(force = false) {
+            const helpMap = { es: 'ayuda.html', ca: 'ayuda.ca.html', en: 'ayuda.en.html', gl: 'ayuda.gl.html', eu: 'ayuda.eu.html' };
+            const helpSrc = helpMap[currentLang] || helpMap.es;
+            const expectedHref = new URL(helpSrc, window.location.href).href;
+            if (force || helpFrameLoadedLang !== currentLang || helpFrame.src !== expectedHref) {
+                helpFrame.src = helpSrc;
+                helpFrameLoadedLang = currentLang;
+            }
+        }
+
+        helpBtn.addEventListener('click', () => {
+            helpModal.classList.remove('hidden');
+            syncHelpFrameLanguage();
+        });
+        closeHelpBtn.addEventListener('click', () => { helpModal.classList.add('hidden'); });
+        helpModal.addEventListener('click', e => { if (e.target.id === 'help-modal') { helpModal.classList.add('hidden'); } });
         elements.confirmDeleteCategoryBtn.addEventListener('click', confirmDeleteCategory);
         elements.cancelDeleteCategoryBtn.addEventListener('click', closeDeleteCategoryModal);
     }

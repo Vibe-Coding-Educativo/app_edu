@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guia d’ús del repositori</title>
+  <style>
+    /* —— Tipografia i color de fons —— */
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 2rem 1.5rem;
+      background: #ffffff;
+      color: #374151;               /* gris fosc */
+      line-height: 1.6;
+    }
+
+    /* —— Títols —— */
+    h3 {
+      font-size: 1.75rem;           /* ≈ text-2xl */
+      font-weight: 700;
+      margin: 0 0 1rem;
+      color: #1f2937;               /* gris més fosc */
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+    h4 {
+      font-size: 1.125rem;          /* ≈ text-lg */
+      font-weight: 600;
+      margin: 1.5rem 0 0.5rem;
+      color: #1f2937;
+    }
+
+    /* —— Llistes —— */
+    ul { padding-left: 1.25em; margin-top: 0.5rem; }
+    li { margin: 0.4rem 0; }
+
+    /* —— Caixa d’avís groga —— */
+    .alert {
+      background-color: #FFFBEB;    /* groc molt clar */
+      border-left: 4px solid #FBBF24;
+      padding: 1rem;
+      border-radius: 0.5em;
+      color: #78350F;
+      margin-top: 2rem;
+    }
+    .alert p:first-child {
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+    }
+
+    /* —— Missatge final —— */
+    .final-message {
+      text-align: center;
+      margin-top: 2rem;
+      color: #4B5563;               /* gris mitjà */
+    }
+  </style>
+</head>
+<body>
+
+  <h3>Guia d’ús del repositori</h3>
+
+  <h4>1. Trobar l’aplicació perfecta</h4>
+  <ul>
+    <li><strong>La cerca principal:</strong> És la barra de cerca gran que veus a l’inici. Pots escriure qualsevol terme (el nom d’un autor, una paraula del títol, un concepte com “gamificació”, etc.) i l’aplicació cercarà en tots els camps de totes les targetes.</li>
+
+    <li><strong>Filtratge detallat:</strong> Per a cerques més precises, el panell de filtres és el teu millor aliat.
+      <ul>
+        <li>Fes clic al botó <em>Filtres</em> per mostrar-lo o amagar-lo.</li>
+        <li>A dins, hi trobaràs categories com <em>Àrea de coneixement</em>, <em>Nivell educatiu</em> o <em>Tipus de recurs</em>.</li>
+        <li>Fes clic als botons de cada categoria per aplicar els filtres. En algunes categories pots seleccionar diverses opcions alhora (per exemple, Primària i Secundària).</li>
+        <li>Utilitza el botó <em>“Netejar filtres”</em> per eliminar la selecció d’aquest panell sense afectar la cerca principal.</li>
+      </ul>
+    </li>
+
+    <li><strong>Filtres ràpids des de les targetes:</strong> Dins de cada targeta d’aplicació veuràs que el nom de l’autor, el nivell, l’àrea i les paraules clau són enllaços. Si en fas clic en un, s’aplicarà aquell filtre automàticament.</li>
+  </ul>
+
+  <h4>2. Gestionar les teves preferències i cerques</h4>
+  <ul>
+    <li><strong>Desar les teves preferides:</strong>
+      <ul>
+        <li>Fes clic a la icona del cor (♡) a la cantonada superior dreta de la targeta. Es tornarà vermella (♥) i es desarà a les preferides.</li>
+        <li>Les preferides es desen localment al teu navegador.</li>
+        <li>Per veure només les teves aplicacions preferides, prem el botó <em>Preferits</em> (amb la icona del cor) al costat de la barra de cerca. Torna a prémer’l per veure totes les aplicacions.</li>
+      </ul>
+    </li>
+
+    <li><strong>Compartir les teves cerques:</strong>
+      <ul>
+        <li>Un cop aplicats els filtres, prem el botó <em>“Compartir URL”</em>. Es copiarà al porta-retalls un enllaç únic amb la teva selecció de filtres.</li>
+      </ul>
+    </li>
+
+    <li><strong>Netejar-ho tot:</strong>
+      <ul>
+        <li>El botó <em>“Netejar-ho tot”</em> restableix la pàgina: esborra la cerca, desactiva filtres i mostra totes les aplicacions.</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h4>3. Entendre una targeta d’aplicació</h4>
+  <ul>
+    <li><strong>Vora de color:</strong> Indica la plataforma principal amb què s’ha creat l’aplicació (per exemple, morat per a Gemini, taronja per a Claude, etc.).</li>
+    <li><strong>Títol i autor:</strong> El nom de l’aplicació i qui l’ha creada.</li>
+    <li><strong>Nivell i àrea:</strong> Camps educatius als quals s’adreça. Són filtres ràpids.</li>
+    <li><strong>Paraules clau:</strong> Etiquetes que descriuen l’aplicació. També són filtres ràpids.</li>
+    <li><strong>Visitar aplicació:</strong> Botó principal per obrir l’aplicació en una altra pestanya.</li>
+  </ul>
+
+  <h4>4. Vols afegir la teva pròpia aplicació?</h4>
+  <p>Aquest és un projecte col·laboratiu. Si has creat una aplicació i vols que aparegui aquí, només has d’unir-te al grup de Telegram <a href="https://t.me/vceduca" target="_blank">Vibe Coding Educatiu</a> i seguir les instruccions del missatge fixat per omplir el formulari.</p>
+
+  <h4>5. Modificar o eliminar una aplicació</h4>
+  <p>Els autors poden modificar o eliminar les seves entrades en qualsevol moment. Per fer-ho, han d’omplir de nou el formulari d’alta d’aplicacions.</p>
+  <ul>
+    <li><strong>Per modificar una aplicació:</strong> cal completar tots els camps del formulari de nou. El sistema identifica les aplicacions per la seva URL; per tant, l’entrada més recent amb una URL determinada substituirà l’anterior. Si el que vols és canviar la URL de la teva aplicació, hauràs d’assegurar-te que el <strong>títol de l’aplicació</strong> sigui exactament el mateix que a l’entrada original perquè el sistema la pugui trobar i substituir correctament.</li>
+    <li><strong>Per eliminar una aplicació:</strong> n’hi haurà prou amb omplir el camp de la URL que vas usar per donar d’alta el recurs i marcar la casella d’eliminació. La resta de camps no tenen importància.</li>
+  </ul>
+
+  <h4>6. Principis d’ús i responsabilitat</h4>
+  <p>L’ús d’aquestes eines s’ha de fer sempre de manera responsable i d’acord amb els principis ètics i de bon ús de les tecnologies digitals en l’àmbit educatiu.</p>
+
+  <div class="alert">
+    <p>Avís important</p>
+    <p>
+      Algunes de les aplicacions d’aquest repositori integren Intel·ligència Artificial. Per aquest motiu, la seva utilització per part de menors d’edat ha d’estar sempre acompanyada i supervisada per un adult (docent o tutor legal) que els pugui guiar i assegurar un ús correcte i segur.
+    </p>
+  </div>
+
+  <p class="final-message">
+    Esperem que trobis eines útils per a les teves classes!
+  </p>
+
+</body>
+</html>
