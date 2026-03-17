@@ -24,6 +24,7 @@
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            position: relative;
         }
         .chart-container:hover {
             transform: translateY(-5px);
@@ -57,6 +58,93 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .chart-canvas {
+            width: 100% !important;
+            height: 240px !important;
+        }
+        .chart-canvas--pie {
+            height: 340px !important;
+        }
+        .chart-canvas--bar {
+            height: 320px !important;
+        }
+        .chart-zoom-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            font-size: 0.875rem;
+            padding: 0.35rem 0.6rem;
+            border-radius: 0.5rem;
+            background: #f3f4f6;
+            color: #111827;
+            border: 1px solid #e5e7eb;
+        }
+        .chart-zoom-btn:hover { background: #e5e7eb; }
+        .chart-zoom-btn:focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
+
+        .chart-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 1000;
+        }
+        .chart-modal-overlay.show { display: flex; }
+        .chart-modal {
+            width: min(1100px, 96vw);
+            height: min(90vh, 820px);
+            background: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chart-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .chart-modal-title { font-size: 1.1rem; font-weight: 700; color: #111827; }
+        .chart-modal-close {
+            font-size: 1.75rem;
+            line-height: 1;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            color: #374151;
+        }
+        .chart-modal-close:hover { background: #f3f4f6; color: #111827; }
+        .chart-modal-close:focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
+        .chart-modal-body { padding: 0.75rem 1rem 1rem; flex: 1; }
+        .chart-modal-canvas { width: 100% !important; height: 100% !important; }
+
+        .keyword-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 0.75rem;
+            align-items: baseline;
+            justify-content: center;
+            padding-top: 0.25rem;
+        }
+        .keyword-cloud a {
+            text-decoration: none;
+            padding: 0.15rem 0.35rem;
+            border-radius: 0.5rem;
+            background: #f3f4f6;
+            color: #111827;
+            border: 1px solid #e5e7eb;
+            display: inline-block;
+            transform: rotate(var(--rot, 0deg));
+        }
+        .keyword-cloud a:hover { background: #e5e7eb; }
+        .keyword-cloud a:focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
     </style>
 </head>
 <body class="antialiased">
@@ -90,41 +178,58 @@
 
             <!-- Grid de gráficos -->
             <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Gráfico: Plataforma de creación -->
-                <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Plataforma de creación</h2>
-                    <canvas id="plataformaChart"></canvas>
-                </div>
+                <!-- Gráfico: Idioma(s) de la aplicación -->
+	                <div class="chart-container">
+	                    <h2 class="text-xl font-semibold mb-4 text-center">Idioma(s) de la aplicación</h2>
+	                    <button type="button" class="chart-zoom-btn" data-chart="plataformaChart">Ampliar</button>
+	                    <canvas id="plataformaChart" class="chart-canvas chart-canvas--pie"></canvas>
+	                </div>
 
                 <!-- Gráfico: Tipo de recurso -->
-                <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Tipo de recurso</h2>
-                    <canvas id="tipoRecursoChart"></canvas>
-                </div>
+	                <div class="chart-container">
+	                    <h2 class="text-xl font-semibold mb-4 text-center">Tipo de recurso</h2>
+	                    <button type="button" class="chart-zoom-btn" data-chart="tipoRecursoChart">Ampliar</button>
+	                    <canvas id="tipoRecursoChart" class="chart-canvas chart-canvas--pie"></canvas>
+	                </div>
 
-                
-                <!-- Gráfico: Placeholder para mantener el layout -->
-                <div class="chart-container bg-transparent border-none shadow-none"></div>
+	                <!-- Gráfico: Área o áreas de conocimiento -->
+	                <div class="chart-container">
+	                    <h2 class="text-xl font-semibold mb-4 text-center">Área o áreas de conocimiento</h2>
+	                    <button type="button" class="chart-zoom-btn" data-chart="areasChart">Ampliar</button>
+	                    <canvas id="areasChart" class="chart-canvas chart-canvas--bar"></canvas>
+	                </div>
 
+	                <!-- Gráfico: Nivel o niveles educativos -->
+	                <div class="chart-container">
+	                    <h2 class="text-xl font-semibold mb-4 text-center">Nivel o niveles educativos</h2>
+	                    <button type="button" class="chart-zoom-btn" data-chart="nivelesChart">Ampliar</button>
+	                    <canvas id="nivelesChart" class="chart-canvas chart-canvas--bar"></canvas>
+	                </div>
 
-                <!-- Gráfico: Área o áreas de conocimiento -->
-                <div class="chart-container lg:col-span-2">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Área o áreas de conocimiento</h2>
-                    <canvas id="areasChart"></canvas>
-                </div>
+	                <!-- Gráfico: Nube de palabras (palabras clave) -->
+	                <div class="chart-container lg:col-span-2">
+	                    <h2 class="text-xl font-semibold mb-4 text-center">Nube de palabras (palabras clave)</h2>
+	                    <div id="keywordsCloud" class="keyword-cloud" aria-label="Nube de palabras clave"></div>
+	                </div>
 
-                <!-- Gráfico: Nivel o niveles educativos -->
-                <div class="chart-container lg:col-span-2">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Nivel o niveles educativos</h2>
-                    <canvas id="nivelesChart"></canvas>
-                </div>
-
-            </section>
-        </main>
+	            </section>
+	        </main>
         
-    </div>
+	    </div>
 
-    <script>
+        <div id="chart-modal-overlay" class="chart-modal-overlay" aria-hidden="true">
+            <div class="chart-modal" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title">
+                <div class="chart-modal-header">
+                    <div id="chart-modal-title" class="chart-modal-title">Gráfico</div>
+                    <button id="chart-modal-close" type="button" class="chart-modal-close" aria-label="Cerrar">&times;</button>
+                </div>
+                <div class="chart-modal-body">
+                    <canvas id="chart-modal-canvas" class="chart-modal-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+	    <script>
         // Se utiliza window.onload para asegurar que todos los scripts externos (como PapaParse)
         // se hayan cargado completamente antes de ejecutar nuestro código.
         window.onload = () => {
@@ -145,21 +250,103 @@
             const getColor = (index) => chartColors[index % chartColors.length];
 
             // Función para procesar columnas con múltiples valores separados por coma
-            const countMultiValueItems = (data, columnName) => {
-                const counts = {};
-                data.forEach(row => {
-                    const items = row[columnName];
-                    if (items) {
-                        items.split(',').forEach(item => {
-                            const trimmedItem = item.trim();
-                            if (trimmedItem) {
-                                counts[trimmedItem] = (counts[trimmedItem] || 0) + 1;
-                            }
+	            const countMultiValueItems = (data, columnName) => {
+	                const counts = {};
+	                data.forEach(row => {
+	                    const items = row[columnName];
+	                    if (items) {
+	                        items.split(/[,;]/).forEach(item => {
+	                            const trimmedItem = item.trim();
+	                            if (trimmedItem) {
+	                                counts[trimmedItem] = (counts[trimmedItem] || 0) + 1;
+	                            }
                         });
                     }
                 });
-                return counts;
-            };
+	                return counts;
+	            };
+
+	            const normalizeKeyword = (text) =>
+	                (text || '')
+	                    .normalize('NFD')
+	                    .replace(/[\u0300-\u036f]/g, '')
+	                    .toLowerCase()
+	                    .trim();
+
+	            const countKeywords = (data, columnName) => {
+	                const counts = {};
+	                const display = {};
+	                data.forEach((row) => {
+	                    const items = row[columnName];
+	                    if (!items) return;
+	                    items.split(/[,;]/).forEach((item) => {
+	                        const original = item.trim();
+	                        if (!original) return;
+	                        const key = normalizeKeyword(original);
+	                        if (!key) return;
+	                        counts[key] = (counts[key] || 0) + 1;
+	                        if (!display[key]) display[key] = original;
+	                    });
+	                });
+	                return { counts, display };
+	            };
+
+	            const shuffleInPlace = (arr) => {
+	                for (let i = arr.length - 1; i > 0; i--) {
+	                    const j = Math.floor(Math.random() * (i + 1));
+	                    [arr[i], arr[j]] = [arr[j], arr[i]];
+	                }
+	                return arr;
+	            };
+
+	            const renderWordCloud = (container, keywordData, maxWords = 80) => {
+	                if (!container) return;
+	                container.innerHTML = '';
+	                const allEntries = Object.entries(keywordData?.counts || {});
+	                if (allEntries.length === 0) {
+	                    container.textContent = '—';
+	                    return;
+	                }
+	                const selected = allEntries.sort(([, a], [, b]) => b - a).slice(0, maxWords);
+	                shuffleInPlace(selected);
+	                const entries = selected;
+	                if (entries.length === 0) {
+	                    container.textContent = '—';
+	                    return;
+	                }
+	                let maxCount = 0;
+	                let minCount = Number.POSITIVE_INFINITY;
+	                entries.forEach(([, c]) => {
+	                    if (c > maxCount) maxCount = c;
+	                    if (c < minCount) minCount = c;
+	                });
+	                if (maxCount <= 0) maxCount = 1;
+	                if (!Number.isFinite(minCount) || minCount <= 0) minCount = 1;
+	                const minSize = 0.9;
+	                const maxSize = 2.2;
+	                const sizeFor = (count) => {
+	                    if (maxCount === minCount) return (minSize + maxSize) / 2;
+	                    const t = (count - minCount) / (maxCount - minCount);
+	                    return minSize + t * (maxSize - minSize);
+	                };
+
+	                const frag = document.createDocumentFragment();
+	                entries.forEach(([key, count]) => {
+	                    const word = keywordData?.display?.[key] || key;
+	                    const a = document.createElement('a');
+	                    a.href = '#';
+	                    a.textContent = word;
+	                    a.style.fontSize = `${sizeFor(count).toFixed(2)}rem`;
+	                    a.style.setProperty('--rot', `${Math.round((Math.random() * 2 - 1) * 10)}deg`);
+	                    a.setAttribute('aria-label', `${word}: ${count}`);
+	                    a.addEventListener('click', (e) => {
+	                        e.preventDefault();
+	                        openSearchForLabel(word);
+	                    });
+	                    frag.appendChild(a);
+	                });
+	                container.appendChild(frag);
+	            };
 
             // Función para procesar columnas con un solo valor
             const countSingleValueItems = (data, columnName) => {
@@ -173,56 +360,66 @@
                 return counts;
             };
 
-            // Función para crear un gráfico de tipo pie o dona
-            const createPieChart = (ctx, label, data) => {
-                const chart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: Object.keys(data),
-                        datasets: [{
-                            label: label,
-                            data: Object.values(data),
-                            backgroundColor: Object.keys(data).map((_, i) => getColor(i)),
-                            borderColor: '#ffffff', // Borde blanco para el tema claro
-                            borderWidth: 3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    color: '#374151' // Color de texto de la leyenda para tema claro
-                                }
-                            }
-                        },
-                        // NUEVA FUNCIONALIDAD: onClick para filtrar
-                        onClick: (evt) => {
-                            const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-                            if (points.length) {
-                                const firstPoint = points[0];
-                                const label = chart.data.labels[firstPoint.index];
-                                const url = `index.html?search=${encodeURIComponent(label)}`;
-                                window.open(url, '_blank').focus();
-                            }
-                        },
-                        // NUEVA FUNCIONALIDAD: Cambiar cursor al pasar por encima
-                        onHover: (event, chartElement) => {
-                            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
-                        }
-                    }
-                });
-            };
+	            const openSearchForLabel = (label) => {
+	                const url = `index.html?search=${encodeURIComponent(label)}`;
+	                window.open(url, '_blank')?.focus();
+	            };
+
+	            // Función para crear un gráfico de tipo pie o dona (ordenado de mayor a menor)
+	            const createPieChart = (ctx, label, data) => {
+	                const sortedData = Object.entries(data).sort(([, a], [, b]) => b - a);
+	                const labels = sortedData.map(([k]) => k);
+	                const values = sortedData.map(([, v]) => v);
+
+	                const chart = new Chart(ctx, {
+	                    type: 'doughnut',
+	                    data: {
+	                        labels: labels,
+	                        datasets: [{
+	                            label: label,
+	                            data: values,
+	                            backgroundColor: labels.map((_, i) => getColor(i)),
+	                            borderColor: '#ffffff', // Borde blanco para el tema claro
+	                            borderWidth: 3
+	                        }]
+	                    },
+	                    options: {
+	                        responsive: true,
+	                        maintainAspectRatio: false,
+	                        plugins: {
+	                            legend: {
+	                                position: 'top',
+	                                labels: {
+	                                    color: '#374151' // Color de texto de la leyenda para tema claro
+	                                }
+	                            }
+	                        },
+	                        // NUEVA FUNCIONALIDAD: onClick para filtrar
+	                        onClick: (evt) => {
+	                            const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+	                            if (points.length) {
+	                                const firstPoint = points[0];
+	                                const label = chart.data.labels[firstPoint.index];
+	                                openSearchForLabel(label);
+	                            }
+	                        },
+	                        // NUEVA FUNCIONALIDAD: Cambiar cursor al pasar por encima
+	                        onHover: (event, chartElement) => {
+	                            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+	                        }
+	                    }
+	                });
+	                return chart;
+	            };
             
             // Función para crear un gráfico de barras
-            const createBarChart = (ctx, label, data, axis = 'y') => {
+	            const createBarChart = (ctx, label, data, axis = 'y') => {
                  // Ordenar los datos para mostrar las barras más grandes primero
                 const sortedData = Object.entries(data).sort(([, a], [, b]) => b - a);
                 const labels = sortedData.map(entry => entry[0]);
                 const values = sortedData.map(entry => entry[1]);
 
-                const chart = new Chart(ctx, {
+	                const chart = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: labels,
@@ -233,9 +430,10 @@
                             borderRadius: 4
                         }]
                     },
-                    options: {
-                        indexAxis: axis,
-                        responsive: true,
+	                    options: {
+	                        indexAxis: axis,
+	                        responsive: true,
+	                        maintainAspectRatio: false,
                         plugins: {
                             legend: {
                                 display: false
@@ -252,25 +450,112 @@
                             }
                         },
                         // NUEVA FUNCIONALIDAD: onClick para filtrar
-                        onClick: (evt) => {
+	                        onClick: (evt) => {
                             const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
                             if (points.length) {
-                                const firstPoint = points[0];
-                                const label = chart.data.labels[firstPoint.index];
-                                const url = `index.html?search=${encodeURIComponent(label)}`;
-                                window.open(url, '_blank').focus();
-                            }
-                        },
+	                                const firstPoint = points[0];
+	                                const label = chart.data.labels[firstPoint.index];
+	                                openSearchForLabel(label);
+	                            }
+	                        },
                         // NUEVA FUNCIONALIDAD: Cambiar cursor al pasar por encima
                         onHover: (event, chartElement) => {
                             event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
                         }
-                    }
-                });
-            };
+	                    }
+	                });
+	                return chart;
+	            };
 
-            // Cargar y procesar los datos
-            Papa.parse(csvUrl, {
+	            const charts = {};
+	            let modalChart = null;
+	            const modalOverlay = document.getElementById('chart-modal-overlay');
+	            const modalTitle = document.getElementById('chart-modal-title');
+	            const modalCloseBtn = document.getElementById('chart-modal-close');
+	            const modalCanvas = document.getElementById('chart-modal-canvas');
+
+	            const closeModal = () => {
+	                if (modalChart) {
+	                    modalChart.destroy();
+	                    modalChart = null;
+	                }
+	                modalOverlay.classList.remove('show');
+	                modalOverlay.setAttribute('aria-hidden', 'true');
+	            };
+
+	            const openModalForChartId = (chartId) => {
+	                const sourceChart = charts[chartId];
+	                if (!sourceChart) return;
+
+	                const srcCanvas = document.getElementById(chartId);
+	                const titleEl = srcCanvas?.closest('.chart-container')?.querySelector('h2');
+	                modalTitle.textContent = titleEl?.textContent?.trim() || 'Gráfico';
+
+	                if (modalChart) {
+	                    modalChart.destroy();
+	                    modalChart = null;
+	                }
+
+	                const ctx = modalCanvas.getContext('2d');
+	                const isBar = sourceChart.config.type === 'bar';
+	                const ds0 = sourceChart.data.datasets[0];
+
+	                modalChart = new Chart(ctx, {
+	                    type: sourceChart.config.type,
+	                    data: {
+	                        labels: [...sourceChart.data.labels],
+	                        datasets: [{
+	                            label: ds0.label,
+	                            data: [...ds0.data],
+	                            backgroundColor: Array.isArray(ds0.backgroundColor) ? [...ds0.backgroundColor] : ds0.backgroundColor,
+	                            borderColor: ds0.borderColor,
+	                            borderWidth: ds0.borderWidth,
+	                            borderRadius: ds0.borderRadius
+	                        }]
+	                    },
+	                    options: {
+	                        responsive: true,
+	                        maintainAspectRatio: false,
+	                        indexAxis: isBar ? (sourceChart.options.indexAxis || 'y') : undefined,
+	                        plugins: {
+	                            legend: isBar ? { display: false } : { position: 'top', labels: { color: '#374151' } }
+	                        },
+	                        scales: isBar ? {
+	                            x: { ticks: { color: '#4b5563' }, grid: { color: '#e5e7eb' } },
+	                            y: { ticks: { color: '#4b5563' }, grid: { color: '#e5e7eb' } }
+	                        } : undefined,
+	                        onClick: (evt) => {
+	                            const points = modalChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+	                            if (points.length) {
+	                                const label = modalChart.data.labels[points[0].index];
+	                                openSearchForLabel(label);
+	                            }
+	                        },
+	                        onHover: (event, chartElement) => {
+	                            event.native.target.style.cursor = chartElement[0] ? 'pointer' : 'default';
+	                        }
+	                    }
+	                });
+
+	                modalOverlay.classList.add('show');
+	                modalOverlay.setAttribute('aria-hidden', 'false');
+	                modalCloseBtn.focus();
+	            };
+
+	            modalCloseBtn.addEventListener('click', closeModal);
+	            modalOverlay.addEventListener('click', (event) => {
+	                if (event.target === modalOverlay) closeModal();
+	            });
+	            document.addEventListener('keydown', (event) => {
+	                if (event.key === 'Escape' && modalOverlay.classList.contains('show')) closeModal();
+	            });
+
+	            document.querySelectorAll('.chart-zoom-btn').forEach((btn) => {
+	                btn.addEventListener('click', () => openModalForChartId(btn.dataset.chart));
+	            });
+
+	            // Cargar y procesar los datos
+	            Papa.parse(csvUrl, {
                 download: true,
                 header: true,
                 skipEmptyLines: true,
@@ -309,24 +594,26 @@
                     const data = uniqueActiveApps;
                     // --- FIN DE LA LÓGICA DE FILTRADO ---
 
-                    // Actualizar estadísticas clave con los datos filtrados
-                    document.getElementById('total-apps').textContent = data.length;
+	                    // Actualizar estadísticas clave con los datos filtrados
+	                    document.getElementById('total-apps').textContent = data.length;
 
-                    // Procesar datos para cada gráfico usando los nombres exactos de las columnas del CSV
-                    const plataformaData = countSingleValueItems(data, 'Plataforma de creación');
-                    const tipoRecursoData = countSingleValueItems(data, 'Tipo de recurso');
-                    const areasData = countMultiValueItems(data, 'Área o áreas de conocimiento');
-                    const nivelesData = countMultiValueItems(data, 'Nivel o niveles educativos');
+	                    // Procesar datos para cada gráfico usando los nombres exactos de las columnas del CSV
+	                    const plataformaData = countMultiValueItems(data, 'Idiomas de la aplicación');
+	                    const tipoRecursoData = countMultiValueItems(data, 'Tipo de recurso');
+	                    const areasData = countMultiValueItems(data, 'Área o áreas de conocimiento');
+	                    const nivelesData = countMultiValueItems(data, 'Nivel o niveles educativos');
+	                    const keywordsData = countKeywords(data, 'Palabras clave (opcional)');
                     
                     // Actualizar más estadísticas
                     document.getElementById('total-areas').textContent = Object.keys(areasData).length;
 
-                    // Crear los gráficos
-                    createPieChart(document.getElementById('plataformaChart').getContext('2d'), '# de Apps', plataformaData);
-                    createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'), '# de Apps', tipoRecursoData);
-                    
-                    createBarChart(document.getElementById('areasChart').getContext('2d'), '# de Apps', areasData, 'y');
-                    createBarChart(document.getElementById('nivelesChart').getContext('2d'), '# de Apps', nivelesData, 'y');
+	                    // Crear los gráficos
+	                    charts.plataformaChart = createPieChart(document.getElementById('plataformaChart').getContext('2d'), '# de Apps', plataformaData);
+	                    charts.tipoRecursoChart = createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'), '# de Apps', tipoRecursoData);
+	                    
+	                    charts.areasChart = createBarChart(document.getElementById('areasChart').getContext('2d'), '# de Apps', areasData, 'y');
+	                    charts.nivelesChart = createBarChart(document.getElementById('nivelesChart').getContext('2d'), '# de Apps', nivelesData, 'y');
+	                    renderWordCloud(document.getElementById('keywordsCloud'), keywordsData, 90);
 
                     // Ocultar spinner y mostrar contenido
                     loadingSpinner.style.display = 'none';

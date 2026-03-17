@@ -10,12 +10,32 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
-        .chart-container { background-color: #ffffff; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); transition: transform 0.3s, box-shadow 0.3s; }
+        .chart-container { background-color: #ffffff; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); transition: transform 0.3s, box-shadow 0.3s; position: relative; }
         .chart-container:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07); }
         .stat-card { background-color: #ffffff; padding: 1.5rem; border-radius: 0.75rem; text-align: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05); }
         .stat-card .value { font-size: 2.5rem; font-weight: 700; color: #10b981; }
         #loading-spinner { border: 8px solid #e5e7eb; border-top: 8px solid #10b981; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chart-canvas { width: 100% !important; height: 240px !important; }
+        .chart-canvas--pie { height: 340px !important; }
+        .chart-canvas--bar { height: 320px !important; }
+        .chart-zoom-btn { position: absolute; top: 0.75rem; right: 0.75rem; font-size: 0.875rem; padding: 0.35rem 0.6rem; border-radius: 0.5rem; background: #f3f4f6; color: #111827; border: 1px solid #e5e7eb; }
+        .chart-zoom-btn:hover { background: #e5e7eb; }
+        .chart-zoom-btn:focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
+        .chart-modal-overlay { position: fixed; inset: 0; background: rgba(17, 24, 39, 0.55); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 1000; }
+        .chart-modal-overlay.show { display: flex; }
+        .chart-modal { width: min(1100px, 96vw); height: min(90vh, 820px); background: #ffffff; border-radius: 0.75rem; box-shadow: 0 20px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; }
+        .chart-modal-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; }
+        .chart-modal-title { font-size: 1.1rem; font-weight: 700; color: #111827; }
+        .chart-modal-close { font-size: 1.75rem; line-height: 1; padding: 0.25rem 0.5rem; border-radius: 0.5rem; color: #374151; }
+        .chart-modal-close:hover { background: #f3f4f6; color: #111827; }
+        .chart-modal-close:focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
+        .chart-modal-body { padding: 0.75rem 1rem 1rem; flex: 1; }
+        .chart-modal-canvas { width: 100% !important; height: 100% !important; }
+        .keyword-cloud { display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem; align-items: baseline; justify-content: center; padding-top: 0.25rem; }
+        .keyword-cloud a { text-decoration: none; padding: 0.15rem 0.35rem; border-radius: 0.5rem; background: #f3f4f6; color: #111827; border: 1px solid #e5e7eb; display: inline-block; transform: rotate(var(--rot, 0deg)); }
+        .keyword-cloud a:hover { background: #e5e7eb; }
+        .keyword-cloud a:focus-visible { outline: 3px solid #60a5fa; outline-offset: 2px; }
     </style>
 </head>
 <body class="antialiased">
@@ -36,40 +56,78 @@
                     <p id="total-areas" class="value">0</p>
                 </div>
             </section>
-            <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Plataforma de creación</h2>
-                    <canvas id="plataformaChart"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Tipo de recurso</h2>
-                    <canvas id="tipoRecursoChart"></canvas>
-                </div>
-                <div class="chart-container bg-transparent border-none shadow-none"></div>
-                <div class="chart-container lg:col-span-2">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Área(s) de coñecemento</h2>
-                    <canvas id="areasChart"></canvas>
-                </div>
-                <div class="chart-container lg:col-span-2">
-                    <h2 class="text-xl font-semibold mb-4 text-center">Nivel(éis) educativos</h2>
-                    <canvas id="nivelesChart"></canvas>
-                </div>
-            </section>
-        </main>
-    </div>
-    <script>
-        window.onload = () => {
-            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
-            const loadingSpinner = document.getElementById('loading-spinner');
-            const dashboardContent = document.getElementById('dashboard-content');
-            const chartColors = ['#34d399','#60a5fa','#f87171','#fbbf24','#a78bfa','#f472b6','#22d3ee','#a3e635','#fb923c','#9ca3af'];
-            const getColor = (i) => chartColors[i % chartColors.length];
-            const countMultiValueItems = (data, col) => { const counts = {}; data.forEach(r => { const items = r[col]; if (items) { items.split(',').forEach(it => { const t = it.trim(); if (t) counts[t] = (counts[t]||0)+1; }); } }); return counts; };
-            const countSingleValueItems = (data, col) => { const counts={}; data.forEach(r => { const it = r[col]?.trim(); if (it) counts[it]=(counts[it]||0)+1; }); return counts; };
-            const createPieChart = (ctx, label, data) => { const chart = new Chart(ctx,{ type:'doughnut', data:{ labels:Object.keys(data), datasets:[{ label, data:Object.values(data), backgroundColor:Object.keys(data).map((_,i)=>getColor(i)), borderColor:'#ffffff', borderWidth:3 }]}, options:{ responsive:true, plugins:{ legend:{ position:'top', labels:{ color:'#374151' } } }, onClick:(evt)=>{ const pts = chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},true); if(pts.length){ const idx=pts[0].index; const lbl=chart.data.labels[idx]; const url=`index.html?search=${encodeURIComponent(lbl)}`; window.open(url,'_blank').focus(); } }, onHover:(e, el)=>{ e.native.target.style.cursor = el[0] ? 'pointer':'default'; } } }); };
-            const createBarChart = (ctx, label, data, axis='y') => { const sorted = Object.entries(data).sort(([,a],[,b])=>b-a); const labels=sorted.map(e=>e[0]); const values=sorted.map(e=>e[1]); const chart=new Chart(ctx,{ type:'bar', data:{ labels, datasets:[{ label, data:values, backgroundColor:labels.map((_,i)=>getColor(i+2)), borderRadius:4 }]}, options:{ indexAxis:axis, responsive:true, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ color:'#4b5563' }, grid:{ color:'#e5e7eb' } }, y:{ ticks:{ color:'#4b5563' }, grid:{ color:'#e5e7eb' } } }, onClick:(evt)=>{ const pts=chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},true); if(pts.length){ const idx=pts[0].index; const lbl=chart.data.labels[idx]; const url=`index.html?search=${encodeURIComponent(lbl)}`; window.open(url,'_blank').focus(); } }, onHover:(e, el)=>{ e.native.target.style.cursor = el[0] ? 'pointer':'default'; } } }); };
-            Papa.parse(csvUrl,{ download:true, header:true, skipEmptyLines:true, complete:(results)=>{ const allData=results.data; const deletionUrlColumn='Marca la casilla y escribe más abajo la URL que tiene tu aplicación. En el resto de campos, escribe cualquier cosa y envía el formulario'; const appUrlColumn='Enlace (URL) a la aplicación'; const timestampColumn='Marca temporal'; const deletionFlagColumn='¿QUIERES ELIMINAR UN REGISTRO?'; const deletedUrls=new Set(); allData.forEach(row=>{ if(row[deletionFlagColumn]==='Sí' && row[deletionUrlColumn]){ deletedUrls.add(row[deletionUrlColumn].trim()); } }); let activeApps=allData.filter(row=>{ const appUrl=row[appUrlColumn]?.trim(); return appUrl && !deletedUrls.has(appUrl); }); activeApps.sort((a,b)=> new Date(b[timestampColumn]) - new Date(a[timestampColumn])); const uniqueActiveApps=[]; const seenUrls=new Set(); for(const app of activeApps){ const appUrl=app[appUrlColumn].trim(); if(!seenUrls.has(appUrl)){ uniqueActiveApps.push(app); seenUrls.add(appUrl); } } const data=uniqueActiveApps; document.getElementById('total-apps').textContent=data.length; const plataformaData=countSingleValueItems(data,'Plataforma de creación'); const tipoRecursoData=countSingleValueItems(data,'Tipo de recurso'); const areasData=countMultiValueItems(data,'Área o áreas de conocimiento'); const nivelesData=countMultiValueItems(data,'Nivel o niveles educativos'); document.getElementById('total-areas').textContent=Object.keys(areasData).length; createPieChart(document.getElementById('plataformaChart').getContext('2d'),'# de apps',plataformaData); createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'),'# de apps',tipoRecursoData); createBarChart(document.getElementById('areasChart').getContext('2d'),'# de apps',areasData,'y'); createBarChart(document.getElementById('nivelesChart').getContext('2d'),'# de apps',nivelesData,'y'); loadingSpinner.style.display='none'; dashboardContent.classList.remove('hidden'); }, error:(error)=>{ console.error('Erro ao cargar ou procesar o CSV:', error); loadingSpinner.style.display='none'; dashboardContent.innerHTML = `<p class="text-center text-red-500">Non se puideron cargar os datos. Téntao de novo máis tarde.</p>`; dashboardContent.classList.remove('hidden'); } });
-        };
-    </script>
-</body>
-</html>
+	            <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+	                <div class="chart-container">
+	                    <h2 class="text-xl font-semibold mb-4 text-center">Idioma(s) da aplicación</h2>
+	                    <button type="button" class="chart-zoom-btn" data-chart="plataformaChart">Ampliar</button>
+		                    <canvas id="plataformaChart" class="chart-canvas chart-canvas--pie"></canvas>
+		                </div>
+	                <div class="chart-container">
+	                    <h2 class="text-xl font-semibold mb-4 text-center">Tipo de recurso</h2>
+	                    <button type="button" class="chart-zoom-btn" data-chart="tipoRecursoChart">Ampliar</button>
+		                    <canvas id="tipoRecursoChart" class="chart-canvas chart-canvas--pie"></canvas>
+		                </div>
+		                <div class="chart-container">
+		                    <h2 class="text-xl font-semibold mb-4 text-center">Área(s) de coñecemento</h2>
+		                    <button type="button" class="chart-zoom-btn" data-chart="areasChart">Ampliar</button>
+		                    <canvas id="areasChart" class="chart-canvas chart-canvas--bar"></canvas>
+		                </div>
+		                <div class="chart-container">
+		                    <h2 class="text-xl font-semibold mb-4 text-center">Nivel(éis) educativos</h2>
+		                    <button type="button" class="chart-zoom-btn" data-chart="nivelesChart">Ampliar</button>
+		                    <canvas id="nivelesChart" class="chart-canvas chart-canvas--bar"></canvas>
+		                </div>
+		                <div class="chart-container lg:col-span-2">
+		                    <h2 class="text-xl font-semibold mb-4 text-center">Nube de palabras (palabras clave)</h2>
+		                    <div id="keywordsCloud" class="keyword-cloud" aria-label="Nube de palabras clave"></div>
+		                </div>
+		            </section>
+	        </main>
+	    </div>
+
+	    <div id="chart-modal-overlay" class="chart-modal-overlay" aria-hidden="true">
+	        <div class="chart-modal" role="dialog" aria-modal="true" aria-labelledby="chart-modal-title">
+	            <div class="chart-modal-header">
+	                <div id="chart-modal-title" class="chart-modal-title">Gráfico</div>
+	                <button id="chart-modal-close" type="button" class="chart-modal-close" aria-label="Pechar">&times;</button>
+	            </div>
+	            <div class="chart-modal-body">
+	                <canvas id="chart-modal-canvas" class="chart-modal-canvas"></canvas>
+	            </div>
+	        </div>
+	    </div>
+
+	    <script>
+	        window.onload = () => {
+	            const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_hltRI4Q0QolINWJVcKxCMMjfpdiCkKzSdgp9d8RlGTdUU1UIKvaj-TBSkq0JQGneDhfUkSQuFzy/pub?output=csv';
+	            const loadingSpinner = document.getElementById('loading-spinner');
+	            const dashboardContent = document.getElementById('dashboard-content');
+	            const chartColors = ['#34d399','#60a5fa','#f87171','#fbbf24','#a78bfa','#f472b6','#22d3ee','#a3e635','#fb923c','#9ca3af'];
+	            const getColor = (i) => chartColors[i % chartColors.length];
+	            const openSearchForLabel = (label) => { const url = `index.html?search=${encodeURIComponent(label)}`; window.open(url,'_blank')?.focus(); };
+		            const countMultiValueItems = (data, col) => { const counts = {}; data.forEach(r => { const items = r[col]; if (items) { items.split(/[,;]/).forEach(it => { const t = it.trim(); if (t) counts[t] = (counts[t]||0)+1; }); } }); return counts; };
+		            const normalizeKeyword = (s)=> (s||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().trim();
+		            const countKeywords = (data, col)=>{ const counts={}; const display={}; data.forEach(r=>{ const items=r[col]; if(!items) return; items.split(/[,;]/).forEach(it=>{ const original=(it||'').trim(); if(!original) return; const key=normalizeKeyword(original); if(!key) return; counts[key]=(counts[key]||0)+1; if(!display[key]) display[key]=original; }); }); return {counts, display}; };
+		            const shuffle = (arr)=>{ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; };
+		            const renderWordCloud = (container, keywordData, maxWords=80) => { if(!container) return; container.innerHTML=''; const all=Object.entries(keywordData?.counts||{}); if(!all.length){ container.textContent='—'; return; } const selected=all.sort(([,a],[,b])=>b-a).slice(0,maxWords); shuffle(selected); let max=0, min=Infinity; selected.forEach(([,c])=>{ if(c>max) max=c; if(c<min) min=c; }); if(max<=0) max=1; if(!isFinite(min) || min<=0) min=1; const minS=0.9, maxS=2.2; const size=(c)=> max===min ? (minS+maxS)/2 : (minS+((c-min)/(max-min))*(maxS-minS)); const frag=document.createDocumentFragment(); selected.forEach(([k,c])=>{ const w=keywordData?.display?.[k]||k; const a=document.createElement('a'); a.href='#'; a.textContent=w; a.style.fontSize=`${size(c).toFixed(2)}rem`; a.style.setProperty('--rot', `${Math.round((Math.random()*2-1)*10)}deg`); a.setAttribute('aria-label', `${w}: ${c}`); a.addEventListener('click',(e)=>{ e.preventDefault(); openSearchForLabel(w); }); frag.appendChild(a); }); container.appendChild(frag); };
+	            const countSingleValueItems = (data, col) => { const counts={}; data.forEach(r => { const it = r[col]?.trim(); if (it) counts[it]=(counts[it]||0)+1; }); return counts; };
+	            const createPieChart = (ctx, label, data) => { const sorted = Object.entries(data).sort(([,a],[,b])=>b-a); const labels = sorted.map(e=>e[0]); const values = sorted.map(e=>e[1]); const chart = new Chart(ctx,{ type:'doughnut', data:{ labels, datasets:[{ label, data:values, backgroundColor:labels.map((_,i)=>getColor(i)), borderColor:'#ffffff', borderWidth:3 }]}, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top', labels:{ color:'#374151' } } }, onClick:(evt)=>{ const pts = chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},true); if(pts.length){ const idx=pts[0].index; openSearchForLabel(chart.data.labels[idx]); } }, onHover:(e, el)=>{ e.native.target.style.cursor = el[0] ? 'pointer':'default'; } } }); return chart; };
+	            const createBarChart = (ctx, label, data, axis='y') => { const sorted = Object.entries(data).sort(([,a],[,b])=>b-a); const labels=sorted.map(e=>e[0]); const values=sorted.map(e=>e[1]); const chart=new Chart(ctx,{ type:'bar', data:{ labels, datasets:[{ label, data:values, backgroundColor:labels.map((_,i)=>getColor(i+2)), borderRadius:4 }]}, options:{ indexAxis:axis, responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ color:'#4b5563' }, grid:{ color:'#e5e7eb' } }, y:{ ticks:{ color:'#4b5563' }, grid:{ color:'#e5e7eb' } } }, onClick:(evt)=>{ const pts=chart.getElementsAtEventForMode(evt,'nearest',{intersect:true},true); if(pts.length){ const idx=pts[0].index; openSearchForLabel(chart.data.labels[idx]); } }, onHover:(e, el)=>{ e.native.target.style.cursor = el[0] ? 'pointer':'default'; } } }); return chart; };
+
+	            const charts = {}; let modalChart = null;
+	            const modalOverlay = document.getElementById('chart-modal-overlay');
+	            const modalTitle = document.getElementById('chart-modal-title');
+	            const modalCloseBtn = document.getElementById('chart-modal-close');
+	            const modalCanvas = document.getElementById('chart-modal-canvas');
+	            const closeModal = () => { if(modalChart){ modalChart.destroy(); modalChart=null; } modalOverlay.classList.remove('show'); modalOverlay.setAttribute('aria-hidden','true'); };
+	            const openModalForChartId = (chartId) => { const sourceChart = charts[chartId]; if(!sourceChart) return; const srcCanvas = document.getElementById(chartId); const titleEl = srcCanvas?.closest('.chart-container')?.querySelector('h2'); modalTitle.textContent = titleEl?.textContent?.trim() || 'Gráfico'; if(modalChart){ modalChart.destroy(); modalChart=null; } const ctx = modalCanvas.getContext('2d'); const isBar = sourceChart.config.type==='bar'; const ds0 = sourceChart.data.datasets[0]; modalChart = new Chart(ctx,{ type: sourceChart.config.type, data:{ labels:[...sourceChart.data.labels], datasets:[{ label: ds0.label, data:[...ds0.data], backgroundColor: Array.isArray(ds0.backgroundColor)?[...ds0.backgroundColor]:ds0.backgroundColor, borderColor: ds0.borderColor, borderWidth: ds0.borderWidth, borderRadius: ds0.borderRadius }]}, options:{ responsive:true, maintainAspectRatio:false, indexAxis: isBar ? (sourceChart.options.indexAxis||'y') : undefined, plugins:{ legend: isBar ? { display:false } : { position:'top', labels:{ color:'#374151' } } }, scales: isBar ? { x:{ ticks:{ color:'#4b5563' }, grid:{ color:'#e5e7eb' } }, y:{ ticks:{ color:'#4b5563' }, grid:{ color:'#e5e7eb' } } } : undefined, onClick:(evt)=>{ const pts=modalChart.getElementsAtEventForMode(evt,'nearest',{intersect:true},true); if(pts.length){ openSearchForLabel(modalChart.data.labels[pts[0].index]); } }, onHover:(e, el)=>{ e.native.target.style.cursor = el[0] ? 'pointer':'default'; } } }); modalOverlay.classList.add('show'); modalOverlay.setAttribute('aria-hidden','false'); modalCloseBtn.focus(); };
+	            modalCloseBtn.addEventListener('click', closeModal);
+	            modalOverlay.addEventListener('click', (e) => { if(e.target===modalOverlay) closeModal(); });
+	            document.addEventListener('keydown', (e) => { if(e.key==='Escape' && modalOverlay.classList.contains('show')) closeModal(); });
+	            document.querySelectorAll('.chart-zoom-btn').forEach((btn)=> btn.addEventListener('click', ()=> openModalForChartId(btn.dataset.chart)));
+
+		            Papa.parse(csvUrl,{ download:true, header:true, skipEmptyLines:true, complete:(results)=>{ const allData=results.data; const deletionUrlColumn='Marca la casilla y escribe más abajo la URL que tiene tu aplicación. En el resto de campos, escribe cualquier cosa y envía el formulario'; const appUrlColumn='Enlace (URL) a la aplicación'; const timestampColumn='Marca temporal'; const deletionFlagColumn='¿QUIERES ELIMINAR UN REGISTRO?'; const deletedUrls=new Set(); allData.forEach(row=>{ if(row[deletionFlagColumn]==='Sí' && row[deletionUrlColumn]){ deletedUrls.add(row[deletionUrlColumn].trim()); } }); let activeApps=allData.filter(row=>{ const appUrl=row[appUrlColumn]?.trim(); return appUrl && !deletedUrls.has(appUrl); }); activeApps.sort((a,b)=> new Date(b[timestampColumn]) - new Date(a[timestampColumn])); const uniqueActiveApps=[]; const seenUrls=new Set(); for(const app of activeApps){ const appUrl=app[appUrlColumn].trim(); if(!seenUrls.has(appUrl)){ uniqueActiveApps.push(app); seenUrls.add(appUrl); } } const data=uniqueActiveApps; document.getElementById('total-apps').textContent=data.length; const plataformaData=countMultiValueItems(data,'Idiomas de la aplicación'); const tipoRecursoData=countMultiValueItems(data,'Tipo de recurso'); const areasData=countMultiValueItems(data,'Área o áreas de conocimiento'); const nivelesData=countMultiValueItems(data,'Nivel o niveles educativos'); const keywordsData=countKeywords(data,'Palabras clave (opcional)'); document.getElementById('total-areas').textContent=Object.keys(areasData).length; charts.plataformaChart=createPieChart(document.getElementById('plataformaChart').getContext('2d'),'# de apps',plataformaData); charts.tipoRecursoChart=createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'),'# de apps',tipoRecursoData); charts.areasChart=createBarChart(document.getElementById('areasChart').getContext('2d'),'# de apps',areasData,'y'); charts.nivelesChart=createBarChart(document.getElementById('nivelesChart').getContext('2d'),'# de apps',nivelesData,'y'); renderWordCloud(document.getElementById('keywordsCloud'), keywordsData, 90); loadingSpinner.style.display='none'; dashboardContent.classList.remove('hidden'); }, error:(error)=>{ console.error('Erro ao cargar ou procesar o CSV:', error); loadingSpinner.style.display='none'; dashboardContent.innerHTML = `<p class="text-center text-red-500">Non se puideron cargar os datos. Téntao de novo máis tarde.</p>`; dashboardContent.classList.remove('hidden'); } });
+	        };
+	    </script>
+	</body>
+	</html>
