@@ -89,7 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_platform: 'Plataforma',
             filters_language: 'Idioma del recurso',
             filters_author: 'Autor/a',
-            language_label: 'Idioma(s):'
+            language_label: 'Idioma(s):',
+            license_label: 'Licencia:', license_code: 'código', license_content: 'contenidos'
         },
         ca: {
             app_title: 'Repositori de recursos educatius digitals',
@@ -151,7 +152,8 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_platform: 'Plataforma',
             filters_language: 'Idioma del recurs',
             filters_author: 'Autor/a',
-            language_label: 'Idioma(es):'
+            language_label: 'Idioma(es):',
+            license_label: 'Llicència:', license_code: 'codi', license_content: 'continguts'
         },
         gl: {
             app_title: 'Repositorio de recursos educativos dixitais',
@@ -213,7 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_platform: 'Plataforma',
             filters_language: 'Idioma do recurso',
             filters_author: 'Autor/a',
-            language_label: 'Idioma(s):'
+            language_label: 'Idioma(s):',
+            license_label: 'Licenza:', license_code: 'código', license_content: 'contidos'
         },
         eu: {
             app_title: 'Hezkuntza-baliabide digitalen biltegia',
@@ -275,7 +278,8 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_platform: 'Plataforma',
             filters_language: 'Baliabidearen hizkuntza',
             filters_author: 'Egilea',
-            language_label: 'Hizkuntza(k):'
+            language_label: 'Hizkuntza(k):',
+            license_label: 'Lizentzia:', license_code: 'kodea', license_content: 'edukiak'
         },
         en: {
             app_title: 'Repository of digital educational resources',
@@ -337,7 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_platform: 'Platform',
             filters_language: 'Resource language',
             filters_author: 'Author',
-            language_label: 'Language(s):'
+            language_label: 'Language(s):',
+            license_label: 'Licence:', license_code: 'code', license_content: 'content'
         }
     });
 
@@ -625,7 +630,46 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.appsContainer.className = '';
     }
 
-    function createAppCard(app) { const card = document.createElement('div'); card.className = 'card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col dark:bg-gray-800'; card.style.borderTopColor = getAuthorAccentColor(app.nombre_autor); const isFav = isFavorite(app.key); const favClass = isFav ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'; const fullDescription = app.descripcion_app || t('no_description'); let descriptionHtml; if (fullDescription.length > 350) { const shortDescription = fullDescription.substring(0, 350).trim(); descriptionHtml = `<div class="description-container text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow"><p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_more')}</a></p><p class="long-desc hidden">${fullDescription} <a href="#" class="read-less font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_less')}</a></p></div>`; } else { descriptionHtml = `<p class="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow">${fullDescription}</p>`; } card.innerHTML = `<div class="p-5 flex-grow flex flex-col relative"><button class="favorite-btn absolute top-3 right-3 p-1 rounded-full bg-white/50 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-700/50 dark:hover:bg-gray-700/90" title=\"${t('manage_favorite_title')}\" data-key="${app.key}"><svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg></button><h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${app.titulo_app}</h3><p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${t('by')} <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>${descriptionHtml}<div class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-auto"><p><strong>${t('level_label')}</strong> ${app.nivel_educativo ? createFilterLink(app.nivel_educativo, 'nivel_educativo') : ''}</p><p><strong>${t('area_label')}</strong> ${app.area_conocimiento ? createFilterLink(app.area_conocimiento, 'area_conocimiento') : ''}</p>${app.idiomas_app ? `<p><strong>${t('language_label')}</strong> ${createFilterLink(app.idiomas_app, 'idiomas_app')}</p>` : ''}</div></div><div class="p-4 border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"><div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full dark:bg-sky-900 dark:text-sky-300" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div><a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">${t('visit_app')}</a></div>`; return card; }
+    // Licencias de la ficha, separadas por «·» (o «;») y con su papel entre paréntesis si se sabe:
+    // «AGPL v3 (código) · CC BY-SA 4.0 (contenidos)». Las del antiguo formulario, como
+    // «Creative Commons BY-SA (Reconocimiento-CompartirIgual)», se abrevian a «CC BY-SA».
+    function escaparHtml(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+    function nombreLicencia(s) {
+        s = s.trim();
+        const cc = s.match(/creative\s*commons\s*(BY(?:-NC)?(?:-SA|-ND)?)/i) || s.match(/^CC[\s-]*(BY(?:-NC)?(?:-SA|-ND)?)(?:[\s-]+(\d\.\d))?\b/i);
+        if (cc) return `CC ${cc[1].toUpperCase()}${cc[2] ? ' ' + cc[2] : ''}`;
+        if (/^CC0/i.test(s)) return 'CC0';
+        const gpl = s.match(/^(A|L)?GPL[\s-]*v?(\d)/i);  // también los identificadores SPDX: AGPL-3.0-or-later
+        if (gpl) return `${(gpl[1] || '').toUpperCase()}GPL v${gpl[2]}`;
+        const otra = s.match(/^(Apache|MPL|EUPL)[\s-]*v?(\d\.\d)/i);
+        if (otra) return `${otra[1].charAt(0).toUpperCase() + otra[1].slice(1)} ${otra[2]}`;
+        return s;
+    }
+    function urlLicencia(nombre) {
+        const lang = ['es', 'ca', 'gl', 'eu', 'en'].includes(currentLang) ? currentLang : 'es';
+        let m = nombre.match(/^CC (BY[-A-Z]*) (\d\.\d)$/);
+        if (m) return `https://creativecommons.org/licenses/${m[1].toLowerCase()}/${m[2]}/deed.${lang}`;
+        if (/^CC BY/.test(nombre)) return 'https://creativecommons.org/share-your-work/cclicenses/';  // sin versión declarada
+        if (/^CC0/i.test(nombre)) return `https://creativecommons.org/publicdomain/zero/1.0/deed.${lang}`;
+        const fijas = [[/^AGPL/i, 'https://www.gnu.org/licenses/agpl-3.0.html'], [/^LGPL/i, 'https://www.gnu.org/licenses/lgpl-3.0.html'],
+                       [/^GPL/i, 'https://www.gnu.org/licenses/gpl-3.0.html'], [/^MIT/i, 'https://opensource.org/license/mit'],
+                       [/^Apache/i, 'https://www.apache.org/licenses/LICENSE-2.0'], [/^MPL/i, 'https://www.mozilla.org/MPL/2.0/'],
+                       [/^EUPL/i, 'https://interoperable-europe.ec.europa.eu/collection/eupl/eupl-text-eupl-12']];
+        const f = fijas.find(([re]) => re.test(nombre));
+        return f ? f[1] : '';
+    }
+    function licenciasHtml(texto) {
+        return String(texto).split(/[·;]/).map(p => p.trim()).filter(Boolean).map(parte => {
+            const m = parte.match(/^(.*?)\s*\((código|contenidos)\)$/i);
+            const nombre = nombreLicencia(m ? m[1] : parte);
+            const papel = m ? ` (${t(m[2].toLowerCase() === 'código' ? 'license_code' : 'license_content')})` : '';
+            const url = urlLicencia(nombre);
+            const n = escaparHtml(nombre);
+            return (url ? `<a href="${url}" target="_blank" rel="noopener" class="underline hover:text-blue-600 dark:hover:text-blue-400">${n}</a>` : n) + papel;
+        }).join(' · ');
+    }
+
+    function createAppCard(app) { const card = document.createElement('div'); card.className = 'card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col dark:bg-gray-800'; card.style.borderTopColor = getAuthorAccentColor(app.nombre_autor); const isFav = isFavorite(app.key); const favClass = isFav ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'; const fullDescription = app.descripcion_app || t('no_description'); let descriptionHtml; if (fullDescription.length > 350) { const shortDescription = fullDescription.substring(0, 350).trim(); descriptionHtml = `<div class="description-container text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow"><p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_more')}</a></p><p class="long-desc hidden">${fullDescription} <a href="#" class="read-less font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_less')}</a></p></div>`; } else { descriptionHtml = `<p class="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow">${fullDescription}</p>`; } card.innerHTML = `<div class="p-5 flex-grow flex flex-col relative"><button class="favorite-btn absolute top-3 right-3 p-1 rounded-full bg-white/50 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-700/50 dark:hover:bg-gray-700/90" title=\"${t('manage_favorite_title')}\" data-key="${app.key}"><svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg></button><h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${app.titulo_app}</h3><p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${t('by')} <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>${descriptionHtml}<div class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-auto"><p><strong>${t('level_label')}</strong> ${app.nivel_educativo ? createFilterLink(app.nivel_educativo, 'nivel_educativo') : ''}</p><p><strong>${t('area_label')}</strong> ${app.area_conocimiento ? createFilterLink(app.area_conocimiento, 'area_conocimiento') : ''}</p>${app.idiomas_app ? `<p><strong>${t('language_label')}</strong> ${createFilterLink(app.idiomas_app, 'idiomas_app')}</p>` : ''}${app.licencia ? `<p><strong>${t('license_label')}</strong> ${licenciasHtml(app.licencia)}</p>` : ''}</div></div><div class="p-4 border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"><div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full dark:bg-sky-900 dark:text-sky-300" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div><a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">${t('visit_app')}</a></div>`; return card; }
     
     function openDeleteCategoryModal(categoryName) { categoryToDelete = categoryName; elements.deleteCategoryConfirmText.innerHTML = t('delete_category_confirm_html', { category: categoryName }); elements.deleteCategoryModal.classList.remove('hidden'); }
     function closeDeleteCategoryModal() { elements.deleteCategoryModal.classList.add('hidden'); categoryToDelete = null; }
