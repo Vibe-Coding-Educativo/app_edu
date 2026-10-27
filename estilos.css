@@ -367,3 +367,12 @@ html.dark .modal-content {
     width: 100%;
     height: 100%;
 }
+
+/* El panel de filtros va pegado arriba (sticky). Con una lista larga abierta (autores) era más alto que la
+   pantalla del móvil y lo de abajo quedaba fuera de alcance: no pasa del alto visible y se desplaza por dentro. */
+#filter-panel {
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
