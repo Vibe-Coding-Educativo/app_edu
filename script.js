@@ -22,7 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let categoryToDelete = null;
     let allAppKeys = new Set();
 
-    const REQUIRED_FIELDS = ['correo_autor', 'nombre_autor', 'titulo_app', 'url_app'];
+    // Sin el correo: ya no se publica en la hoja (ADR 0001); la columna sigue, vacía.
+    const REQUIRED_FIELDS = ['nombre_autor', 'titulo_app', 'url_app'];
 
     // --- i18n ---
     const SUPPORTED_LANGS = ['es','ca','gl','eu','en'];
