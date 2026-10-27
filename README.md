@@ -1,6 +1,6 @@
-# Repositorio de aplicaciones educativas
+# Repositorio de recursos educativos digitales
 
-Este proyecto es un repositorio de aplicaciones y recursos educativos creados por la comunidad de Vibe Coding Educativo. El objetivo es centralizar y facilitar el acceso a herramientas digitales para el ámbito educativo.
+Este proyecto es un repositorio de recursos educativos digitales (aplicaciones, webs, juegos, asistentes…) creados por la comunidad de Vibe Coding Educativo. El objetivo es centralizar y facilitar el acceso a herramientas digitales para el ámbito educativo.
 
 ## Características principales
 

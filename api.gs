@@ -135,11 +135,11 @@ function codigo_(hoja, correo, codigo) {
   if (!urls.length) return { ok: true, urls: [] };
   MailApp.sendEmail({
     to: buscado,
-    subject: 'Código para gestionar tus aplicaciones en Vibe Coding Educativo',
+    subject: 'Código para gestionar tus recursos en Vibe Coding Educativo',
     body: 'Tu código es ' + codigo + '.\n\n' +
       'Escríbeselo al Bot de IA Educativa (https://t.me/IAEducativa_bot) en Telegram para ' +
-      'gestionar desde allí las aplicaciones que diste de alta en el catálogo de Vibe Coding ' +
-      'Educativo con este correo.\n\nSi no lo has pedido tú, no hagas nada.',
+      'gestionar desde allí los recursos que diste de alta en el Repositorio de recursos educativos ' +
+      'digitales de Vibe Coding Educativo con este correo.\n\nSi no lo has pedido tú, no hagas nada.',
     name: 'Vibe Coding Educativo',
   });
   return { ok: true, urls: urls };

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis Visual de Aplicaciones Educativas</title>
+    <title>Análisis visual de recursos educativos</title>
     <!-- Tailwind CSS para un diseño moderno y responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js para crear los gráficos -->
@@ -154,8 +154,8 @@
 
         <!-- Título y descripción -->
         <header class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-2">Análisis de Aplicaciones Educativas Activas</h1>
-            <p class="text-lg text-gray-600">Visualización interactiva de datos del repositorio de aplicaciones.</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-2">Análisis de recursos educativos activos</h1>
+            <p class="text-lg text-gray-600">Visualización interactiva de datos del repositorio.</p>
         </header>
 
         <!-- Spinner de carga -->
@@ -167,7 +167,7 @@
             <!-- Estadísticas clave -->
             <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <div class="stat-card">
-                    <h3 class="text-lg font-semibold text-gray-500 mb-2">Apps Activas</h3>
+                    <h3 class="text-lg font-semibold text-gray-500 mb-2">Recursos activos</h3>
                     <p id="total-apps" class="value">0</p>
                 </div>
                 <div class="stat-card">
@@ -180,7 +180,7 @@
             <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Gráfico: Idioma(s) de la aplicación -->
 	                <div class="chart-container">
-	                    <h2 class="text-xl font-semibold mb-4 text-center">Idioma(s) de la aplicación</h2>
+	                    <h2 class="text-xl font-semibold mb-4 text-center">Idioma(s) del recurso</h2>
 	                    <button type="button" class="chart-zoom-btn" data-chart="plataformaChart">Ampliar</button>
 	                    <canvas id="plataformaChart" class="chart-canvas chart-canvas--pie"></canvas>
 	                </div>
@@ -608,11 +608,11 @@
                     document.getElementById('total-areas').textContent = Object.keys(areasData).length;
 
 	                    // Crear los gráficos
-	                    charts.plataformaChart = createPieChart(document.getElementById('plataformaChart').getContext('2d'), '# de Apps', plataformaData);
-	                    charts.tipoRecursoChart = createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'), '# de Apps', tipoRecursoData);
+	                    charts.plataformaChart = createPieChart(document.getElementById('plataformaChart').getContext('2d'), '# de recursos', plataformaData);
+	                    charts.tipoRecursoChart = createPieChart(document.getElementById('tipoRecursoChart').getContext('2d'), '# de recursos', tipoRecursoData);
 	                    
-	                    charts.areasChart = createBarChart(document.getElementById('areasChart').getContext('2d'), '# de Apps', areasData, 'y');
-	                    charts.nivelesChart = createBarChart(document.getElementById('nivelesChart').getContext('2d'), '# de Apps', nivelesData, 'y');
+	                    charts.areasChart = createBarChart(document.getElementById('areasChart').getContext('2d'), '# de recursos', areasData, 'y');
+	                    charts.nivelesChart = createBarChart(document.getElementById('nivelesChart').getContext('2d'), '# de recursos', nivelesData, 'y');
 	                    renderWordCloud(document.getElementById('keywordsCloud'), keywordsData, 90);
 
                     // Ocultar spinner y mostrar contenido

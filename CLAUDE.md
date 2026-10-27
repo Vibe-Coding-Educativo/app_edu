@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Descripción del Proyecto
 
-Este es un repositorio de aplicaciones educativas creado por la comunidad "Vibe Coding Educativo". Es una aplicación web frontend que presenta un catálogo de recursos educativos con funcionalidades de búsqueda, filtrado y gestión de favoritos.
+Este es un repositorio de recursos educativos digitales creado por la comunidad "Vibe Coding Educativo". Es una aplicación web frontend que presenta un catálogo de recursos educativos con funcionalidades de búsqueda, filtrado y gestión de favoritos.
 
 ## Estructura del Proyecto
 
