@@ -29,7 +29,7 @@ Este proyecto es un repositorio de aplicaciones y recursos educativos creados po
 
 ## ¿Quieres añadir tu propia aplicación?
 
-Este es un proyecto colaborativo. Si has creado una aplicación educativa y quieres que forme parte de este repositorio, únete al grupo de Telegram [Vibe Coding Educativo](https://t.me/vceduca) y sigue las instrucciones del mensaje fijado para añadir tu creación.
+Este es un proyecto colaborativo. Si has creado una aplicación educativa y quieres que forme parte de este repositorio, únete al grupo de Telegram [Vibe Coding Educativo](https://t.me/vceduca) y envía su enlace al [Bot de IA Educativa](https://t.me/IAEducativa_bot): lee tu aplicación, prepara su ficha y, cuando le des el visto bueno, la publica. Con `/misrecursos` puedes cambiarla o quitarla más adelante.
 
 ## Tecnologías utilizadas
 
@@ -37,7 +37,7 @@ Este es un proyecto colaborativo. Si has creado una aplicación educativa y quie
 * **Frameworks y librerías**:
     * [TailwindCSS](https://tailwindcss.com/): Para el diseño de la interfaz.
     * [PapaParse](https://www.papaparse.com/): Para leer y procesar los datos desde un archivo CSV.
-* **Base de datos**: Los datos de las aplicaciones se gestionan a través de una hoja de cálculo de Google Sheets publicada como archivo CSV.
+* **Base de datos**: Los datos de las aplicaciones se gestionan a través de una hoja de cálculo de Google Sheets publicada como archivo CSV. El bot escribe en ella a través de la API de Apps Script de `api.gs` ([ADR 0001](docs/adr/0001-api-para-el-bot.md)).
 
 ## Licencia
 
