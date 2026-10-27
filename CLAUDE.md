@@ -66,7 +66,7 @@ No hay tests automatizados configurados. Las pruebas se realizan manualmente en 
 - Función `runManualCleanup()` para limpieza manual desde el menú de Google Sheets
 
 ### Campos requeridos en CSV:
-- `correo_autor`, `nombre_autor`, `titulo_app`, `url_app`
+- `nombre_autor`, `titulo_app`, `url_app`. El correo ya no: desde el 27-10-2026 la columna va vacía en la hoja publicada (los correos están en el almacén privado del Apps Script, docs/adr/0001). Antes de tocar la hoja, comprobar qué campos exige `REQUIRED_FIELDS` en `script.js`: si una ficha no los tiene, la web la descarta.
 
 ### Estructura de colores por plataforma:
 Las tarjetas tienen bordes de color según la plataforma (definido en `estilos.css` con clases específicas).

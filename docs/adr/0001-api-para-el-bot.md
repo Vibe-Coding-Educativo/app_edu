@@ -38,6 +38,12 @@ Validación: la relación de cada enlace con su correo es la misma antes y
 después; `/misrecursos` sigue encontrando los 107 recursos de Juanjo; el CSV
 publicado tiene 0 correos en sus 347 filas.
 
+Fallo y corrección: la web tenía el correo entre los campos obligatorios
+(`REQUIRED_FIELDS` en `script.js`) y, con la columna vacía, descartó todas las
+fichas durante unos 20 minutos hasta la versión 1.8.1, que ya no lo exige.
+Comprobado después en la web publicada: 346 de 346 recursos en Chromium y
+Firefox, en móvil y escritorio.
+
 ## Consecuencias
 
 - Las filas del bot no llevan correo; el script de limpieza nocturna
