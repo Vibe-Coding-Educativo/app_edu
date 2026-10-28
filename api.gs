@@ -14,7 +14,7 @@
  * Peticiones POST con JSON {clave, accion, ...}:
  *   listar                      todas las filas, con su correo (el bot lo usa para las altas antiguas)
  *   alta       {ficha}          añade una fila
- *   modificar  {url, ficha}     cambia los campos de la fila con esa URL; conserva la fecha de alta
+ *   modificar  {url, ficha}     cambia los campos de la fila con esa URL, también la URL; conserva la fecha de alta
  *   borrar     {url}            borra las filas con esa URL
  *   codigo     {correo, codigo} si hay recursos con ese correo, le envía el código
  *   migrar_correos               pasa los correos de la hoja al almacén privado y vacía la columna
@@ -159,6 +159,11 @@ function alta_(hoja, ficha) {
 function modificar_(hoja, url, ficha) {
   const filas = filasConUrl_(hoja, url);
   if (!filas.length) return { error: 'No hay ninguna aplicación con esa URL' };
+  // El enlace también se puede cambiar (la aplicación se ha mudado), si no es el de otra.
+  const nueva = ficha[COL_URL];
+  const mudanza = nueva !== undefined && normalizarUrl_(nueva) !== normalizarUrl_(url);
+  if (mudanza && !String(nueva).trim()) return { error: 'Falta la URL' };
+  if (mudanza && filasConUrl_(hoja, nueva).length) return { error: 'Ya hay una aplicación con esa URL' };
   const cab = cabeceras_(hoja);
   const n = filas[filas.length - 1];  // la más reciente; las demás, si las hay, sobran
   const rango = hoja.getRange(n, 1, 1, cab.length);
@@ -168,6 +173,15 @@ function modificar_(hoja, url, ficha) {
   });
   rango.setValues([fila]);
   filas.slice(0, -1).reverse().forEach(f => hoja.deleteRow(f));
+  if (mudanza) {  // el correo del antiguo formulario sigue a su aplicación
+    const m = correos_();
+    Object.keys(m).forEach(correo => {
+      const urls = m[correo].map(u => (normalizarUrl_(u) === normalizarUrl_(url) ? String(nueva).trim() : u));
+      if (urls.join('\n') !== m[correo].join('\n')) {
+        PropertiesService.getScriptProperties().setProperty(PREFIJO_CORREO + correo, JSON.stringify(urls));
+      }
+    });
+  }
   return { ok: true };
 }
 

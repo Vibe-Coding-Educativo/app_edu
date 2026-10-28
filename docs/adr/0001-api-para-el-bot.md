@@ -16,7 +16,7 @@ recurso, prepara la ficha y la persona da el visto bueno en Telegram.
 publica como aplicación web (se ejecuta como el propietario y la puede llamar
 cualquiera). Atiende peticiones POST en JSON con una clave que comparte con el
 bot; en el código va solo su huella SHA-256, porque este repositorio es
-público. Acciones: `listar`, `alta`, `modificar` (en su sitio, conservando la
+público. Acciones: `listar`, `alta`, `modificar` (en su sitio, también el enlace, conservando la
 fecha de alta), `borrar` y `codigo` (manda un código al correo de quien dio de
 alta recursos con el formulario, para que el bot compruebe que son suyos).
 
