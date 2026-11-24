@@ -46,6 +46,10 @@ para los dos sitios.
 - **`avisar_correo {url, asunto, texto}`**: escribe al correo con que se dio de alta un
   recurso en el antiguo formulario, para avisar a su autor si no usa el bot. El bot no ve
   la dirección.
+- **La franja de arriba de cada tarjeta lleva el color del semáforo** (Juanjo, 24-11-2026):
+  verde, amarillo o rojo; gris si está pendiente o sin evaluar; mitad verde y mitad amarilla
+  si depende de usarla con registro o sin él. Antes, su color salía del nombre del autor
+  y no significaba nada para quien miraba. La ayuda lo explica.
 - **Un filtro «Semáforo de privacidad»** con los colores en orden fijo. Un recurso
   `VERDE/AMARILLO` aparece en los dos. En la dirección para compartir se llama
   `privacy`.
