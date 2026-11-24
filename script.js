@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             language_label: 'Idioma(s):',
             license_label: 'Licencia:', license_code: 'código', license_content: 'contenidos',
             privacy_label: 'Privacidad:', filters_privacy: 'Semáforo de privacidad', link_disabled: 'Enlace desactivado', link_disabled_note: 'Sigue a quien la usa con analítica comercial. El enlace volverá en cuanto su autor lo arregle.', privacy_date: 'Evaluada el {date}.', privacy_note: 'Evaluación técnica orientativa con el <a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">anexo I del INTEF</a>, no oficial.', privacy_pending_note: 'Se evalúa cada noche: aparecerá mañana.',
-            sem_VERDE: 'Verde', sem_AMARILLO: 'Amarillo', sem_ROJO: 'Rojo', sem_SIN_EVALUAR: 'Sin evaluar', sem_PENDIENTE: 'Pendiente de evaluar'
+            sem_VERDE: 'Verde', sem_AMARILLO: 'Amarillo', sem_ROJO: 'Rojo', sem_SIN_EVALUAR: 'Sin evaluar', sem_PENDIENTE: 'Pendiente de evaluar', sem_desc_VERDE: 'No trata datos personales.', sem_desc_AMARILLO: 'Trata datos personales.', sem_desc_ROJO: 'Sigue a quien la usa con analítica comercial: su enlace está desactivado.', sem_desc_GRIS: 'Sin evaluar o pendiente: no es una aplicación web, su enlace no funciona o aún no se ha revisado.', sem_alumnado: 'Con alumnado:', sem_alumnado_VERDE: 'se puede usar sin introducir datos personales, siguiendo las advertencias del INTEF.', sem_alumnado_AMARILLO: 'solo con permiso del centro y sin introducir datos personales reales del alumnado.', sem_alumnado_ROJO: 'no debe usarse.', sem_alumnado_DUAL: 'sin registrarse, como una verde; con registro, hace falta el permiso del centro.'
         },
         ca: {
             app_title: 'Repositori de recursos educatius digitals',
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             language_label: 'Idioma(es):',
             license_label: 'Llicència:', license_code: 'codi', license_content: 'continguts',
             privacy_label: 'Privadesa:', filters_privacy: 'Semàfor de privadesa', link_disabled: 'Enllaç desactivat', link_disabled_note: 'Segueix qui la fa servir amb analítica comercial. L’enllaç tornarà quan l’autor ho arregli.', privacy_date: 'Avaluada el {date}.', privacy_note: 'Avaluació tècnica orientativa amb l’<a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">annex I de l’INTEF</a>, no oficial.', privacy_pending_note: 'S’avalua cada nit: apareixerà demà.',
-            sem_VERDE: 'Verd', sem_AMARILLO: 'Groc', sem_ROJO: 'Vermell', sem_SIN_EVALUAR: 'Sense avaluar', sem_PENDIENTE: 'Pendent d’avaluar'
+            sem_VERDE: 'Verd', sem_AMARILLO: 'Groc', sem_ROJO: 'Vermell', sem_SIN_EVALUAR: 'Sense avaluar', sem_PENDIENTE: 'Pendent d’avaluar', sem_desc_VERDE: 'No tracta dades personals.', sem_desc_AMARILLO: 'Tracta dades personals.', sem_desc_ROJO: 'Segueix qui la fa servir amb analítica comercial: l’enllaç està desactivat.', sem_desc_GRIS: 'Sense avaluar o pendent: no és una aplicació web, l’enllaç no funciona o encara no s’ha revisat.', sem_alumnado: 'Amb l’alumnat:', sem_alumnado_VERDE: 'es pot fer servir sense introduir dades personals, seguint les advertències de l’INTEF.', sem_alumnado_AMARILLO: 'només amb permís del centre i sense introduir dades personals reals de l’alumnat.', sem_alumnado_ROJO: 'no s’ha de fer servir.', sem_alumnado_DUAL: 'sense registrar-se, com una verda; amb registre, cal el permís del centre.'
         },
         gl: {
             app_title: 'Repositorio de recursos educativos dixitais',
@@ -223,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             language_label: 'Idioma(s):',
             license_label: 'Licenza:', license_code: 'código', license_content: 'contidos',
             privacy_label: 'Privacidade:', filters_privacy: 'Semáforo de privacidade', link_disabled: 'Ligazón desactivada', link_disabled_note: 'Segue a quen a usa con analítica comercial. A ligazón volverá en canto o seu autor o arranxe.', privacy_date: 'Avaliada o {date}.', privacy_note: 'Avaliación técnica orientativa co <a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">anexo I do INTEF</a>, non oficial.', privacy_pending_note: 'Avalíase cada noite: aparecerá mañá.',
-            sem_VERDE: 'Verde', sem_AMARILLO: 'Amarelo', sem_ROJO: 'Vermello', sem_SIN_EVALUAR: 'Sen avaliar', sem_PENDIENTE: 'Pendente de avaliar'
+            sem_VERDE: 'Verde', sem_AMARILLO: 'Amarelo', sem_ROJO: 'Vermello', sem_SIN_EVALUAR: 'Sen avaliar', sem_PENDIENTE: 'Pendente de avaliar', sem_desc_VERDE: 'Non trata datos persoais.', sem_desc_AMARILLO: 'Trata datos persoais.', sem_desc_ROJO: 'Segue a quen a usa con analítica comercial: a súa ligazón está desactivada.', sem_desc_GRIS: 'Sen avaliar ou pendente: non é unha aplicación web, a súa ligazón non funciona ou aínda non se revisou.', sem_alumnado: 'Co alumnado:', sem_alumnado_VERDE: 'pódese usar sen introducir datos persoais, seguindo as advertencias do INTEF.', sem_alumnado_AMARILLO: 'só con permiso do centro e sen introducir datos persoais reais do alumnado.', sem_alumnado_ROJO: 'non se debe usar.', sem_alumnado_DUAL: 'sen rexistrarse, coma unha verde; con rexistro, cómpre o permiso do centro.'
         },
         eu: {
             app_title: 'Hezkuntza-baliabide digitalen biltegia',
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             language_label: 'Hizkuntza(k):',
             license_label: 'Lizentzia:', license_code: 'kodea', license_content: 'edukiak',
             privacy_label: 'Pribatutasuna:', filters_privacy: 'Pribatutasun-semaforoa', link_disabled: 'Esteka desgaituta', link_disabled_note: 'Erabiltzaileak analitika komertzialarekin jarraitzen ditu. Esteka itzuliko da egileak konpontzen duenean.', privacy_date: 'Ebaluazio-data: {date}.', privacy_note: '<a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">INTEFen I. eranskinarekin</a> egindako ebaluazio tekniko orientagarria, ez ofiziala.', privacy_pending_note: 'Gauero ebaluatzen da: bihar agertuko da.',
-            sem_VERDE: 'Berdea', sem_AMARILLO: 'Horia', sem_ROJO: 'Gorria', sem_SIN_EVALUAR: 'Ebaluatu gabe', sem_PENDIENTE: 'Ebaluatzeko zain'
+            sem_VERDE: 'Berdea', sem_AMARILLO: 'Horia', sem_ROJO: 'Gorria', sem_SIN_EVALUAR: 'Ebaluatu gabe', sem_PENDIENTE: 'Ebaluatzeko zain', sem_desc_VERDE: 'Ez du datu pertsonalik tratatzen.', sem_desc_AMARILLO: 'Datu pertsonalak tratatzen ditu.', sem_desc_ROJO: 'Erabiltzaileak analitika komertzialarekin jarraitzen ditu: esteka desgaituta dago.', sem_desc_GRIS: 'Ebaluatu gabe edo zain: ez da web-aplikazio bat, esteka ez dabil edo oraindik ez da berrikusi.', sem_alumnado: 'Ikasleekin:', sem_alumnado_VERDE: 'datu pertsonalik sartu gabe erabil daiteke, INTEFen oharrei jarraituz.', sem_alumnado_AMARILLO: 'ikastetxearen baimenarekin bakarrik, eta ikasleen benetako datu pertsonalik sartu gabe.', sem_alumnado_ROJO: 'ez da erabili behar.', sem_alumnado_DUAL: 'erregistratu gabe, berde bat bezala; erregistroarekin, ikastetxearen baimena behar da.'
         },
         en: {
             app_title: 'Repository of digital educational resources',
@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
             language_label: 'Language(s):',
             license_label: 'Licence:', license_code: 'code', license_content: 'content',
             privacy_label: 'Privacy:', filters_privacy: 'Privacy traffic light', link_disabled: 'Link disabled', link_disabled_note: 'It tracks its users with commercial analytics. The link will come back as soon as its author fixes it.', privacy_date: 'Evaluated on {date}.', privacy_note: 'Indicative technical evaluation using <a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">INTEF Annex I</a>, not official.', privacy_pending_note: 'Evaluated every night: it will appear tomorrow.',
-            sem_VERDE: 'Green', sem_AMARILLO: 'Yellow', sem_ROJO: 'Red', sem_SIN_EVALUAR: 'Not evaluated', sem_PENDIENTE: 'Pending evaluation'
+            sem_VERDE: 'Green', sem_AMARILLO: 'Yellow', sem_ROJO: 'Red', sem_SIN_EVALUAR: 'Not evaluated', sem_PENDIENTE: 'Pending evaluation', sem_desc_VERDE: 'It does not process personal data.', sem_desc_AMARILLO: 'It processes personal data.', sem_desc_ROJO: 'It tracks its users with commercial analytics: its link is disabled.', sem_desc_GRIS: 'Not evaluated or pending: it is not a web app, its link does not work or it has not been checked yet.', sem_alumnado: 'With students:', sem_alumnado_VERDE: 'it can be used without entering personal data, following INTEF’s warnings.', sem_alumnado_AMARILLO: 'only with your school’s permission and without entering students’ real personal data.', sem_alumnado_ROJO: 'it must not be used.', sem_alumnado_DUAL: 'without registering, like a green one; with registration, your school’s permission is needed.'
         }
     });
 
@@ -701,9 +701,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return codigosSemaforo(app.semaforo).includes('ROJO')
             && !String(app.motivo_semaforo || '').startsWith('Admitida tras revisión manual');
     }
+    function leyendaSemaforo() {
+        const fila = (clase, nombre, clave) => `<li><span class="semaforo semaforo-${clase}"><span class="semaforo-punto" aria-hidden="true"></span>${nombre}</span> ${t(clave)}</li>`;
+        return `<ul class="semaforo-leyenda">${fila('verde', t('sem_VERDE'), 'sem_desc_VERDE')}${fila('amarillo', t('sem_AMARILLO'), 'sem_desc_AMARILLO')}${fila('rojo', t('sem_ROJO'), 'sem_desc_ROJO')}${fila('pendiente', t('sem_SIN_EVALUAR'), 'sem_desc_GRIS')}</ul>`;
+    }
     function privacidadHtml(app) {
         const cods = codigosSemaforo(app.semaforo);
         const pastillas = cods.map(c => `<span class="semaforo semaforo-${c.toLowerCase()}"><span class="semaforo-punto" aria-hidden="true"></span>${t('sem_' + c)}</span>`).join(' ');
+        const significado = [...new Set(cods.map(c => ['SIN_EVALUAR', 'PENDIENTE'].includes(c) ? 'GRIS' : c))]
+            .map(c => `<p class="semaforo-significado">${t('sem_desc_' + c)}</p>`).join('');
+        // Cómo usarla con el alumnado, según el color (el criterio del semáforo del INTEF; Juanjo, 24-11-2026).
+        const claveAlumnado = cods.length > 1 ? 'DUAL' : (['VERDE', 'AMARILLO', 'ROJO'].includes(cods[0]) ? cods[0] : '');
+        const alumnado = claveAlumnado ? `<p><strong>${t('sem_alumnado')}</strong> ${t('sem_alumnado_' + claveAlumnado)}</p>` : '';
         let detalle;
         if (cods[0] === 'PENDIENTE') {
             detalle = `<p>${t('privacy_pending_note')}</p>`;
@@ -712,7 +721,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 + `${app.fecha_semaforo ? `<p>${t('privacy_date', { date: fechaLocal(app.fecha_semaforo) })}</p>` : ''}`
                 + `<p class="semaforo-nota">${t('privacy_note')}</p>`;
         }
-        return `<details class="semaforo-detalle"><summary><strong>${t('privacy_label')}</strong> ${pastillas}</summary><div class="semaforo-texto">${detalle}</div></details>`;
+        return `<details class="semaforo-detalle"><summary><strong>${t('privacy_label')}</strong> ${pastillas}</summary><div class="semaforo-texto">${significado}${alumnado}${detalle}</div></details>`;
     }
 
     // La franja de arriba de la tarjeta lleva el color del semáforo (Juanjo, 24-11-2026; ADR 0002); gris si está
@@ -887,7 +896,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </summary>
                 <div class="pt-3 flex flex-wrap gap-2" data-category="${cat.id}">
                     ${Array.from(sortedValues).map(value => `<button class="filter-btn text-sm font-medium py-1.5 px-3 rounded-full" data-filter="${value}">${cat.label ? cat.label(value) : value}</button>`).join('')}
-                </div>`;
+                </div>${cat.id === 'privacidad' ? leyendaSemaforo() : ''}`;
             elements.filtersContainer.appendChild(details);
         });
     }

@@ -398,3 +398,6 @@ html.dark .semaforo-verde { background: rgba(22, 163, 74, 0.2); color: #bbf7d0; 
 html.dark .semaforo-amarillo { background: rgba(202, 138, 4, 0.2); color: #fef08a; border-color: #854d0e; }
 html.dark .semaforo-rojo { background: rgba(220, 38, 38, 0.2); color: #fecaca; border-color: #991b1b; }
 html.dark .semaforo-sin_evaluar, html.dark .semaforo-pendiente { background: rgba(156, 163, 175, 0.15); color: #e5e7eb; border-color: #4b5563; }
+.semaforo-significado { font-weight: 600; }
+.semaforo-leyenda { margin-top: 0.75rem; display: grid; gap: 0.4rem; font-size: 0.8rem; color: #4b5563; list-style: none; padding: 0; }
+html.dark .semaforo-leyenda { color: #d1d5db; }

@@ -50,6 +50,12 @@ para los dos sitios.
   verde, amarillo o rojo; gris si está pendiente o sin evaluar; mitad verde y mitad amarilla
   si depende de usarla con registro o sin él. Antes, su color salía del nombre del autor
   y no significaba nada para quien miraba. La ayuda lo explica.
+- **Qué significa cada color y cómo usarla con el alumnado** (Juanjo, 24-11-2026: «en algún
+  lado debería explicar lo que significa cada color»; «en el mismo desplegable debería estar
+  la recomendación de cómo usarlo con alumnado»). El desplegable de cada ficha empieza por el
+  significado del color y una línea «Con alumnado:», según el criterio del semáforo del
+  INTEF: verde, sin datos personales; amarillo, con permiso del centro y sin datos reales;
+  rojo, no. Debajo de los botones del filtro hay una leyenda con los cuatro colores.
 - **Un filtro «Semáforo de privacidad»** con los colores en orden fijo. Un recurso
   `VERDE/AMARILLO` aparece en los dos. En la dirección para compartir se llama
   `privacy`.
