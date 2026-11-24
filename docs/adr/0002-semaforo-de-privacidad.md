@@ -48,7 +48,7 @@ para los dos sitios.
 ## Consecuencias
 
 - Una aplicación nueva sale como «pendiente» hasta la noche. El bot lo avisa al
-  publicarla (ADR 0052 del bot).
+  publicarla (ADR 0053 del bot).
 - Más adelante habrá que ver si la hoja se sustituye por un JSON (Juanjo, 24-11-2026).
   Entonces, el semáforo pasaría con lo demás.
 - Despliegue de la API: `clasp push` y `clasp deploy -i <id>`, como en el ADR 0001.
