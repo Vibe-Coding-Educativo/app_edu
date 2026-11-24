@@ -18,6 +18,9 @@
  *   borrar     {url}            borra las filas con esa URL
  *   codigo     {correo, codigo} si hay recursos con ese correo, le envía el código
  *   migrar_correos               pasa los correos de la hoja al almacén privado y vacía la columna
+ *   semaforos  {filas}          [{url, semaforo, motivo, fecha}]: escribe el semáforo de privacidad
+ *                               (lo calcula cada noche la guía de privacidad, ADR 0002); crea las
+ *                               columnas si faltan y no toca nada más de la fila
  *
  * Los correos de quienes usaron el antiguo formulario no están en la hoja, que se
  * publica en CSV: están en Propiedades del script («correo:<dirección>» → sus enlaces),
@@ -31,6 +34,8 @@ const COL_FECHA = 'Marca temporal';
 const COL_CORREO = 'Dirección de correo electrónico';
 const COL_URL = 'Enlace (URL) a la aplicación';
 const PREFIJO_CORREO = 'correo:';
+// El semáforo de privacidad: solo lo escribe la acción «semaforos» (ADR 0002).
+const COLS_SEMAFORO = ['Semáforo de privacidad', 'Motivo del semáforo', 'Fecha del semáforo'];
 const HUELLA_CLAVE = 'b62d5280376774908becb93dd63ff2a7e5a8ed5994b758a6d62736497c95ff01';
 
 function doPost(e) {
@@ -53,6 +58,7 @@ function doPost(e) {
       case 'borrar': return respuesta_(borrar_(hoja, p.url));
       case 'codigo': return respuesta_(codigo_(hoja, p.correo, p.codigo));
       case 'migrar_correos': return respuesta_(migrarCorreos_(hoja));
+      case 'semaforos': return respuesta_(semaforos_(hoja, p.filas));
       default: return respuesta_({ error: 'Acción desconocida: ' + p.accion });
     }
   } catch (error) {
@@ -170,6 +176,8 @@ function modificar_(hoja, url, ficha) {
   const fila = rango.getValues()[0];
   cab.forEach((c, i) => {
     if (c !== COL_FECHA && c !== COL_CORREO && ficha[c] !== undefined) fila[i] = String(ficha[c]);
+    // Con un enlace nuevo, el semáforo del antiguo ya no vale: «pendiente» hasta la noche (ADR 0002).
+    if (mudanza && COLS_SEMAFORO.indexOf(c) >= 0) fila[i] = '';
   });
   rango.setValues([fila]);
   filas.slice(0, -1).reverse().forEach(f => hoja.deleteRow(f));
@@ -221,4 +229,45 @@ function codigo_(hoja, correo, codigo) {
 function autorizar() {
   SpreadsheetApp.getActive().getSheetByName(HOJA_RESPUESTAS).getLastRow();
   MailApp.getRemainingDailyQuota();
+}
+
+/**
+ * Escribe de una vez el semáforo de privacidad de varias filas, buscadas por su enlace.
+ * Crea al final de la cabecera las columnas que falten. Devuelve cuántas filas ha cambiado
+ * y los enlaces que no ha encontrado (un recurso borrado entre la lectura y la escritura).
+ */
+function semaforos_(hoja, filas) {
+  if (!Array.isArray(filas)) return { error: 'Faltan las filas' };
+  let cab = cabeceras_(hoja);
+  COLS_SEMAFORO.forEach(c => {
+    if (cab.indexOf(c) < 0) {
+      hoja.getRange(1, cab.length + 1).setValue(c);
+      cab = cabeceras_(hoja);
+    }
+  });
+  const n = hoja.getLastRow() - 1;
+  if (n < 1) return { ok: true, cambiadas: 0, sin_fila: filas.map(f => f.url) };
+  const colUrl = cab.indexOf(COL_URL);
+  const cols = COLS_SEMAFORO.map(c => cab.indexOf(c));
+  const urls = hoja.getRange(2, colUrl + 1, n, 1).getValues().map(v => normalizarUrl_(v[0]));
+  // Las tres columnas son contiguas si las creó esta función; si no, se escriben por separado.
+  const datos = cols.map(c => hoja.getRange(2, c + 1, n, 1).getValues());
+  let cambiadas = 0;
+  const sinFila = [];
+  filas.forEach(f => {
+    const buscada = normalizarUrl_(f.url);
+    let hallada = false;
+    urls.forEach((u, i) => {
+      if (u !== buscada) return;
+      hallada = true;
+      const nuevos = [f.semaforo, f.motivo, f.fecha].map(v => String(v === undefined || v === null ? '' : v));
+      if (nuevos.some((v, k) => String(datos[k][i][0]) !== v)) {
+        nuevos.forEach((v, k) => { datos[k][i][0] = v; });
+        cambiadas++;
+      }
+    });
+    if (!hallada) sinFila.push(f.url);
+  });
+  cols.forEach((c, k) => hoja.getRange(2, c + 1, n, 1).setNumberFormat('@').setValues(datos[k]));
+  return { ok: true, cambiadas: cambiadas, sin_fila: sinFila };
 }
