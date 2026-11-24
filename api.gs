@@ -21,6 +21,8 @@
  *   semaforos  {filas}          [{url, semaforo, motivo, fecha}]: escribe el semáforo de privacidad
  *                               (lo calcula cada noche la guía de privacidad, ADR 0002); crea las
  *                               columnas si faltan y no toca nada más de la fila
+ *   avisar_correo {url, asunto, texto}  escribe al correo con que se dio de alta ese recurso en el antiguo
+ *                               formulario (el bot no lo ve); {enviados: 0} si no hay ninguno (ADR 0002)
  *
  * Los correos de quienes usaron el antiguo formulario no están en la hoja, que se
  * publica en CSV: están en Propiedades del script («correo:<dirección>» → sus enlaces),
@@ -59,6 +61,7 @@ function doPost(e) {
       case 'codigo': return respuesta_(codigo_(hoja, p.correo, p.codigo));
       case 'migrar_correos': return respuesta_(migrarCorreos_(hoja));
       case 'semaforos': return respuesta_(semaforos_(hoja, p.filas));
+      case 'avisar_correo': return respuesta_(avisarCorreo_(p.url, p.asunto, p.texto));
       default: return respuesta_({ error: 'Acción desconocida: ' + p.accion });
     }
   } catch (error) {
@@ -176,8 +179,8 @@ function modificar_(hoja, url, ficha) {
   const fila = rango.getValues()[0];
   cab.forEach((c, i) => {
     if (c !== COL_FECHA && c !== COL_CORREO && ficha[c] !== undefined) fila[i] = String(ficha[c]);
-    // Con un enlace nuevo, el semáforo del antiguo ya no vale: «pendiente» hasta la noche (ADR 0002).
-    if (mudanza && COLS_SEMAFORO.indexOf(c) >= 0) fila[i] = '';
+    // Con un enlace nuevo, el semáforo del antiguo ya no vale: el que traiga la ficha o «pendiente» (ADR 0002).
+    if (mudanza && COLS_SEMAFORO.indexOf(c) >= 0 && ficha[c] === undefined) fila[i] = '';
   });
   rango.setValues([fila]);
   filas.slice(0, -1).reverse().forEach(f => hoja.deleteRow(f));
@@ -270,4 +273,13 @@ function semaforos_(hoja, filas) {
   });
   cols.forEach((c, k) => hoja.getRange(2, c + 1, n, 1).setNumberFormat('@').setValues(datos[k]));
   return { ok: true, cambiadas: cambiadas, sin_fila: sinFila };
+}
+
+/** Un aviso del semáforo de privacidad al correo del antiguo formulario de ese recurso (ADR 0002). */
+function avisarCorreo_(url, asunto, texto) {
+  if (!url || !asunto || !texto) return { error: 'Faltan el enlace, el asunto o el texto' };
+  const correo = correoPorUrl_()[normalizarUrl_(url)];
+  if (!correo) return { ok: true, enviados: 0 };
+  MailApp.sendEmail({ to: correo, subject: String(asunto), body: String(texto), name: 'Vibe Coding Educativo' });
+  return { ok: true, enviados: 1 };
 }
