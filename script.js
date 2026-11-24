@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tipo_recurso: new Set(),
         idiomas_app: new Set(),
         nombre_autor: new Set(), palabras_clave: new Set(),
+        privacidad: new Set(),
     };
     let currentAppKeyForModal = null;
     let activeFavoriteTab = 'General';
@@ -90,7 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_language: 'Idioma del recurso',
             filters_author: 'Autor/a',
             language_label: 'Idioma(s):',
-            license_label: 'Licencia:', license_code: 'código', license_content: 'contenidos'
+            license_label: 'Licencia:', license_code: 'código', license_content: 'contenidos',
+            privacy_label: 'Privacidad:', filters_privacy: 'Semáforo de privacidad', privacy_more: 'Ver la evaluación en la guía de privacidad', privacy_date: 'Evaluada el {date}.', privacy_note: 'Evaluación técnica orientativa con el anexo I del INTEF, no oficial.', privacy_pending_note: 'Se evalúa cada noche: aparecerá mañana.',
+            sem_VERDE: 'Verde', sem_AMARILLO: 'Amarillo', sem_ROJO: 'Rojo', sem_SIN_EVALUAR: 'Sin evaluar', sem_PENDIENTE: 'Pendiente de evaluar'
         },
         ca: {
             app_title: 'Repositori de recursos educatius digitals',
@@ -153,7 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_language: 'Idioma del recurs',
             filters_author: 'Autor/a',
             language_label: 'Idioma(es):',
-            license_label: 'Llicència:', license_code: 'codi', license_content: 'continguts'
+            license_label: 'Llicència:', license_code: 'codi', license_content: 'continguts',
+            privacy_label: 'Privadesa:', filters_privacy: 'Semàfor de privadesa', privacy_more: 'Vegeu l’avaluació a la guia de privadesa', privacy_date: 'Avaluada el {date}.', privacy_note: 'Avaluació tècnica orientativa amb l’annex I de l’INTEF, no oficial.', privacy_pending_note: 'S’avalua cada nit: apareixerà demà.',
+            sem_VERDE: 'Verd', sem_AMARILLO: 'Groc', sem_ROJO: 'Vermell', sem_SIN_EVALUAR: 'Sense avaluar', sem_PENDIENTE: 'Pendent d’avaluar'
         },
         gl: {
             app_title: 'Repositorio de recursos educativos dixitais',
@@ -216,7 +221,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_language: 'Idioma do recurso',
             filters_author: 'Autor/a',
             language_label: 'Idioma(s):',
-            license_label: 'Licenza:', license_code: 'código', license_content: 'contidos'
+            license_label: 'Licenza:', license_code: 'código', license_content: 'contidos',
+            privacy_label: 'Privacidade:', filters_privacy: 'Semáforo de privacidade', privacy_more: 'Ver a avaliación na guía de privacidade', privacy_date: 'Avaliada o {date}.', privacy_note: 'Avaliación técnica orientativa co anexo I do INTEF, non oficial.', privacy_pending_note: 'Avalíase cada noite: aparecerá mañá.',
+            sem_VERDE: 'Verde', sem_AMARILLO: 'Amarelo', sem_ROJO: 'Vermello', sem_SIN_EVALUAR: 'Sen avaliar', sem_PENDIENTE: 'Pendente de avaliar'
         },
         eu: {
             app_title: 'Hezkuntza-baliabide digitalen biltegia',
@@ -279,7 +286,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_language: 'Baliabidearen hizkuntza',
             filters_author: 'Egilea',
             language_label: 'Hizkuntza(k):',
-            license_label: 'Lizentzia:', license_code: 'kodea', license_content: 'edukiak'
+            license_label: 'Lizentzia:', license_code: 'kodea', license_content: 'edukiak',
+            privacy_label: 'Pribatutasuna:', filters_privacy: 'Pribatutasun-semaforoa', privacy_more: 'Ikusi ebaluazioa pribatutasun-gidan', privacy_date: 'Ebaluazio-data: {date}.', privacy_note: 'INTEFen I. eranskinarekin egindako ebaluazio tekniko orientagarria, ez ofiziala.', privacy_pending_note: 'Gauero ebaluatzen da: bihar agertuko da.',
+            sem_VERDE: 'Berdea', sem_AMARILLO: 'Horia', sem_ROJO: 'Gorria', sem_SIN_EVALUAR: 'Ebaluatu gabe', sem_PENDIENTE: 'Ebaluatzeko zain'
         },
         en: {
             app_title: 'Repository of digital educational resources',
@@ -342,7 +351,9 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_language: 'Resource language',
             filters_author: 'Author',
             language_label: 'Language(s):',
-            license_label: 'Licence:', license_code: 'code', license_content: 'content'
+            license_label: 'Licence:', license_code: 'code', license_content: 'content',
+            privacy_label: 'Privacy:', filters_privacy: 'Privacy traffic light', privacy_more: 'See the evaluation in the privacy guide', privacy_date: 'Evaluated on {date}.', privacy_note: 'Indicative technical evaluation using INTEF Annex I, not official.', privacy_pending_note: 'Evaluated every night: it will appear tomorrow.',
+            sem_VERDE: 'Green', sem_AMARILLO: 'Yellow', sem_ROJO: 'Red', sem_SIN_EVALUAR: 'Not evaluated', sem_PENDIENTE: 'Pending evaluation'
         }
     });
 
@@ -669,7 +680,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join(' · ');
     }
 
-    function createAppCard(app) { const card = document.createElement('div'); card.className = 'card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col dark:bg-gray-800'; card.style.borderTopColor = getAuthorAccentColor(app.nombre_autor); const isFav = isFavorite(app.key); const favClass = isFav ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'; const fullDescription = app.descripcion_app || t('no_description'); let descriptionHtml; if (fullDescription.length > 350) { const shortDescription = fullDescription.substring(0, 350).trim(); descriptionHtml = `<div class="description-container text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow"><p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_more')}</a></p><p class="long-desc hidden">${fullDescription} <a href="#" class="read-less font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_less')}</a></p></div>`; } else { descriptionHtml = `<p class="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow">${fullDescription}</p>`; } card.innerHTML = `<div class="p-5 flex-grow flex flex-col relative"><button class="favorite-btn absolute top-3 right-3 p-1 rounded-full bg-white/50 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-700/50 dark:hover:bg-gray-700/90" title=\"${t('manage_favorite_title')}\" data-key="${app.key}"><svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg></button><h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${app.titulo_app}</h3><p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${t('by')} <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>${descriptionHtml}<div class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-auto"><p><strong>${t('level_label')}</strong> ${app.nivel_educativo ? createFilterLink(app.nivel_educativo, 'nivel_educativo') : ''}</p><p><strong>${t('area_label')}</strong> ${app.area_conocimiento ? createFilterLink(app.area_conocimiento, 'area_conocimiento') : ''}</p>${app.idiomas_app ? `<p><strong>${t('language_label')}</strong> ${createFilterLink(app.idiomas_app, 'idiomas_app')}</p>` : ''}${app.licencia ? `<p><strong>${t('license_label')}</strong> ${licenciasHtml(app.licencia)}</p>` : ''}</div></div><div class="p-4 border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"><div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full dark:bg-sky-900 dark:text-sky-300" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div><a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">${t('visit_app')}</a></div>`; return card; }
+    // --- Semáforo de privacidad (ADR 0002): lo escribe cada noche la guía de privacidad ---
+    const ORDEN_SEMAFORO = ['VERDE', 'AMARILLO', 'ROJO', 'SIN_EVALUAR', 'PENDIENTE'];
+    function codigosSemaforo(valor) {
+        const v = String(valor || '').trim().toUpperCase();
+        if (!v) return ['PENDIENTE'];
+        if (v === 'SIN EVALUAR') return ['SIN_EVALUAR'];
+        const cods = v.split('/').map(x => x.trim()).filter(x => ORDEN_SEMAFORO.includes(x));
+        return cods.length ? cods : ['SIN_EVALUAR'];
+    }
+    function escaparHtml(texto) {
+        return String(texto || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function fechaLocal(iso) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || '').trim());
+        return m ? `${m[3]}/${m[2]}/${m[1]}` : String(iso || '');
+    }
+    function privacidadHtml(app) {
+        const cods = codigosSemaforo(app.semaforo);
+        const pastillas = cods.map(c => `<span class="semaforo semaforo-${c.toLowerCase()}"><span class="semaforo-punto" aria-hidden="true"></span>${t('sem_' + c)}</span>`).join(' ');
+        let detalle;
+        if (cods[0] === 'PENDIENTE') {
+            detalle = `<p>${t('privacy_pending_note')}</p>`;
+        } else {
+            const guia = `https://guia-privacidad-edu.github.io/?u=${encodeURIComponent(app.url_app)}${currentLang !== 'es' ? '&lang=' + currentLang : ''}`;
+            detalle = `${app.motivo_semaforo ? `<p>${escaparHtml(app.motivo_semaforo)}</p>` : ''}`
+                + `${app.fecha_semaforo ? `<p>${t('privacy_date', { date: fechaLocal(app.fecha_semaforo) })}</p>` : ''}`
+                + `<p class="semaforo-nota">${t('privacy_note')}</p>`
+                + (cods[0] !== 'SIN_EVALUAR' ? `<p><a href="${guia}" target="_blank" rel="noopener" class="text-blue-600 hover:underline dark:text-blue-400">${t('privacy_more')}</a></p>` : '');
+        }
+        return `<details class="semaforo-detalle"><summary><strong>${t('privacy_label')}</strong> ${pastillas}</summary><div class="semaforo-texto">${detalle}</div></details>`;
+    }
+
+    function createAppCard(app) { const card = document.createElement('div'); card.className = 'card bg-white rounded-lg shadow-sm overflow-hidden flex flex-col dark:bg-gray-800'; card.style.borderTopColor = getAuthorAccentColor(app.nombre_autor); const isFav = isFavorite(app.key); const favClass = isFav ? 'text-red-500 fill-red-500' : 'text-gray-400 hover:text-red-500'; const fullDescription = app.descripcion_app || t('no_description'); let descriptionHtml; if (fullDescription.length > 350) { const shortDescription = fullDescription.substring(0, 350).trim(); descriptionHtml = `<div class="description-container text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow"><p class="short-desc">${shortDescription}... <a href="#" class="read-more font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_more')}</a></p><p class="long-desc hidden">${fullDescription} <a href="#" class="read-less font-semibold text-blue-600 hover:underline dark:text-blue-400 dark:hover:text-blue-300">${t('read_less')}</a></p></div>`; } else { descriptionHtml = `<p class="text-gray-600 dark:text-gray-300 text-sm mb-4 flex-grow">${fullDescription}</p>`; } card.innerHTML = `<div class="p-5 flex-grow flex flex-col relative"><button class="favorite-btn absolute top-3 right-3 p-1 rounded-full bg-white/50 hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-700/50 dark:hover:bg-gray-700/90" title=\"${t('manage_favorite_title')}\" data-key="${app.key}"><svg class="w-6 h-6 transition-colors duration-200 ${favClass}" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"></path></svg></button><h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">${app.titulo_app}</h3><p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${t('by')} <span class="font-medium">${createFilterLink(app.nombre_autor, 'nombre_autor')}</span></p>${descriptionHtml}<div class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-auto"><p><strong>${t('level_label')}</strong> ${app.nivel_educativo ? createFilterLink(app.nivel_educativo, 'nivel_educativo') : ''}</p><p><strong>${t('area_label')}</strong> ${app.area_conocimiento ? createFilterLink(app.area_conocimiento, 'area_conocimiento') : ''}</p>${app.idiomas_app ? `<p><strong>${t('language_label')}</strong> ${createFilterLink(app.idiomas_app, 'idiomas_app')}</p>` : ''}${app.licencia ? `<p><strong>${t('license_label')}</strong> ${licenciasHtml(app.licencia)}</p>` : ''}${privacidadHtml(app)}</div></div><div class="p-4 border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"><div class="flex flex-wrap mb-3 min-h-[2rem]">${app.palabras_clave?.split(',').filter(k => k.trim()).map(k => `<span class="keyword-tag ${activeFilters.palabras_clave.has(k.trim()) ? 'active' : ''} bg-sky-100 text-sky-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full dark:bg-sky-900 dark:text-sky-300" data-keyword="${k.trim()}">${k.trim()}</span>`).join('') || ''}</div><a href="${app.url_app}" target="_blank" class="block w-full text-center bg-blue-600 text-white font-semibold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors">${t('visit_app')}</a></div>`; return card; }
     
     function openDeleteCategoryModal(categoryName) { categoryToDelete = categoryName; elements.deleteCategoryConfirmText.innerHTML = t('delete_category_confirm_html', { category: categoryName }); elements.deleteCategoryModal.classList.remove('hidden'); }
     function closeDeleteCategoryModal() { elements.deleteCategoryModal.classList.add('hidden'); categoryToDelete = null; }
@@ -690,6 +733,9 @@ document.addEventListener('DOMContentLoaded', () => {
             area_conocimiento: ['area o areas de conocimiento', 'área o áreas de conocimiento'],
             palabras_clave: ['palabras clave'],
             licencia: ['licencia de uso'],
+            semaforo: ['semaforo de privacidad'],
+            motivo_semaforo: ['motivo del semaforo'],
+            fecha_semaforo: ['fecha del semaforo'],
             idiomas_app: ['idiomas', 'idioma'],
             eliminar_registro: ['quieres eliminar un registro', '¿quieres eliminar un registro?']
         };
@@ -779,6 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!seenUrls.has(url)) {
                 seenUrls.add(url);
                 app.key = url;
+                app.privacidad = codigosSemaforo(app.semaforo).join(',');
                 finalData.push(app);
             }
         }
@@ -795,6 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'tipo_recurso', name: t('filters_type'), multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.28 2.22a2.22 2.22 0 0 0-3.14 0l-12 12a2.22 2.22 0 0 0 0 3.14l3.14 3.14a2.22 2.22 0 0 0 3.14 0l12-12a2.22 2.22 0 0 0 0-3.14Z"/><path d="m14 7 3 3"/><path d="M5.5 16.5 10 12"/></svg>' },
             { id: 'idiomas_app', name: t('filters_language'), multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>'},
             { id: 'nombre_autor', name: t('filters_author'), multi: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'},
+            { id: 'privacidad', name: t('filters_privacy'), multi: true, label: v => t('sem_' + v), orden: ORDEN_SEMAFORO, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'},
         ];
 
         filterCategories.forEach(cat => {
@@ -805,7 +853,9 @@ document.addEventListener('DOMContentLoaded', () => {
             );
             if (values.size === 0) return;
 
-            const sortedValues = Array.from(values).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+            const sortedValues = cat.orden
+                ? cat.orden.filter(v => values.has(v))
+                : Array.from(values).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
             const details = document.createElement('details');
             details.className = 'border-b border-gray-200 last:border-b-0 pb-4 dark:border-gray-700';
@@ -820,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </span>
                 </summary>
                 <div class="pt-3 flex flex-wrap gap-2" data-category="${cat.id}">
-                    ${Array.from(sortedValues).map(value => `<button class="filter-btn text-sm font-medium py-1.5 px-3 rounded-full" data-filter="${value}">${value}</button>`).join('')}
+                    ${Array.from(sortedValues).map(value => `<button class="filter-btn text-sm font-medium py-1.5 px-3 rounded-full" data-filter="${value}">${cat.label ? cat.label(value) : value}</button>`).join('')}
                 </div>`;
             elements.filtersContainer.appendChild(details);
         });
@@ -858,7 +908,8 @@ document.addEventListener('DOMContentLoaded', () => {
             filterSet.forEach(filterValue => {
                 const tag = document.createElement('div');
                 tag.className = 'flex items-center bg-blue-100 text-blue-900 text-sm font-medium pl-3 pr-2 py-1 rounded-full shadow-sm dark:bg-blue-900/60 dark:text-blue-200';
-                tag.innerHTML = `<span>${catName}: ${filterValue}</span><button class="ml-2 text-blue-500 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100" data-category="${category}" data-filter="${filterValue}" title="Eliminar filtro">&times;</button>`;
+                const rotulo = category === 'privacidad' ? t('sem_' + filterValue) : filterValue;
+                tag.innerHTML = `<span>${catName}: ${rotulo}</span><button class="ml-2 text-blue-500 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100" data-category="${category}" data-filter="${filterValue}" title="Eliminar filtro">&times;</button>`;
                 elements.activeFiltersDisplay.appendChild(tag);
             });
         });
@@ -896,7 +947,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    const paramMapping = { subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso', app_lang: 'idiomas_app', author: 'nombre_autor', keyword: 'palabras_clave', search: 'search', fav_category: 'fav_category' }; function generateShareableURL(type = 'filters', value = '') { const params = new URLSearchParams(); if (type === 'category' && value && favorites[value]) { params.set('fav_category', value); params.set('ids', favorites[value].join(',')); } else { const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse())); if (elements.searchInput.value) params.set('search', elements.searchInput.value); for (const category in activeFilters) { if (activeFilters[category].size > 0) { const paramName = reverseMapping[category]; if (paramName) params.set(paramName, [...activeFilters[category]].join(',')); } } } return `${window.location.origin}${window.location.pathname}?${params.toString()}`; }
+    const paramMapping = { subject: 'area_conocimiento', level: 'nivel_educativo', type: 'tipo_recurso', app_lang: 'idiomas_app', author: 'nombre_autor', keyword: 'palabras_clave', privacy: 'privacidad', search: 'search', fav_category: 'fav_category' }; function generateShareableURL(type = 'filters', value = '') { const params = new URLSearchParams(); if (type === 'category' && value && favorites[value]) { params.set('fav_category', value); params.set('ids', favorites[value].join(',')); } else { const reverseMapping = Object.fromEntries(Object.entries(paramMapping).map(a => a.reverse())); if (elements.searchInput.value) params.set('search', elements.searchInput.value); for (const category in activeFilters) { if (activeFilters[category].size > 0) { const paramName = reverseMapping[category]; if (paramName) params.set(paramName, [...activeFilters[category]].join(',')); } } } return `${window.location.origin}${window.location.pathname}?${params.toString()}`; }
     function copyToClipboard(text) { if (!text) return; navigator.clipboard.writeText(text).then(() => { const msg = document.getElementById('copy-confirm-msg'); if (msg) msg.textContent = t('copy_confirm'); msg.classList.remove('opacity-0', '-translate-y-5'); setTimeout(() => msg.classList.add('opacity-0', '-translate-y-5'), 2000); }); }
     function applyUrlParams() { const params = new URLSearchParams(window.location.search); const ids = params.get('ids'); const favCategory = params.get('fav_category'); if (ids) { isCustomView = true; const sharedKeys = new Set(ids.split(',')); const sharedApps = allApps.filter(app => sharedKeys.has(app.key)); elements.searchInput.disabled = true; elements.toggleFiltersBtn.disabled = true; elements.toggleFavoritesBtn.disabled = true; elements.filterPanel.classList.add('hidden'); updateFiltersButtonHighlight(); elements.itemsPerPageSelector.disabled = true; const message = favCategory ? `Estás viendo la categoría de favoritos "<strong>${favCategory}</strong>".` : `Estás viendo una colección personalizada de <strong>${sharedApps.length}</strong> recursos.`; elements.customViewMsg.innerHTML = `${message} <button id="exit-custom-view" class="font-bold underline ml-2 hover:text-blue-600 dark:hover:text-blue-400">Ver todas</button>`; elements.customViewMsg.classList.remove('hidden'); document.getElementById('exit-custom-view').addEventListener('click', () => { window.location.href = window.location.pathname; }); elements.appsContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'; renderAppGrid(sharedApps); elements.resultsCounter.textContent = `Mostrando una colección de ${sharedApps.length} recursos.`; } else { isCustomView = false; applyFiltersFromURL(); applyAndDisplay(); } }
     function applyFiltersFromURL() { const params = new URLSearchParams(window.location.search); params.forEach((value, key) => { const category = paramMapping[key.toLowerCase()]; if (!category) return; const valuesFromUrl = value.split(','); if (category === 'search') { elements.searchInput.value = value; elements.clearSearchBtn.classList.toggle('hidden', !elements.searchInput.value); } else if (activeFilters[category]) { valuesFromUrl.forEach(urlVal => { activeFilters[category].add(urlVal); const normalized = normalizeString(urlVal); document.querySelectorAll(`[data-category="${category}"] .filter-btn`).forEach(btn => { if (normalizeString(btn.dataset.filter).includes(normalized)) btn.classList.add('active'); }); }); } }); }

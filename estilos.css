@@ -376,3 +376,25 @@ html.dark .modal-content {
     overflow-y: auto;
     overscroll-behavior: contain;
 }
+
+/* Semáforo de privacidad en cada tarjeta (ADR 0002). El color va siempre con su nombre. */
+.semaforo-detalle summary { cursor: pointer; list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
+.semaforo-detalle summary::-webkit-details-marker { display: none; }
+.semaforo-detalle summary::after { content: "▾"; color: #6b7280; }
+.semaforo-detalle[open] summary::after { content: "▴"; }
+.semaforo { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.05rem 0.5rem; border-radius: 9999px; font-weight: 600; border: 1px solid transparent; }
+.semaforo-punto { width: 0.6rem; height: 0.6rem; border-radius: 9999px; display: inline-block; }
+.semaforo-verde { background: #dcfce7; color: #14532d; border-color: #86efac; }
+.semaforo-verde .semaforo-punto { background: #16a34a; }
+.semaforo-amarillo { background: #fef9c3; color: #713f12; border-color: #fde047; }
+.semaforo-amarillo .semaforo-punto { background: #ca8a04; }
+.semaforo-rojo { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
+.semaforo-rojo .semaforo-punto { background: #dc2626; }
+.semaforo-sin_evaluar, .semaforo-pendiente { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+.semaforo-sin_evaluar .semaforo-punto, .semaforo-pendiente .semaforo-punto { background: #9ca3af; }
+.semaforo-texto { margin-top: 0.35rem; display: grid; gap: 0.25rem; }
+.semaforo-nota { font-style: italic; }
+html.dark .semaforo-verde { background: rgba(22, 163, 74, 0.2); color: #bbf7d0; border-color: #166534; }
+html.dark .semaforo-amarillo { background: rgba(202, 138, 4, 0.2); color: #fef08a; border-color: #854d0e; }
+html.dark .semaforo-rojo { background: rgba(220, 38, 38, 0.2); color: #fecaca; border-color: #991b1b; }
+html.dark .semaforo-sin_evaluar, html.dark .semaforo-pendiente { background: rgba(156, 163, 175, 0.15); color: #e5e7eb; border-color: #4b5563; }
