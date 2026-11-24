@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_author: 'Autor/a',
             language_label: 'Idioma(s):',
             license_label: 'Licencia:', license_code: 'código', license_content: 'contenidos',
-            privacy_label: 'Privacidad:', filters_privacy: 'Semáforo de privacidad', link_disabled: 'Enlace desactivado', link_disabled_note: 'Sigue a quien la usa con analítica comercial. El enlace volverá en cuanto su autor lo arregle.', privacy_date: 'Evaluada el {date}.', privacy_note: 'Evaluación técnica orientativa con el anexo I del INTEF, no oficial.', privacy_pending_note: 'Se evalúa cada noche: aparecerá mañana.',
+            privacy_label: 'Privacidad:', filters_privacy: 'Semáforo de privacidad', link_disabled: 'Enlace desactivado', link_disabled_note: 'Sigue a quien la usa con analítica comercial. El enlace volverá en cuanto su autor lo arregle.', privacy_date: 'Evaluada el {date}.', privacy_note: 'Evaluación técnica orientativa con el <a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">anexo I del INTEF</a>, no oficial.', privacy_pending_note: 'Se evalúa cada noche: aparecerá mañana.',
             sem_VERDE: 'Verde', sem_AMARILLO: 'Amarillo', sem_ROJO: 'Rojo', sem_SIN_EVALUAR: 'Sin evaluar', sem_PENDIENTE: 'Pendiente de evaluar'
         },
         ca: {
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_author: 'Autor/a',
             language_label: 'Idioma(es):',
             license_label: 'Llicència:', license_code: 'codi', license_content: 'continguts',
-            privacy_label: 'Privadesa:', filters_privacy: 'Semàfor de privadesa', link_disabled: 'Enllaç desactivat', link_disabled_note: 'Segueix qui la fa servir amb analítica comercial. L’enllaç tornarà quan l’autor ho arregli.', privacy_date: 'Avaluada el {date}.', privacy_note: 'Avaluació tècnica orientativa amb l’annex I de l’INTEF, no oficial.', privacy_pending_note: 'S’avalua cada nit: apareixerà demà.',
+            privacy_label: 'Privadesa:', filters_privacy: 'Semàfor de privadesa', link_disabled: 'Enllaç desactivat', link_disabled_note: 'Segueix qui la fa servir amb analítica comercial. L’enllaç tornarà quan l’autor ho arregli.', privacy_date: 'Avaluada el {date}.', privacy_note: 'Avaluació tècnica orientativa amb l’<a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">annex I de l’INTEF</a>, no oficial.', privacy_pending_note: 'S’avalua cada nit: apareixerà demà.',
             sem_VERDE: 'Verd', sem_AMARILLO: 'Groc', sem_ROJO: 'Vermell', sem_SIN_EVALUAR: 'Sense avaluar', sem_PENDIENTE: 'Pendent d’avaluar'
         },
         gl: {
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_author: 'Autor/a',
             language_label: 'Idioma(s):',
             license_label: 'Licenza:', license_code: 'código', license_content: 'contidos',
-            privacy_label: 'Privacidade:', filters_privacy: 'Semáforo de privacidade', link_disabled: 'Ligazón desactivada', link_disabled_note: 'Segue a quen a usa con analítica comercial. A ligazón volverá en canto o seu autor o arranxe.', privacy_date: 'Avaliada o {date}.', privacy_note: 'Avaliación técnica orientativa co anexo I do INTEF, non oficial.', privacy_pending_note: 'Avalíase cada noite: aparecerá mañá.',
+            privacy_label: 'Privacidade:', filters_privacy: 'Semáforo de privacidade', link_disabled: 'Ligazón desactivada', link_disabled_note: 'Segue a quen a usa con analítica comercial. A ligazón volverá en canto o seu autor o arranxe.', privacy_date: 'Avaliada o {date}.', privacy_note: 'Avaliación técnica orientativa co <a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">anexo I do INTEF</a>, non oficial.', privacy_pending_note: 'Avalíase cada noite: aparecerá mañá.',
             sem_VERDE: 'Verde', sem_AMARILLO: 'Amarelo', sem_ROJO: 'Vermello', sem_SIN_EVALUAR: 'Sen avaliar', sem_PENDIENTE: 'Pendente de avaliar'
         },
         eu: {
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_author: 'Egilea',
             language_label: 'Hizkuntza(k):',
             license_label: 'Lizentzia:', license_code: 'kodea', license_content: 'edukiak',
-            privacy_label: 'Pribatutasuna:', filters_privacy: 'Pribatutasun-semaforoa', link_disabled: 'Esteka desgaituta', link_disabled_note: 'Erabiltzaileak analitika komertzialarekin jarraitzen ditu. Esteka itzuliko da egileak konpontzen duenean.', privacy_date: 'Ebaluazio-data: {date}.', privacy_note: 'INTEFen I. eranskinarekin egindako ebaluazio tekniko orientagarria, ez ofiziala.', privacy_pending_note: 'Gauero ebaluatzen da: bihar agertuko da.',
+            privacy_label: 'Pribatutasuna:', filters_privacy: 'Pribatutasun-semaforoa', link_disabled: 'Esteka desgaituta', link_disabled_note: 'Erabiltzaileak analitika komertzialarekin jarraitzen ditu. Esteka itzuliko da egileak konpontzen duenean.', privacy_date: 'Ebaluazio-data: {date}.', privacy_note: '<a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">INTEFen I. eranskinarekin</a> egindako ebaluazio tekniko orientagarria, ez ofiziala.', privacy_pending_note: 'Gauero ebaluatzen da: bihar agertuko da.',
             sem_VERDE: 'Berdea', sem_AMARILLO: 'Horia', sem_ROJO: 'Gorria', sem_SIN_EVALUAR: 'Ebaluatu gabe', sem_PENDIENTE: 'Ebaluatzeko zain'
         },
         en: {
@@ -352,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             filters_author: 'Author',
             language_label: 'Language(s):',
             license_label: 'Licence:', license_code: 'code', license_content: 'content',
-            privacy_label: 'Privacy:', filters_privacy: 'Privacy traffic light', link_disabled: 'Link disabled', link_disabled_note: 'It tracks its users with commercial analytics. The link will come back as soon as its author fixes it.', privacy_date: 'Evaluated on {date}.', privacy_note: 'Indicative technical evaluation using INTEF Annex I, not official.', privacy_pending_note: 'Evaluated every night: it will appear tomorrow.',
+            privacy_label: 'Privacy:', filters_privacy: 'Privacy traffic light', link_disabled: 'Link disabled', link_disabled_note: 'It tracks its users with commercial analytics. The link will come back as soon as its author fixes it.', privacy_date: 'Evaluated on {date}.', privacy_note: 'Indicative technical evaluation using <a href="https://intef.es/wp-content/uploads/2026/07/Orientaciones_sobre_el_uso_de_herramientas_digital.pdf" target="_blank" rel="noopener" class="underline">INTEF Annex I</a>, not official.', privacy_pending_note: 'Evaluated every night: it will appear tomorrow.',
             sem_VERDE: 'Green', sem_AMARILLO: 'Yellow', sem_ROJO: 'Red', sem_SIN_EVALUAR: 'Not evaluated', sem_PENDIENTE: 'Pending evaluation'
         }
     });

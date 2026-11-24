@@ -31,7 +31,9 @@ para los dos sitios.
   no vale, y la fila queda pendiente hasta la noche.
 - **En cada tarjeta**, una línea «Privacidad:» con el color y su nombre, que no
   depende solo del color. Al pulsarla se despliegan el motivo, la fecha, la aclaración
-  de que es una evaluación técnica orientativa y no oficial. Al principio llevaba también
+  de que es una evaluación técnica orientativa y no oficial, con «anexo I del INTEF» enlazado
+  al PDF oficial de las *Orientaciones*, para quien quiera revisar el criterio (Juanjo,
+  24-11-2026). La ayuda también lo enlaza. Al principio llevaba también
   un enlace a la ficha de la guía; se quitó al pasar la guía a ser solo del INTEF. Se despliega al tocarla, sin depender de pasar
   el ratón, para que funcione en el móvil. Si la fila aún no tiene semáforo, sale
   «Pendiente de evaluar», con la explicación de que se evalúa cada noche.
